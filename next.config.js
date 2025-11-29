@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 静的エクスポートを有効にする場合（現在のNginx環境で使用する場合）
-  // Next.js 15では output: 'export' の代わりに generateStaticParams を使用
-  // output: 'export',
+  // 静的エクスポートを有効化（Nginx環境で使用する場合）
+  output: 'export',
   
   // 画像最適化設定
   images: {
