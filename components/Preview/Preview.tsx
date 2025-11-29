@@ -130,7 +130,7 @@ export default function Preview({ htmlContent, setHtmlContent }: PreviewProps) {
                       <span className={styles.slideNumber}>{index + 1}</span>
                       <span className={styles.slideTitle}>{slide.title || 'タイトルなし'}</span>
                       <div className={styles.slideActions}>
-                        {setHtmlContent && (
+                        {setHtmlContent != null && (
                           <>
                             <button
                               className={styles.actionBtn}
