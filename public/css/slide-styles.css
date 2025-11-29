@@ -1,0 +1,209 @@
+/* A4横向きスライド用スタイル */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    background: #f0f0f0;
+}
+
+.slide {
+    width: 297mm;  /* A4横向きの幅 */
+    height: 210mm; /* A4横向きの高さ */
+    min-height: 210mm; /* 最小高さを明示 */
+    max-height: 210mm; /* 最大高さを明示 */
+    background: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    margin: 20px auto;
+    padding: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    page-break-after: always;  /* 各スライドの後で改ページ */
+    page-break-inside: avoid; /* スライド内での改ページを防ぐ */
+    break-after: always; /* 新しいCSS仕様 */
+    break-inside: avoid; /* 新しいCSS仕様 */
+    overflow: hidden; /* はみ出しを防ぐ */
+}
+
+/* 分割レイアウトの場合は縦方向レイアウトを維持 */
+.slide.slide-split {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+}
+
+/* 分割コンテンツエリアのみ横並びにする */
+.slide-split-content {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 40px !important;
+    flex: 1 !important;
+}
+
+.slide:last-child {
+    page-break-after: auto;  /* 最後のスライドは改ページしない */
+    break-after: auto; /* 新しいCSS仕様 */
+}
+
+.slide h1 {
+    font-size: 48px;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 4px solid #3498db;
+    padding-bottom: 20px;
+}
+
+.slide h2 {
+    font-size: 36px;
+    color: #34495e;
+    margin-bottom: 25px;
+    padding-left: 20px;
+    border-left: 6px solid #e74c3c;
+}
+
+.slide p {
+    font-size: 24px;
+    line-height: 1.8;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.slide ul {
+    font-size: 22px;
+    line-height: 1.8;
+    color: #2c3e50;
+    padding-left: 40px;
+}
+
+.slide li {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.slide li:before {
+    content: "▶";
+    color: #3498db;
+    font-weight: bold;
+    position: absolute;
+    left: -25px;
+}
+
+.highlight {
+    background: linear-gradient(transparent 60%, #fff59d 60%);
+    padding: 2px 4px;
+}
+
+.center {
+    text-align: center;
+}
+
+.footer {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    font-size: 18px;
+    color: #7f8c8d;
+}
+
+/* 印刷・PDF出力時の設定 */
+@media print {
+    body { 
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .slide {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 297mm !important;
+        height: 210mm !important;
+        min-height: 210mm !important;
+        max-height: 210mm !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        break-after: always !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        position: relative !important;
+        overflow: visible !important;
+    }
+    
+    .slide.slide-split {
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+    }
+    
+    .slide-split-content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        gap: 40px !important;
+        flex: 1 !important;
+    }
+    .slide:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+    }
+}
+
+@page {
+    size: A4 landscape;
+    margin: 0;
+}
+
+/* 左右2分割レイアウト用CSS */
+.slide-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important; /* フレックスアイテムの縮小を許可 */
+}
+
+.slide-image {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important; /* フレックスアイテムの縮小を許可 */
+}
+
+.slide-image img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+
+/* 分割レイアウトでのテキスト調整 */
+.slide-split h1 {
+    font-size: 36px !important;
+    margin-bottom: 20px !important;
+}
+
+.slide-split h2 {
+    font-size: 28px !important;
+    margin-bottom: 15px !important;
+}
+
+.slide-split p {
+    font-size: 20px !important;
+    line-height: 1.6 !important;
+}
+
+.slide-split ul {
+    font-size: 18px !important;
+}
+
+.slide-split li {
+    margin-bottom: 12px !important;
+}
