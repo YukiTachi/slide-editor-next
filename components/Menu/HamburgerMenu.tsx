@@ -7,6 +7,7 @@ import ImageInserterModal from '@/components/ImageInserter/ImageInserterModal'
 import ImageManager from '@/components/ImageInserter/ImageManager'
 import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/imageStorage'
 import { initializeImageStorage } from '@/lib/imageStorage'
+import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
 
@@ -31,6 +32,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
+  const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false)
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -468,6 +470,15 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleRestore(); }}>🔄 復元</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleCopyToClipboard(); }}>📋 HTMLコピー</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handlePasteFromClipboard(); }}>📥 クリップボードから読み込み</button>
+            <button
+              className={styles.menuBtn}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsProjectManagerOpen(true)
+              }}
+            >
+              📁 プロジェクト管理
+            </button>
           </div>
 
           <div className={styles.menuSection}>
@@ -493,6 +504,14 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
         htmlContent={htmlContent}
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}
+      />
+
+      <ProjectManagerModal
+        isOpen={isProjectManagerOpen}
+        onClose={() => setIsProjectManagerOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        onStatusUpdate={onStatusUpdate}
       />
     </div>
   )
