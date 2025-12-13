@@ -118,6 +118,9 @@ export function deleteProject(id: string): void {
   saveProjectsToStorage(projects)
   try {
     localStorage.removeItem(PROJECT_CONTENT_PREFIX + id)
+    // バージョン履歴も削除
+    const { deleteAllVersions } = require('./versionStorage')
+    deleteAllVersions(id)
   } catch (e) {
     console.error('プロジェクト削除時に内容の削除に失敗しました:', e)
   }

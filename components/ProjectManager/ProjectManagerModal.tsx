@@ -10,6 +10,8 @@ import {
   deleteProject,
   type ProjectMeta
 } from '@/lib/projectStorage'
+import { saveVersion, getVersionCount } from '@/lib/versionStorage'
+import VersionHistoryModal from '@/components/VersionHistory/VersionHistoryModal'
 
 interface ProjectManagerModalProps {
   isOpen: boolean
@@ -29,6 +31,10 @@ export default function ProjectManagerModal({
   const [mounted, setMounted] = useState(false)
   const [projects, setProjects] = useState<ProjectMeta[]>([])
   const [projectName, setProjectName] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false)
+  const [versionHistoryProjectId, setVersionHistoryProjectId] = useState<string | null>(null)
+  const [versionHistoryProjectName, setVersionHistoryProjectName] = useState<string>('')
 
   useEffect(() => {
     setMounted(true)
@@ -64,6 +70,7 @@ export default function ProjectManagerModal({
       }
     }
     const project = saveProject(htmlContent, trimmed)
+    setSelectedProjectId(project.id)
     refreshProjects()
     if (onStatusUpdate) {
       onStatusUpdate(`プロジェクト「${project.name}」を保存しました`)
@@ -82,11 +89,47 @@ export default function ProjectManagerModal({
       }
     }
     saveProject(htmlContent, project.name, project.id)
+    setSelectedProjectId(project.id)
     refreshProjects()
     if (onStatusUpdate) {
       onStatusUpdate(`プロジェクト「${project.name}」を上書き保存しました`)
       setTimeout(() => onStatusUpdate(''), 2000)
     }
+  }
+
+  const handleSaveVersion = (projectId?: string) => {
+    const targetProjectId = projectId || selectedProjectId
+    if (!targetProjectId) {
+      alert('プロジェクトが選択されていません')
+      return
+    }
+    const project = projects.find(p => p.id === targetProjectId)
+    if (!project) {
+      alert('プロジェクトが見つかりません')
+      return
+    }
+    
+    const description = prompt('バージョンの説明を入力してください（任意）:')
+    if (description === null) {
+      return // キャンセルされた場合
+    }
+    
+    try {
+      saveVersion(targetProjectId, htmlContent, description || undefined)
+      if (onStatusUpdate) {
+        onStatusUpdate(`プロジェクト「${project.name}」のバージョンを保存しました`)
+        setTimeout(() => onStatusUpdate(''), 2000)
+      }
+    } catch (e) {
+      console.error('バージョン保存エラー:', e)
+      alert('バージョンの保存に失敗しました')
+    }
+  }
+
+  const handleOpenVersionHistory = (project: ProjectMeta) => {
+    setVersionHistoryProjectId(project.id)
+    setVersionHistoryProjectName(project.name)
+    setIsVersionHistoryOpen(true)
   }
 
   const handleLoad = (project: ProjectMeta) => {
@@ -99,6 +142,7 @@ export default function ProjectManagerModal({
       return
     }
     setHtmlContent(content)
+    setSelectedProjectId(project.id)
     if (onStatusUpdate) {
       onStatusUpdate(`プロジェクト「${project.name}」を読み込みました`)
       setTimeout(() => onStatusUpdate(''), 2000)
@@ -146,6 +190,11 @@ export default function ProjectManagerModal({
                 <button className={styles.btn} onClick={handleSaveNew}>
                   💾 新規保存
                 </button>
+                {selectedProjectId && (
+                  <button className={styles.btn} onClick={() => handleSaveVersion()}>
+                    📌 バージョンを保存
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -184,6 +233,20 @@ export default function ProjectManagerModal({
                         💾 上書き
                       </button>
                       <button
+                        className={`${styles.btn} ${styles.smallBtn}`}
+                        onClick={() => handleSaveVersion(project.id)}
+                        title="現在のエディタ内容をこのプロジェクトのバージョンとして保存"
+                      >
+                        📌 バージョン保存
+                      </button>
+                      <button
+                        className={`${styles.btn} ${styles.smallBtn}`}
+                        onClick={() => handleOpenVersionHistory(project)}
+                        title={`バージョン数: ${getVersionCount(project.id)}`}
+                      >
+                        📜 履歴{getVersionCount(project.id) > 0 && ` (${getVersionCount(project.id)})`}
+                      </button>
+                      <button
                         className={`${styles.btn} ${styles.smallBtn} ${styles.dangerBtn}`}
                         onClick={() => handleDelete(project)}
                       >
@@ -200,7 +263,26 @@ export default function ProjectManagerModal({
     </div>
   )
 
-  return createPortal(modal, document.body)
+  return (
+    <>
+      {createPortal(modal, document.body)}
+      {versionHistoryProjectId && (
+        <VersionHistoryModal
+          isOpen={isVersionHistoryOpen}
+          onClose={() => {
+            setIsVersionHistoryOpen(false)
+            setVersionHistoryProjectId(null)
+            setVersionHistoryProjectName('')
+          }}
+          projectId={versionHistoryProjectId}
+          projectName={versionHistoryProjectName}
+          htmlContent={htmlContent}
+          setHtmlContent={setHtmlContent}
+          onStatusUpdate={onStatusUpdate}
+        />
+      )}
+    </>
+  )
 }
 
 
