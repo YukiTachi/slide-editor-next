@@ -107,7 +107,7 @@ npm run export
 
 ### 基本操作
 - `Ctrl+S` / `Cmd+S`: HTMLコピー
-- `Ctrl+N` / `Cmd+N`: スライド追加
+- `Ctrl+M` / `Cmd+M`: スライド追加（Ctrl+Nはブラウザのデフォルト動作と競合するため変更）
 - `Ctrl+I` / `Cmd+I`: 画像挿入
 - `Ctrl+R` / `Cmd+R`: 復元
 - `Ctrl+O` / `Cmd+O`: 別ウィンドウでプレビュー

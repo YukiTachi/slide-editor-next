@@ -103,13 +103,13 @@ export default function Home() {
             e.preventDefault()
             handleClearEditor()
             break
+          case 'm':
+            e.preventDefault()
+            handleAddSlide()
+            break
           case 'o':
             e.preventDefault()
             handleOpenPreviewWindow()
-            break
-          case 'n':
-            e.preventDefault()
-            handleAddSlide()
             break
           case 'i':
             e.preventDefault()
