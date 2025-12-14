@@ -1,0 +1,277 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
+  padding: 20px;
+  transition: background 0.3s ease;
+}
+
+.modal {
+  background: var(--bg-modal);
+  padding: 30px;
+  border-radius: 12px;
+  min-width: 500px;
+  max-width: 600px;
+  box-shadow: 0 10px 30px var(--shadow-strong);
+  animation: modalFadeIn 0.3s ease-out;
+  margin: auto;
+  position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal h3 {
+  margin: 0 0 25px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.settingSection {
+  margin-bottom: 25px;
+}
+
+.settingLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.labelText {
+  font-size: 14px;
+}
+
+.valueDisplay {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: normal;
+  transition: color 0.3s ease;
+}
+
+.fontSizeButtons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.fontSizeBtn {
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.fontSizeBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.fontSizeBtn.active {
+  background: var(--gradient-bg);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .fontSizeBtn.active {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.select:hover {
+  border-color: var(--accent-color);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.lineHeightButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lineHeightBtn {
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.lineHeightBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.lineHeightBtn.active {
+  background: var(--gradient-bg);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .lineHeightBtn.active {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+.tabSizeButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.tabSizeBtn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tabSizeBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.tabSizeBtn.active {
+  background: var(--gradient-bg);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .tabSizeBtn.active {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.resetBtn,
+.cancelBtn,
+.applyBtn {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.resetBtn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.resetBtn:hover {
+  background: var(--bg-button);
+  transform: translateY(-2px);
+}
+
+.cancelBtn {
+  background: linear-gradient(135deg, var(--error-color) 0%, #c0392b 100%);
+  color: var(--text-inverse);
+}
+
+.cancelBtn:hover {
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  transform: translateY(-2px);
+}
+
+.applyBtn {
+  background: var(--gradient-bg);
+  color: #ffffff;
+}
+
+.applyBtn:hover {
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .applyBtn {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .applyBtn:hover {
+  background: var(--accent-color-hover);
+  box-shadow: 0 4px 15px rgba(124, 142, 245, 0.5);
+}
+
+@media (max-width: 600px) {
+  .modal {
+    min-width: auto;
+    width: 90%;
+    padding: 20px;
+  }
+
+  .fontSizeButtons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lineHeightButtons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

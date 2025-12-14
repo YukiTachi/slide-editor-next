@@ -4,7 +4,7 @@ import { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo }
 import { EditorView, gutter, GutterMarker } from '@codemirror/view'
 import { html } from '@codemirror/lang-html'
 import { autocompletion, CompletionContext, CompletionResult } from '@codemirror/autocomplete'
-import { EditorState, Extension, StateField } from '@codemirror/state'
+import { EditorState, Extension, StateField, Compartment } from '@codemirror/state'
 import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, highlightActiveLine, keymap, rectangularSelection, crosshairCursor, Decoration, DecorationSet } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { foldGutter, foldKeymap, syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language'
@@ -13,6 +13,8 @@ import { closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirro
 import { lintKeymap } from '@codemirror/lint'
 import styles from './Editor.module.css'
 import { validateHTML, type ValidationError } from '@/lib/htmlValidator'
+import type { EditorSettings } from '@/types'
+import { DEFAULT_EDITOR_SETTINGS } from '@/lib/editorSettingsStorage'
 
 export interface EditorHandle {
   getCursorPosition: () => number
@@ -24,6 +26,7 @@ interface EditorProps {
   htmlContent: string
   setHtmlContent: (content: string) => void
   onValidationChange?: (errors: ValidationError[]) => void
+  editorSettings?: EditorSettings
 }
 
 // HTMLタグと属性のオートコンプリート
@@ -123,9 +126,11 @@ class ErrorMarker extends GutterMarker {
   }
 }
 
-const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlContent, onValidationChange }, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlContent, onValidationChange, editorSettings = DEFAULT_EDITOR_SETTINGS }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const themeConfigRef = useRef<Compartment | null>(null)
+  const tabSizeConfigRef = useRef<Compartment | null>(null)
 
   // リアルタイム検証
   const validationErrors = useMemo(() => {
@@ -140,10 +145,53 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     }
   }, [validationErrors, onValidationChange])
 
-  // CodeMirrorの初期化（テーマはCSSで制御）
+  // CodeMirrorの初期化
   useEffect(() => {
     if (!editorRef.current) return
     if (viewRef.current) return // 既に初期化済みの場合はスキップ
+
+    // Compartmentを作成
+    if (!themeConfigRef.current) {
+      themeConfigRef.current = new Compartment()
+    }
+    if (!tabSizeConfigRef.current) {
+      tabSizeConfigRef.current = new Compartment()
+    }
+
+    const themeConfig = themeConfigRef.current
+    const tabSizeConfig = tabSizeConfigRef.current
+
+    // テーマ設定（フォントサイズ、フォントファミリー、行の高さ）
+    const createThemeExtension = (settings: EditorSettings) => EditorView.theme({
+      '&': {
+        fontSize: `${settings.fontSize}px`,
+        fontFamily: settings.fontFamily,
+        height: '100%',
+      },
+      '.cm-content': {
+        padding: '15px',
+        lineHeight: `${settings.lineHeight}`,
+      },
+      '.cm-editor': {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      '.cm-scroller': {
+        overflow: 'auto',
+        flex: 1,
+        minHeight: 0,
+      },
+      '.cm-lineNumbers': {
+        minWidth: '50px',
+      },
+      '.cm-focused': {
+        outline: 'none',
+      },
+    })
+
+    // タブサイズ設定
+    const createTabSizeExtension = (tabSize: number) => EditorState.tabSize.of(tabSize)
 
     const extensions: Extension[] = [
       lineNumbers(),
@@ -180,33 +228,9 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
           setHtmlContent(newContent)
         }
       }),
-      // 共通のスタイル設定
-      EditorView.theme({
-        '&': {
-          fontSize: '14px',
-          fontFamily: "'Courier New', monospace",
-          height: '100%',
-        },
-        '.cm-content': {
-          padding: '15px',
-        },
-        '.cm-editor': {
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-        },
-        '.cm-scroller': {
-          overflow: 'auto',
-          flex: 1,
-          minHeight: 0,
-        },
-        '.cm-lineNumbers': {
-          minWidth: '50px',
-        },
-        '.cm-focused': {
-          outline: 'none',
-        },
-      }),
+      // 設定可能なテーマとタブサイズ
+      themeConfig.of(createThemeExtension(editorSettings)),
+      tabSizeConfig.of(createTabSizeExtension(editorSettings.tabSize)),
     ]
 
     const state = EditorState.create({
@@ -227,7 +251,52 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
         viewRef.current = null
       }
     }
-  }, []) // 初期化は1回だけ（テーマはCSSで制御）
+  }, []) // 初期化は1回だけ
+
+  // 設定変更時にエディタを更新
+  useEffect(() => {
+    if (!viewRef.current || !themeConfigRef.current || !tabSizeConfigRef.current) return
+
+    const view = viewRef.current
+    const themeConfig = themeConfigRef.current
+    const tabSizeConfig = tabSizeConfigRef.current
+
+    // テーマ設定を更新
+    const themeExtension = EditorView.theme({
+      '&': {
+        fontSize: `${editorSettings.fontSize}px`,
+        fontFamily: editorSettings.fontFamily,
+        height: '100%',
+      },
+      '.cm-content': {
+        padding: '15px',
+        lineHeight: `${editorSettings.lineHeight}`,
+      },
+      '.cm-editor': {
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      '.cm-scroller': {
+        overflow: 'auto',
+        flex: 1,
+        minHeight: 0,
+      },
+      '.cm-lineNumbers': {
+        minWidth: '50px',
+      },
+      '.cm-focused': {
+        outline: 'none',
+      },
+    })
+
+    view.dispatch({
+      effects: [
+        themeConfig.reconfigure(themeExtension),
+        tabSizeConfig.reconfigure(EditorState.tabSize.of(editorSettings.tabSize)),
+      ],
+    })
+  }, [editorSettings])
 
   // コンテンツの同期（外部からの変更）
   useEffect(() => {

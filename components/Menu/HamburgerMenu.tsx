@@ -8,6 +8,8 @@ import ImageManager from '@/components/ImageInserter/ImageManager'
 import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/imageStorage'
 import { initializeImageStorage } from '@/lib/imageStorage'
 import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
+import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal'
+import type { EditorSettings } from '@/types'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
 
@@ -26,13 +28,17 @@ interface HamburgerMenuProps {
   isRedoable?: boolean
   onSearchReplace?: () => void
   onPasteFromClipboard?: (content: string) => void
+  editorSettings?: EditorSettings
+  onEditorSettingsChange?: (settings: EditorSettings) => void
+  onEditorSettingsReset?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false)
+  const [isEditorSettingsOpen, setIsEditorSettingsOpen] = useState(false)
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -485,6 +491,21 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             <h3>🔗 表示</h3>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); openPreviewWindow(); }}>🔗 別ウィンドウで開く</button>
           </div>
+
+          {editorSettings && onEditorSettingsChange && onEditorSettingsReset && (
+            <div className={styles.menuSection}>
+              <h3>⚙️ 設定</h3>
+              <button 
+                className={styles.menuBtn} 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setIsEditorSettingsOpen(true); 
+                }}
+              >
+                ⚙️ エディタ設定
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -513,6 +534,16 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
         setHtmlContent={setHtmlContent}
         onStatusUpdate={onStatusUpdate}
       />
+
+      {editorSettings && onEditorSettingsChange && onEditorSettingsReset && (
+        <EditorSettingsModal
+          isOpen={isEditorSettingsOpen}
+          onClose={() => setIsEditorSettingsOpen(false)}
+          settings={editorSettings}
+          onSettingsChange={onEditorSettingsChange}
+          onReset={onEditorSettingsReset}
+        />
+      )}
     </div>
   )
 }

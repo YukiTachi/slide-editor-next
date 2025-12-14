@@ -12,6 +12,7 @@ import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useResize } from '@/hooks/useResize'
 import { useHistory } from '@/hooks/useHistory'
+import { useEditorSettings } from '@/hooks/useEditorSettings'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -28,6 +29,7 @@ export default function Home() {
   const { editorWidth, startResize, editorPanelRef } = useResize()
   const history = useHistory(htmlContent)
   const theme = useTheme()
+  const editorSettings = useEditorSettings()
 
   useEffect(() => {
     // 初期化は1回だけ実行
@@ -277,6 +279,9 @@ export default function Home() {
           isRedoable={history.isRedoable}
           onSearchReplace={() => setIsSearchReplaceOpen(true)}
           onPasteFromClipboard={handlePasteFromClipboard}
+          editorSettings={editorSettings.settings}
+          onEditorSettingsChange={editorSettings.setEditorSettings}
+          onEditorSettingsReset={editorSettings.resetEditorSettings}
         />
         </div>
       </header>
@@ -288,6 +293,7 @@ export default function Home() {
             htmlContent={htmlContent}
             setHtmlContent={setHtmlContent}
             onValidationChange={setValidationErrors}
+            editorSettings={editorSettings.settings}
           />
         </div>
         <div className="resizer" onMouseDown={startResize}></div>

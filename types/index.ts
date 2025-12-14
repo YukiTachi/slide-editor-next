@@ -21,3 +21,11 @@ export interface AutoSaveState {
   hasUnsavedChanges: boolean
 }
 
+// エディタ設定の型定義
+export interface EditorSettings {
+  fontSize: number        // px単位（10-24）
+  fontFamily: string      // フォント名
+  lineHeight: number      // 倍率（1.2-2.0）
+  tabSize: number         // スペース数（2, 4, 8）
+}
+
