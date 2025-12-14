@@ -104,7 +104,7 @@ export function convertToSplitLayout(
 ${contentWithoutTitleAndFooter.trim()}
             </div>
             <div class="slide-image">
-                <img src="${imageSrcAttr}" alt="${imageName}">
+                <img class="slide-img" src="${imageSrcAttr}" alt="${imageName}">
             </div>
         </div>
         ${footer}
@@ -139,15 +139,15 @@ export function insertImageToHTML(
   } else {
     // スライド内にいない場合は、従来通りの方法で挿入
     const imageTag = fileName
-      ? `<img src="${IMAGES_FOLDER}${fileName}" alt="${imageName}"`
-      : `<img src="${imageSrc}" alt="${imageName}"`
+      ? `<img class="slide-img" src="${IMAGES_FOLDER}${fileName}" alt="${imageName}"`
+      : `<img class="slide-img" src="${imageSrc}" alt="${imageName}"`
 
     const imageHTML = `
         <div style="text-align: center; margin: 30px 0;">
             ${imageTag} 
                  style="max-width: 600px; max-height: 400px; width: auto; height: auto; 
                         border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            <p style="font-size: 16px; color: #7f8c8d; margin-top: 10px; font-style: italic;">${imageName}</p>
+            <p class="slide-text" style="font-size: 16px; color: #7f8c8d; margin-top: 10px; font-style: italic;">${imageName}</p>
         </div>`
 
     const newContent = htmlContent.slice(0, cursorPos) + imageHTML + htmlContent.slice(cursorPos)

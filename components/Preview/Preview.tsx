@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import styles from './Preview.module.css'
-import { processHTMLForPreview } from '@/lib/htmlProcessor'
+import { processHTMLForPreviewAsync, processHTMLForPreview } from '@/lib/htmlProcessor'
 import { extractSlides, reorderSlides, getSlideTitle, deleteSlide, duplicateSlide } from '@/lib/slideReorder'
 
 interface PreviewProps {
@@ -34,13 +34,29 @@ export default function Preview({ htmlContent, setHtmlContent }: PreviewProps) {
 
     if (!doc) return
 
-    const processedContent = processHTMLForPreview(htmlContent)
-
-    if (processedContent) {
-      doc.open()
-      doc.write(processedContent)
-      doc.close()
-    }
+    // 実際のCSSファイルを読み込む（非同期）
+    processHTMLForPreviewAsync(htmlContent).then((processedContent) => {
+      if (processedContent && iframeRef.current) {
+        const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
+        if (currentDoc) {
+          currentDoc.open()
+          currentDoc.write(processedContent)
+          currentDoc.close()
+        }
+      }
+    }).catch((error) => {
+      console.warn('CSS読み込みエラー、フォールバックを使用:', error)
+      // エラー時は同期版を使用
+      const processedContent = processHTMLForPreview(htmlContent)
+      if (processedContent && iframeRef.current) {
+        const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
+        if (currentDoc) {
+          currentDoc.open()
+          currentDoc.write(processedContent)
+          currentDoc.close()
+        }
+      }
+    })
   }, [htmlContent])
 
   const handleDragStart = (index: number) => {

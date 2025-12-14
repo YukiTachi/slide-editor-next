@@ -29,3 +29,14 @@ export interface EditorSettings {
   tabSize: number         // スペース数（2, 4, 8）
 }
 
+// スライドテンプレートの型定義
+export interface SlideTemplate {
+  id: string              // テンプレートID（一意）
+  name: string            // テンプレート名（表示用）
+  description: string     // 説明文
+  icon: string            // アイコン（絵文字またはアイコン名）
+  category: 'basic' | 'layout' | 'special'  // カテゴリ
+  html: string            // HTMLテンプレート
+  preview?: string        // プレビュー用の短縮版（任意）
+}
+

@@ -6,6 +6,14 @@ body {
     background: #f0f0f0;
 }
 
+/* スライド本文コンテナ（bodyタグの代替） */
+.slide-body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    background: #f0f0f0;
+}
+
 .slide {
     width: 297mm;  /* A4横向きの幅 */
     height: 210mm; /* A4横向きの高さ */
@@ -47,7 +55,8 @@ body {
     break-after: auto; /* 新しいCSS仕様 */
 }
 
-.slide h1 {
+/* タイトル（h1タグの代替） */
+.slide-title {
     font-size: 48px;
     color: #2c3e50;
     text-align: center;
@@ -56,7 +65,8 @@ body {
     padding-bottom: 20px;
 }
 
-.slide h2 {
+/* サブタイトル（h2タグの代替） */
+.slide-subtitle {
     font-size: 36px;
     color: #34495e;
     margin-bottom: 25px;
@@ -64,7 +74,8 @@ body {
     border-left: 6px solid #e74c3c;
 }
 
-.slide p {
+/* テキスト（pタグの代替） */
+.slide-text {
     font-size: 24px;
     line-height: 1.8;
     color: #2c3e50;
@@ -72,19 +83,21 @@ body {
     padding-left: 20px;
 }
 
-.slide ul {
+/* リスト（ulタグの代替） */
+.slide-list {
     font-size: 22px;
     line-height: 1.8;
     color: #2c3e50;
     padding-left: 40px;
 }
 
-.slide li {
+/* リスト項目（liタグの代替） */
+.slide-list-item {
     margin-bottom: 15px;
     position: relative;
 }
 
-.slide li:before {
+.slide-list-item:before {
     content: "▶";
     color: #3498db;
     font-weight: bold;
@@ -109,9 +122,101 @@ body {
     color: #7f8c8d;
 }
 
+/* テンプレート用のユーティリティクラス */
+
+/* 標準テンプレート用 */
+.template-description {
+    margin-top: 40px;
+    font-size: 24px;
+    padding-left: 20px;
+}
+
+.template-hint {
+    color: #7f8c8d;
+}
+
+/* タイトルページテンプレート用 */
+.title-page-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.title-page-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.title-page-subtitle {
+    font-size: 32px;
+    color: #7f8c8d;
+    margin-bottom: 40px;
+}
+
+.title-page-meta {
+    font-size: 20px;
+    color: #95a5a6;
+}
+
+/* 画像+テキストテンプレート用 */
+.image-placeholder {
+    text-align: center;
+    color: #95a5a6;
+}
+
+/* 2カラムレイアウト用 */
+.split {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    align-items: flex-start;
+    flex: 1;
+    margin-top: 20px;
+}
+
+.split .left,
+.split .right {
+    flex: 1;
+    min-width: 0;
+}
+
+/* クォートテンプレート用 */
+.quote-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 80%;
+    padding: 40px;
+}
+
+.quote-text {
+    font-size: 36px;
+    font-style: italic;
+    text-align: center;
+    line-height: 1.6;
+    color: #2c3e50;
+}
+
+.quote-author {
+    font-size: 24px;
+    margin-top: 40px;
+    color: #7f8c8d;
+    text-align: right;
+    width: 100%;
+}
+
 /* 印刷・PDF出力時の設定 */
 @media print {
     body { 
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .slide-body {
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -150,6 +255,22 @@ body {
         page-break-after: auto !important;
         break-after: auto !important;
     }
+    
+    /* 2カラムレイアウト（印刷時） */
+    .split {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 40px !important;
+        align-items: flex-start !important;
+        flex: 1 !important;
+        margin-top: 20px !important;
+    }
+    
+    .split .left,
+    .split .right {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
 }
 
 @page {
@@ -174,7 +295,18 @@ body {
     min-width: 0 !important; /* フレックスアイテムの縮小を許可 */
 }
 
-.slide-image img {
+/* 画像（imgタグの代替） */
+.slide-img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+
+.slide-image .slide-img {
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
@@ -185,25 +317,25 @@ body {
 }
 
 /* 分割レイアウトでのテキスト調整 */
-.slide-split h1 {
+.slide-split .slide-title {
     font-size: 36px !important;
     margin-bottom: 20px !important;
 }
 
-.slide-split h2 {
+.slide-split .slide-subtitle {
     font-size: 28px !important;
     margin-bottom: 15px !important;
 }
 
-.slide-split p {
+.slide-split .slide-text {
     font-size: 20px !important;
     line-height: 1.6 !important;
 }
 
-.slide-split ul {
+.slide-split .slide-list {
     font-size: 18px !important;
 }
 
-.slide-split li {
+.slide-split .slide-list-item {
     margin-bottom: 12px !important;
 }

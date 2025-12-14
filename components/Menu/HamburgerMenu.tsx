@@ -2,13 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react'
 import styles from './Menu.module.css'
-import { processHTMLForPreview } from '@/lib/htmlProcessor'
+import { processHTMLForPreviewAsync, processHTMLForPreview } from '@/lib/htmlProcessor'
 import ImageInserterModal from '@/components/ImageInserter/ImageInserterModal'
 import ImageManager from '@/components/ImageInserter/ImageManager'
 import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/imageStorage'
 import { initializeImageStorage } from '@/lib/imageStorage'
 import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
 import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal'
+import SlideTemplateSelectorModal from '@/components/SlideTemplateSelector/SlideTemplateSelectorModal'
 import type { EditorSettings } from '@/types'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
@@ -39,6 +40,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false)
   const [isEditorSettingsOpen, setIsEditorSettingsOpen] = useState(false)
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false)
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -286,7 +288,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
     }
   }
 
-  const openPreviewWindow = () => {
+  const openPreviewWindow = async () => {
     const trimmedContent = htmlContent.trim()
 
     if (!trimmedContent) {
@@ -309,23 +311,34 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
 
     previewWindowRef.current = newWindow
 
-    // HTMLを処理（CSSをインラインで埋め込む）
-    const processedHTML = processHTMLForPreview(trimmedContent)
+    try {
+      // HTMLを処理（実際のCSSファイルを読み込む）
+      const processedHTML = await processHTMLForPreviewAsync(trimmedContent)
 
-    // ウィンドウにHTMLを書き込む
-    newWindow.document.title = 'プレビュー - スライドエディタ'
-    newWindow.document.open()
-    newWindow.document.write(processedHTML)
-    newWindow.document.close()
-    newWindow.focus()
+      // ウィンドウにHTMLを書き込む
+      newWindow.document.title = 'プレビュー - スライドエディタ'
+      newWindow.document.open()
+      newWindow.document.write(processedHTML)
+      newWindow.document.close()
+      newWindow.focus()
 
-    // ステータス更新
-    if (onStatusUpdate) {
-      const originalMessage = '別ウィンドウでプレビューを開きました'
-      onStatusUpdate(originalMessage)
-      setTimeout(() => {
-        onStatusUpdate('')
-      }, 2000)
+      // ステータス更新
+      if (onStatusUpdate) {
+        const originalMessage = '別ウィンドウでプレビューを開きました'
+        onStatusUpdate(originalMessage)
+        setTimeout(() => {
+          onStatusUpdate('')
+        }, 2000)
+      }
+    } catch (error) {
+      console.warn('CSS読み込みエラー、フォールバックを使用:', error)
+      // エラー時は同期版を使用
+      const processedHTML = processHTMLForPreview(trimmedContent)
+      newWindow.document.title = 'プレビュー - スライドエディタ'
+      newWindow.document.open()
+      newWindow.document.write(processedHTML)
+      newWindow.document.close()
+      newWindow.focus()
     }
   }
 
@@ -370,7 +383,16 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             >
               ↷ やり直す (Ctrl+Y)
             </button>
-            <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); addSlide(); }}>➕ スライド追加</button>
+            <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); addSlide(); }}>➕ スライド追加（標準）</button>
+            <button 
+              className={styles.menuBtn} 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setIsTemplateSelectorOpen(true); 
+              }}
+            >
+              📋 テンプレートからスライド追加
+            </button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); clearEditor(); }}>🗑️ クリア</button>
             <button 
               className={styles.menuBtn} 
@@ -544,6 +566,15 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
           onReset={onEditorSettingsReset}
         />
       )}
+
+      <SlideTemplateSelectorModal
+        isOpen={isTemplateSelectorOpen}
+        onClose={() => setIsTemplateSelectorOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        editorRef={editorRef}
+        onStatusUpdate={onStatusUpdate}
+      />
     </div>
   )
 }

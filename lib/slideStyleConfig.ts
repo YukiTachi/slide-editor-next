@@ -133,7 +133,8 @@ body {
     break-after: auto;
 }
 
-.slide h1 {
+/* タイトル（h1タグの代替） */
+.slide-title {
     font-size: ${c.fontSize.h1}px;
     color: ${c.colors.h1};
     text-align: center;
@@ -142,7 +143,8 @@ body {
     padding-bottom: ${c.spacing.h1.paddingBottom}px;
 }
 
-.slide h2 {
+/* サブタイトル（h2タグの代替） */
+.slide-subtitle {
     font-size: ${c.fontSize.h2}px;
     color: ${c.colors.h2};
     margin-bottom: ${c.spacing.h2.marginBottom}px;
@@ -150,7 +152,8 @@ body {
     border-left: ${c.spacing.h2.borderLeft}px solid ${c.colors.h2Border};
 }
 
-.slide p {
+/* テキスト（pタグの代替） */
+.slide-text {
     font-size: ${c.fontSize.p}px;
     line-height: ${c.spacing.p.lineHeight};
     color: ${c.colors.text};
@@ -158,19 +161,21 @@ body {
     padding-left: ${c.spacing.p.paddingLeft}px;
 }
 
-.slide ul {
+/* リスト（ulタグの代替） */
+.slide-list {
     font-size: ${c.fontSize.ul}px;
     line-height: ${c.spacing.ul.lineHeight};
     color: ${c.colors.text};
     padding-left: ${c.spacing.ul.marginLeft}px;
 }
 
-.slide li {
+/* リスト項目（liタグの代替） */
+.slide-list-item {
     margin-bottom: ${c.spacing.li.marginBottom}px;
     position: relative;
 }
 
-.slide li:before {
+.slide-list-item:before {
     content: "▶";
     color: ${c.colors.liBullet};
     font-weight: bold;
@@ -258,7 +263,8 @@ body {
     min-width: 0 !important;
 }
 
-.slide-image img {
+/* 画像（imgタグの代替） */
+.slide-img {
     max-width: 100% !important;
     max-height: 100% !important;
     width: auto !important;
@@ -268,26 +274,37 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
 }
 
-.slide-split h1 {
+.slide-image .slide-img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+
+/* 分割レイアウトでのテキスト調整 */
+.slide-split .slide-title {
     font-size: ${c.fontSize.splitH1}px !important;
     margin-bottom: ${c.spacing.split.h1MarginBottom}px !important;
 }
 
-.slide-split h2 {
+.slide-split .slide-subtitle {
     font-size: ${c.fontSize.splitH2}px !important;
     margin-bottom: ${c.spacing.split.h2MarginBottom}px !important;
 }
 
-.slide-split p {
+.slide-split .slide-text {
     font-size: ${c.fontSize.splitP}px !important;
     line-height: 1.6 !important;
 }
 
-.slide-split ul {
+.slide-split .slide-list {
     font-size: ${c.fontSize.splitUl}px !important;
 }
 
-.slide-split li {
+.slide-split .slide-list-item {
     margin-bottom: ${c.spacing.split.liMarginBottom}px !important;
 }`
 }
