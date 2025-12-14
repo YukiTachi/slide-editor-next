@@ -56,9 +56,10 @@
   align-items: center;
   gap: 15px;
   padding: 15px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
+  transition: border-color 0.3s ease, background 0.3s ease;
 }
 
 .thumbnail {
@@ -75,12 +76,14 @@
 .imageInfo strong {
   display: block;
   margin-bottom: 4px;
-  color: #2c3e50;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .imageInfo small {
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 12px;
+  transition: color 0.3s ease;
 }
 
 .buttonGroup {
@@ -136,8 +139,8 @@
   padding: 12px;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--gradient-bg);
+  color: var(--text-inverse);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
@@ -227,24 +230,26 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--shadow);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999999;
   padding: 20px;
+  transition: background 0.3s ease;
 }
 
 .detailModal {
-  background: white;
+  background: var(--bg-modal);
   padding: 30px;
   border-radius: 12px;
   min-width: 400px;
   max-width: 600px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px var(--shadow-strong);
   position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .closeDetailBtn {
@@ -255,7 +260,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #7f8c8d;
+  color: var(--text-tertiary);
   width: 30px;
   height: 30px;
   display: flex;
@@ -266,14 +271,15 @@
 }
 
 .closeDetailBtn:hover {
-  background: #f0f0f0;
-  color: #2c3e50;
+  background: var(--bg-button);
+  color: var(--text-primary);
 }
 
 .detailModal h4 {
   margin: 0 0 20px 0;
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 20px;
+  transition: color 0.3s ease;
 }
 
 .detailContent {
@@ -287,7 +293,8 @@
   flex-direction: column;
   gap: 5px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .detailRow:last-child {
@@ -296,16 +303,18 @@
 
 .detailLabel {
   font-weight: 600;
-  color: #7f8c8d;
+  color: var(--text-secondary);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 .detailValue {
-  color: #2c3e50;
+  color: var(--text-primary);
   font-size: 14px;
   word-break: break-all;
+  transition: color 0.3s ease;
 }
 
 .detailPreview {
@@ -313,8 +322,9 @@
   max-height: 200px;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   margin-top: 10px;
+  transition: border-color 0.3s ease;
 }
 
 

@@ -1,0 +1,164 @@
+/* テーマ変数の定義 */
+
+:root {
+  /* ライトテーマ（デフォルト） */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f0f0f0;
+  --bg-header: rgba(255, 255, 255, 0.1);
+  --bg-panel: rgba(255, 255, 255, 0.95);
+  --bg-menu: rgba(255, 255, 255, 0.95);
+  --bg-modal: #ffffff;
+  --bg-input: #ffffff;
+  --bg-button: rgba(102, 126, 234, 0.1);
+  --bg-button-hover: rgba(102, 126, 234, 0.2);
+  
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-inverse: #ffffff;
+  
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-color-strong: rgba(0, 0, 0, 0.2);
+  
+  --shadow: rgba(0, 0, 0, 0.2);
+  --shadow-strong: rgba(0, 0, 0, 0.3);
+  
+  --accent-color: #667eea;
+  --accent-color-hover: #5568d3;
+  
+  --error-color: #e74c3c;
+  --warning-color: #f39c12;
+  --success-color: #27ae60;
+  
+  --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+[data-theme="dark"] {
+  /* ダークテーマ */
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --bg-header: rgba(0, 0, 0, 0.3);
+  --bg-panel: rgba(30, 30, 30, 0.95);
+  --bg-menu: rgba(37, 37, 38, 0.95);
+  --bg-modal: #252526;
+  --bg-input: #3c3c3c;
+  --bg-button: rgba(102, 126, 234, 0.2);
+  --bg-button-hover: rgba(102, 126, 234, 0.3);
+
+  --text-primary: #cccccc;
+  --text-secondary: #999999;
+  --text-tertiary: #666666;
+  --text-inverse: #1e1e1e;
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-strong: rgba(255, 255, 255, 0.2);
+
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
+
+  --accent-color: #7c8ef5;
+  --accent-color-hover: #8d9ef6;
+
+  --error-color: #ff6b6b;
+  --warning-color: #ffa726;
+  --success-color: #66bb6a;
+
+  --gradient-bg: linear-gradient(135deg, #2d2d30 0%, #1e1e1e 100%);
+}
+
+/* CodeMirror ライトテーマ */
+:root .cm-editor {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+}
+
+:root .cm-content {
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  caret-color: #333333 !important;
+}
+
+:root .cm-gutters {
+  background-color: #f5f5f5 !important;
+  color: #999999 !important;
+  border: none !important;
+  border-right: 1px solid #e0e0e0 !important;
+}
+
+:root .cm-lineNumbers .cm-gutterElement {
+  color: #999999 !important;
+}
+
+:root .cm-activeLineGutter {
+  background-color: #e8e8e8 !important;
+}
+
+:root .cm-activeLine {
+  background-color: #f0f0f0 !important;
+}
+
+:root .cm-cursor {
+  border-left-color: #333333 !important;
+}
+
+/* CodeMirror ダークテーマ */
+[data-theme="dark"] .cm-editor {
+  background-color: #282c34 !important;
+  color: #abb2bf !important;
+}
+
+[data-theme="dark"] .cm-content {
+  background-color: #282c34 !important;
+  color: #abb2bf !important;
+  caret-color: #528bff !important;
+}
+
+[data-theme="dark"] .cm-gutters {
+  background-color: #282c34 !important;
+  color: #636d83 !important;
+  border: none !important;
+  border-right: 1px solid #3e4451 !important;
+}
+
+[data-theme="dark"] .cm-lineNumbers .cm-gutterElement {
+  color: #636d83 !important;
+}
+
+[data-theme="dark"] .cm-activeLineGutter {
+  background-color: #2c313c !important;
+}
+
+[data-theme="dark"] .cm-activeLine {
+  background-color: #2c313c !important;
+}
+
+[data-theme="dark"] .cm-cursor {
+  border-left-color: #528bff !important;
+}
+
+[data-theme="dark"] .cm-selectionBackground,
+[data-theme="dark"] .cm-focused .cm-selectionBackground {
+  background-color: #3e4451 !important;
+}
+
+[data-theme="dark"] .cm-matchingBracket {
+  background-color: #3e4451 !important;
+  color: #98c379 !important;
+}
+
+/* ダークモード時のヘッダー文字色 */
+[data-theme="dark"] .header {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .header h1 {
+  color: #ffffff;
+}
+
+/* ダークモード時のステータスバー文字色 */
+[data-theme="dark"] .statusBar {
+  color: #ffffff;
+}
+

@@ -4,13 +4,14 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99999;
   padding: 20px;
   pointer-events: none;
+  transition: background 0.3s ease;
 }
 
 .overlay > * {
@@ -18,9 +19,9 @@
 }
 
 .modal {
-  background: white;
+  background: var(--bg-modal);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px var(--shadow-strong);
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
@@ -29,7 +30,7 @@
   flex-direction: column;
   position: absolute;
   margin: 0;
-  transition: transform 0s;
+  transition: transform 0s, background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .modal:active {
@@ -41,8 +42,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
   user-select: none;
+  transition: border-color 0.3s ease;
 }
 
 .header:active {
@@ -52,7 +54,8 @@
 .header h3 {
   margin: 0;
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .closeBtn {
@@ -60,7 +63,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #999;
+  color: var(--text-tertiary);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -72,8 +75,8 @@
 }
 
 .closeBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #333;
+  background: var(--bg-button);
+  color: var(--text-primary);
 }
 
 .content {
@@ -95,7 +98,8 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .label span {
@@ -106,15 +110,17 @@
 .input {
   flex: 1;
   padding: 10px 15px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color-strong);
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.2s ease;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -128,10 +134,10 @@
 
 .btn {
   padding: 8px 16px;
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: var(--bg-button);
+  border: 1px solid var(--accent-color);
   border-radius: 6px;
-  color: #667eea;
+  color: var(--accent-color);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -139,8 +145,8 @@
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.5);
+  background: var(--bg-button-hover);
+  border-color: var(--accent-color-hover);
   transform: translateY(-1px);
 }
 
@@ -151,25 +157,27 @@
 
 .replaceAllBtn {
   background: rgba(231, 76, 60, 0.1);
-  border-color: rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
+  border-color: var(--error-color);
+  color: var(--error-color);
 }
 
 .replaceAllBtn:hover:not(:disabled) {
   background: rgba(231, 76, 60, 0.2);
-  border-color: rgba(231, 76, 60, 0.5);
+  border-color: var(--error-color);
 }
 
 .matchInfo {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 600;
   margin-left: auto;
+  transition: color 0.3s ease;
 }
 
 .options {
   padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .checkboxLabel {
@@ -178,7 +186,8 @@
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .checkboxLabel input[type="checkbox"] {

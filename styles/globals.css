@@ -8,7 +8,9 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-bg);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -18,16 +20,17 @@ body {
 }
 
 .header {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-header);
   backdrop-filter: blur(10px);
   padding: 15px 20px;
-  color: white;
+  color: var(--text-inverse);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
   z-index: 1000;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .header h1 {
@@ -44,12 +47,12 @@ body {
 
 .resizer {
   width: 4px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border-color);
   cursor: col-resize;
   transition: background 0.2s;
 }
 
 .resizer:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--border-color-strong);
 }
 

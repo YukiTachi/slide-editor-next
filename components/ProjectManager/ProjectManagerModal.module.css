@@ -4,24 +4,26 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99999;
   padding: 20px;
+  transition: background 0.3s ease;
 }
 
 .modal {
-  background: white;
+  background: var(--bg-modal);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px var(--shadow-strong);
   width: 100%;
   max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .header {
@@ -29,13 +31,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .header h3 {
   margin: 0;
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .closeBtn {
@@ -43,7 +47,7 @@
   border: none;
   font-size: 22px;
   cursor: pointer;
-  color: #999;
+  color: var(--text-tertiary);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -55,8 +59,8 @@
 }
 
 .closeBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #333;
+  background: var(--bg-button);
+  color: var(--text-primary);
 }
 
 .content {
@@ -74,8 +78,9 @@
 
 .label {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .inputRow {
@@ -86,14 +91,17 @@
 .input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color-strong);
   border-radius: 6px;
   font-size: 14px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  transition: border-color 0.3s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--accent-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
@@ -104,10 +112,10 @@
 
 .btn {
   padding: 8px 14px;
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: var(--bg-button);
+  border: 1px solid var(--accent-color);
   border-radius: 6px;
-  color: #667eea;
+  color: var(--accent-color);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -115,8 +123,8 @@
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.5);
+  background: var(--bg-button-hover);
+  border-color: var(--accent-color-hover);
   transform: translateY(-1px);
 }
 
@@ -126,19 +134,20 @@
 }
 
 .dangerBtn {
-  background: rgba(231, 76, 60, 0.06);
-  border-color: rgba(231, 76, 60, 0.3);
-  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+  border-color: var(--error-color);
+  color: var(--error-color);
 }
 
 .dangerBtn:hover:not(:disabled) {
-  background: rgba(231, 76, 60, 0.15);
-  border-color: rgba(231, 76, 60, 0.5);
+  background: rgba(231, 76, 60, 0.2);
+  border-color: var(--error-color);
 }
 
 .projectsSection {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border-color);
   padding-top: 12px;
+  transition: border-color 0.3s ease;
 }
 
 .projectsHeader {
@@ -151,15 +160,17 @@
 .projectsHeaderTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .projectsList {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
   max-height: 260px;
   overflow-y: auto;
+  transition: border-color 0.3s ease;
 }
 
 .projectRow {
@@ -167,8 +178,9 @@
   align-items: center;
   padding: 8px 10px;
   font-size: 13px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-  background: white;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  transition: border-color 0.3s ease, background 0.3s ease;
 }
 
 .projectRow:last-child {
@@ -183,12 +195,14 @@
 
 .projectName {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .projectMeta {
   font-size: 11px;
-  color: #777;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .projectActions {
@@ -205,8 +219,9 @@
 .emptyState {
   padding: 16px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 

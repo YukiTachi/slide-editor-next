@@ -6,6 +6,8 @@ import Preview from '@/components/Preview/Preview'
 import HamburgerMenu from '@/components/Menu/HamburgerMenu'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import SearchReplaceModal from '@/components/SearchReplace/SearchReplaceModal'
+import ThemeToggle from '@/components/ThemeToggle/ThemeToggle'
+import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useResize } from '@/hooks/useResize'
@@ -25,6 +27,7 @@ export default function Home() {
   const autoSave = useAutoSave(htmlContent, defaultHTMLRef.current)
   const { editorWidth, startResize, editorPanelRef } = useResize()
   const history = useHistory(htmlContent)
+  const theme = useTheme()
 
   useEffect(() => {
     // 初期化は1回だけ実行
@@ -257,7 +260,9 @@ export default function Home() {
     <div className="app-container">
       <header className="header">
         <h1>スライドエディタ</h1>
-        <HamburgerMenu 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <ThemeToggle />
+          <HamburgerMenu 
           htmlContent={htmlContent}
           setHtmlContent={setHtmlContent}
           onStatusUpdate={setStatusMessage}
@@ -273,6 +278,7 @@ export default function Home() {
           onSearchReplace={() => setIsSearchReplaceOpen(true)}
           onPasteFromClipboard={handlePasteFromClipboard}
         />
+        </div>
       </header>
 
       <div className="container">

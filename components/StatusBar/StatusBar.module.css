@@ -1,13 +1,18 @@
 .statusBar {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-header);
   backdrop-filter: blur(10px);
   padding: 10px 20px;
-  color: white;
+  color: var(--text-inverse);
   font-size: 13px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+:global([data-theme="dark"]) .statusBar {
+  color: #ffffff;
 }
 
 .statusText {
@@ -22,17 +27,18 @@
 }
 
 .errorCount {
-  color: #ff6b6b;
+  color: var(--error-color);
   font-weight: bold;
 }
 
 .warningCount {
-  color: #ffd93d;
+  color: var(--warning-color);
   font-weight: bold;
 }
 
 .separator {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-tertiary);
+  opacity: 0.7;
 }
 
 .autoSaveStatus {

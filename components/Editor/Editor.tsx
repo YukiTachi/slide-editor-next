@@ -140,12 +140,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     }
   }, [validationErrors, onValidationChange])
 
-  // CodeMirrorの初期化
+  // CodeMirrorの初期化（テーマはCSSで制御）
   useEffect(() => {
     if (!editorRef.current) return
     if (viewRef.current) return // 既に初期化済みの場合はスキップ
-
-    let view: EditorView | null = null
 
     const extensions: Extension[] = [
       lineNumbers(),
@@ -182,6 +180,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
           setHtmlContent(newContent)
         }
       }),
+      // 共通のスタイル設定
       EditorView.theme({
         '&': {
           fontSize: '14px',
@@ -204,9 +203,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
         '.cm-lineNumbers': {
           minWidth: '50px',
         },
-        '.cm-gutters': {
-          backgroundColor: '#f0f0f0',
-          borderRight: '1px solid #ddd',
+        '.cm-focused': {
+          outline: 'none',
         },
       }),
     ]
@@ -216,7 +214,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
       extensions,
     })
 
-    view = new EditorView({
+    const view = new EditorView({
       state,
       parent: editorRef.current,
     })
@@ -229,8 +227,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
         viewRef.current = null
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []) // 初期化は1回だけ（テーマはCSSで制御）
 
   // コンテンツの同期（外部からの変更）
   useEffect(() => {
@@ -287,3 +284,4 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
 Editor.displayName = 'Editor'
 
 export default Editor
+

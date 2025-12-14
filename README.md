@@ -59,13 +59,15 @@ HTMLベースのスライドエディタです。A4横向きスライドの作�
 - **📋 HTMLコピー**: エディタの内容をクリップボードにコピー（画像も含む）
 - **📥 クリップボードから読み込み**: クリップボードのHTMLをエディタに読み込み
 - **📁 プロジェクト管理**: 複数のプロジェクトを保存・読み込み・削除（LocalStorageに保存）
+- **📜 ファイル履歴・バージョン管理**: プロジェクトごとに最大10バージョンまで保存・管理
 - **↶↷ アンドゥ・リドゥ**: 編集履歴の元に戻す/やり直し（Ctrl+Z / Ctrl+Y）
 
 ### エディタ機能
+- **🎨 シンタックスハイライト**: HTMLコードの色分け表示（CodeMirror 6）
+- **💡 コード補完機能**: HTMLタグ・属性・CSSクラスの自動補完（入力中に自動表示、Ctrl+Spaceで手動表示）
 - **🔍 検索・置換**: テキストの検索と置換（Ctrl+F）
 - **⚠️ エラー検出・警告表示**: HTML構文エラーやCSSクラス未定義などの検出
 - **📏 行番号表示**: エディタに行番号を表示
-- **🎨 シンタックスハイライト**: （今後実装予定）
 
 ### 表示機能
 - **🔗 別ウィンドウでプレビュー**: 新しいウィンドウでプレビューを表示
@@ -103,6 +105,7 @@ npm run export
 
 ## ⌨️ キーボードショートカット
 
+### 基本操作
 - `Ctrl+S` / `Cmd+S`: HTMLコピー
 - `Ctrl+N` / `Cmd+N`: スライド追加
 - `Ctrl+I` / `Cmd+I`: 画像挿入
@@ -114,6 +117,12 @@ npm run export
 - `Ctrl+Y` / `Cmd+Y`: やり直す
 - `ESC`: メニューを閉じる
 
+### エディタ操作（CodeMirror）
+- `Ctrl+Space` / `Cmd+Space`: コード補完を手動で表示
+- `Tab`: インデント追加
+- `Shift+Tab`: インデント削除
+- `Ctrl+/` / `Cmd+/`: 行コメント（HTMLコメント）
+
 ## 🏗️ プロジェクト構造
 
 ```
@@ -122,11 +131,13 @@ slide-editor-nextjs/
 │   ├── layout.tsx         # ルートレイアウト
 │   └── page.tsx           # メインページ
 ├── components/             # Reactコンポーネント
-│   ├── Editor/            # エディタコンポーネント
+│   ├── Editor/            # エディタコンポーネント（CodeMirror 6）
 │   ├── Preview/           # プレビューコンポーネント
 │   ├── Menu/              # ハンバーガーメニュー
 │   ├── ImageInserter/     # 画像挿入モーダル
 │   ├── SearchReplace/     # 検索・置換モーダル
+│   ├── ProjectManager/    # プロジェクト管理モーダル
+│   ├── VersionHistory/    # バージョン履歴モーダル
 │   └── StatusBar/         # ステータスバー
 ├── hooks/                  # カスタムフック
 │   ├── useAutoSave.ts     # 自動保存
@@ -136,7 +147,9 @@ slide-editor-nextjs/
 │   ├── slideTemplates.ts  # スライドテンプレート
 │   ├── imageStorage.ts    # 画像ストレージ管理
 │   ├── htmlValidator.ts   # HTML検証
-│   └── slideReorder.ts    # スライド操作
+│   ├── slideReorder.ts    # スライド操作
+│   ├── projectStorage.ts  # プロジェクト管理
+│   └── versionStorage.ts  # バージョン管理
 ├── types/                  # TypeScript型定義
 ├── styles/                 # グローバルスタイル
 └── public/                 # 静的ファイル
@@ -149,6 +162,7 @@ slide-editor-nextjs/
 - **Next.js 15**: Reactフレームワーク
 - **React 19**: UIライブラリ
 - **TypeScript**: 型安全性
+- **CodeMirror 6**: コードエディタ（シンタックスハイライト・コード補完）
 - **CSS Modules**: コンポーネントスタイリング
 - **LocalStorage**: データ永続化
 
