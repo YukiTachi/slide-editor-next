@@ -40,3 +40,19 @@ export interface SlideTemplate {
   preview?: string        // プレビュー用の短縮版（任意）
 }
 
+// キーボードショートカットの型定義
+export interface KeyboardShortcut {
+  id: string                    // ショートカットID（一意）
+  action: string                // アクション名（例: 'undo', 'redo'）
+  label: string                 // 表示名（例: '元に戻す'）
+  defaultKey: string            // デフォルトキー（例: 'Ctrl+Z'）
+  customKey?: string            // カスタムキー（未設定の場合はdefaultKeyを使用）
+  enabled: boolean              // 有効/無効
+  category: 'edit' | 'file' | 'view' | 'insert' | 'other'  // カテゴリ
+}
+
+export interface KeyboardShortcutsConfig {
+  shortcuts: KeyboardShortcut[]
+  version: number               // 設定のバージョン（将来の互換性のため）
+}
+

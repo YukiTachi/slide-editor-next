@@ -13,6 +13,7 @@ import { useAutoSave } from '@/hooks/useAutoSave'
 import { useResize } from '@/hooks/useResize'
 import { useHistory } from '@/hooks/useHistory'
 import { useEditorSettings } from '@/hooks/useEditorSettings'
+import { useKeyboardShortcuts, type ShortcutActions } from '@/hooks/useKeyboardShortcuts'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -23,6 +24,7 @@ export default function Home() {
   const defaultHTMLRef = useRef<string>('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchReplaceOpen, setIsSearchReplaceOpen] = useState(false)
+  const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
   const isRestoreCheckedRef = useRef<boolean>(false)
 
   const autoSave = useAutoSave(htmlContent, defaultHTMLRef.current)
@@ -75,67 +77,6 @@ export default function Home() {
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [htmlContent, autoSave])
-
-  // キーボードショートカット
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // エディタ内で入力中はショートカットを無効化
-      const target = e.target as HTMLElement
-      if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-        return
-      }
-
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case 'z':
-            e.preventDefault()
-            handleUndo()
-            break
-          case 'y':
-            e.preventDefault()
-            handleRedo()
-            break
-          case 's':
-            e.preventDefault()
-            handleCopyToClipboard()
-            break
-          case 'k':
-            e.preventDefault()
-            handleClearEditor()
-            break
-          case 'm':
-            e.preventDefault()
-            handleAddSlide()
-            break
-          case 'o':
-            e.preventDefault()
-            handleOpenPreviewWindow()
-            break
-          case 'i':
-            e.preventDefault()
-            handleImageInsert()
-            break
-          case 'r':
-            e.preventDefault()
-            handleRestore()
-            break
-          case 'f':
-            e.preventDefault()
-            setIsSearchReplaceOpen(true)
-            break
-          case 'h':
-            e.preventDefault()
-            setIsSearchReplaceOpen(true)
-            break
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [htmlContent])
 
   // 履歴に追加（コンテンツ変更時）
   useEffect(() => {
@@ -254,6 +195,22 @@ export default function Home() {
     history.resetHistory(content)
   }
 
+  // ショートカット用のアクション定義
+  const shortcutActions: ShortcutActions = {
+    'undo': handleUndo,
+    'redo': handleRedo,
+    'search-replace': () => setIsSearchReplaceOpen(true),
+    'copy-to-clipboard': handleCopyToClipboard,
+    'clear-editor': handleClearEditor,
+    'restore': handleRestore,
+    'preview-window': handleOpenPreviewWindow,
+    'add-slide': handleAddSlide,
+    'insert-image': handleImageInsert
+  }
+
+  // キーボードショートカット管理
+  const keyboardShortcuts = useKeyboardShortcuts(shortcutActions)
+
   if (!isInitialized) {
     return <div>読み込み中...</div>
   }
@@ -282,6 +239,11 @@ export default function Home() {
           editorSettings={editorSettings.settings}
           onEditorSettingsChange={editorSettings.setEditorSettings}
           onEditorSettingsReset={editorSettings.resetEditorSettings}
+          keyboardShortcuts={keyboardShortcuts.shortcuts}
+          onKeyboardShortcutsUpdate={keyboardShortcuts.updateShortcut}
+          onKeyboardShortcutsReset={keyboardShortcuts.resetAllShortcuts}
+          onKeyboardShortcutsCheckDuplicate={keyboardShortcuts.checkDuplicate}
+          onKeyboardShortcutsOpen={() => setIsKeyboardShortcutsOpen(true)}
         />
         </div>
       </header>

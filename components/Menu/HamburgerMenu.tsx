@@ -10,7 +10,8 @@ import { initializeImageStorage } from '@/lib/imageStorage'
 import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
 import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal'
 import SlideTemplateSelectorModal from '@/components/SlideTemplateSelector/SlideTemplateSelectorModal'
-import type { EditorSettings } from '@/types'
+import KeyboardShortcutsModal from '@/components/KeyboardShortcuts/KeyboardShortcutsModal'
+import type { EditorSettings, KeyboardShortcut } from '@/types'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
 
@@ -32,15 +33,21 @@ interface HamburgerMenuProps {
   editorSettings?: EditorSettings
   onEditorSettingsChange?: (settings: EditorSettings) => void
   onEditorSettingsReset?: () => void
+  keyboardShortcuts?: KeyboardShortcut[]
+  onKeyboardShortcutsUpdate?: (id: string, updates: Partial<KeyboardShortcut>) => void
+  onKeyboardShortcutsReset?: () => void
+  onKeyboardShortcutsCheckDuplicate?: (id: string, keyString: string) => KeyboardShortcut | null
+  onKeyboardShortcutsOpen?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false)
   const [isEditorSettingsOpen, setIsEditorSettingsOpen] = useState(false)
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false)
+  const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -514,9 +521,9 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); openPreviewWindow(); }}>🔗 別ウィンドウで開く</button>
           </div>
 
-          {editorSettings && onEditorSettingsChange && onEditorSettingsReset && (
-            <div className={styles.menuSection}>
-              <h3>⚙️ 設定</h3>
+          <div className={styles.menuSection}>
+            <h3>⚙️ 設定</h3>
+            {editorSettings && onEditorSettingsChange && onEditorSettingsReset && (
               <button 
                 className={styles.menuBtn} 
                 onClick={(e) => { 
@@ -526,8 +533,22 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
               >
                 ⚙️ エディタ設定
               </button>
-            </div>
-          )}
+            )}
+            {keyboardShortcuts && onKeyboardShortcutsUpdate && onKeyboardShortcutsReset && onKeyboardShortcutsCheckDuplicate && (
+              <button 
+                className={styles.menuBtn} 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setIsKeyboardShortcutsOpen(true);
+                  if (onKeyboardShortcutsOpen) {
+                    onKeyboardShortcutsOpen();
+                  }
+                }}
+              >
+                ⌨️ キーボードショートカット設定
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -575,6 +596,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
         editorRef={editorRef}
         onStatusUpdate={onStatusUpdate}
       />
+
+      {keyboardShortcuts && onKeyboardShortcutsUpdate && onKeyboardShortcutsReset && onKeyboardShortcutsCheckDuplicate && (
+        <KeyboardShortcutsModal
+          isOpen={isKeyboardShortcutsOpen}
+          onClose={() => setIsKeyboardShortcutsOpen(false)}
+          shortcuts={keyboardShortcuts}
+          onUpdateShortcut={onKeyboardShortcutsUpdate}
+          onResetAll={onKeyboardShortcutsReset}
+          onCheckDuplicate={onKeyboardShortcutsCheckDuplicate}
+        />
+      )}
     </div>
   )
 }
