@@ -38,9 +38,10 @@ interface HamburgerMenuProps {
   onKeyboardShortcutsReset?: () => void
   onKeyboardShortcutsCheckDuplicate?: (id: string, keyString: string) => KeyboardShortcut | null
   onKeyboardShortcutsOpen?: () => void
+  onTutorialOpen?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
@@ -523,6 +524,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
 
           <div className={styles.menuSection}>
             <h3>⚙️ 設定</h3>
+            <button 
+              className={styles.menuBtn} 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                if (onTutorialOpen) {
+                  onTutorialOpen();
+                }
+              }}
+            >
+              📖 チュートリアルを表示
+            </button>
             {editorSettings && onEditorSettingsChange && onEditorSettingsReset && (
               <button 
                 className={styles.menuBtn} 

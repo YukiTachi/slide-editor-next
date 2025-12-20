@@ -56,3 +56,31 @@ export interface KeyboardShortcutsConfig {
   version: number               // 設定のバージョン（将来の互換性のため）
 }
 
+// チュートリアルステップの型定義
+export interface TutorialStep {
+  id: string                    // ステップID（例: 'welcome', 'layout', 'menu'）
+  title: string                 // ステップタイトル
+  content: string               // 説明文（HTML可）
+  highlightElement?: string     // ハイライト対象のセレクタ（例: '.hamburger-btn'）
+  highlightPosition?: 'top' | 'bottom' | 'left' | 'right' | 'center'  // 説明ボックスの位置
+  action?: 'none' | 'click' | 'input'  // 必要なアクション（任意）
+  actionTarget?: string         // アクション対象のセレクタ
+  skipable?: boolean            // スキップ可能かどうか（デフォルト: true）
+}
+
+// チュートリアルの状態
+export interface TutorialState {
+  completed: boolean            // 完了フラグ
+  skipped: boolean              // スキップフラグ
+  currentStep: number           // 現在のステップ番号
+  completedSteps: number[]      // 完了したステップの番号
+  lastShown?: string            // 最後に表示した日時（ISO文字列）
+}
+
+// チュートリアル設定
+export interface TutorialConfig {
+  steps: TutorialStep[]
+  autoStart?: boolean           // 初回訪問時に自動開始（デフォルト: true）
+  allowRestart?: boolean        // 再表示を許可（デフォルト: true）
+}
+

@@ -7,6 +7,7 @@ import HamburgerMenu from '@/components/Menu/HamburgerMenu'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import SearchReplaceModal from '@/components/SearchReplace/SearchReplaceModal'
 import ThemeToggle from '@/components/ThemeToggle/ThemeToggle'
+import TutorialModal from '@/components/Tutorial/TutorialModal'
 import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -14,6 +15,7 @@ import { useResize } from '@/hooks/useResize'
 import { useHistory } from '@/hooks/useHistory'
 import { useEditorSettings } from '@/hooks/useEditorSettings'
 import { useKeyboardShortcuts, type ShortcutActions } from '@/hooks/useKeyboardShortcuts'
+import { useTutorial } from '@/hooks/useTutorial'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -32,6 +34,7 @@ export default function Home() {
   const history = useHistory(htmlContent)
   const theme = useTheme()
   const editorSettings = useEditorSettings()
+  const tutorial = useTutorial()
 
   useEffect(() => {
     // 初期化は1回だけ実行
@@ -244,6 +247,7 @@ export default function Home() {
           onKeyboardShortcutsReset={keyboardShortcuts.resetAllShortcuts}
           onKeyboardShortcutsCheckDuplicate={keyboardShortcuts.checkDuplicate}
           onKeyboardShortcutsOpen={() => setIsKeyboardShortcutsOpen(true)}
+          onTutorialOpen={tutorial.openTutorial}
         />
         </div>
       </header>
@@ -276,6 +280,16 @@ export default function Home() {
           setTimeout(() => setStatusMessage(''), 2000)
         }}
         editorRef={editorRef}
+      />
+
+      <TutorialModal
+        isOpen={tutorial.isTutorialOpen}
+        currentStep={tutorial.currentStep}
+        onClose={tutorial.closeTutorial}
+        onNext={tutorial.nextStep}
+        onPrevious={tutorial.previousStep}
+        onSkip={tutorial.skipTutorial}
+        onComplete={tutorial.completeTutorial}
       />
     </div>
   )
