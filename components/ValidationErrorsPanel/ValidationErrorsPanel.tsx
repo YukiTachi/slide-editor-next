@@ -11,7 +11,7 @@ interface ValidationErrorsPanelProps {
   onClose: () => void
   validationErrors: ValidationError[]
   htmlContent: string
-  editorRef?: React.RefObject<EditorHandle>
+  editorRef?: React.RefObject<EditorHandle | null>
 }
 
 export default function ValidationErrorsPanel({
