@@ -4,11 +4,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--shadow);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 99999;
+  backdrop-filter: blur(5px);
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -22,15 +23,16 @@
 }
 
 .modal {
-  background: var(--bg-color);
+  background: var(--bg-modal);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px var(--shadow-strong);
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   animation: slideUp 0.3s ease-out;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 @keyframes slideUp {
@@ -55,14 +57,14 @@
 .header h3 {
   margin: 0;
   font-size: 20px;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .closeBtn {
   background: none;
   border: none;
   font-size: 24px;
-  color: var(--text-color);
+  color: var(--text-primary);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -75,7 +77,7 @@
 }
 
 .closeBtn:hover {
-  background: var(--hover-bg);
+  background: var(--bg-button);
 }
 
 .content {
@@ -95,7 +97,7 @@
 .categoryTitle {
   font-size: 16px;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text-primary);
   margin: 0 0 16px 0;
   padding-bottom: 8px;
   border-bottom: 2px solid var(--border-color);
@@ -114,12 +116,12 @@
   padding: 12px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: var(--card-bg);
+  background: var(--bg-secondary);
   transition: background-color 0.2s;
 }
 
 .shortcutItem:hover {
-  background: var(--hover-bg);
+  background: var(--bg-tertiary);
 }
 
 .shortcutLabel {
@@ -128,7 +130,7 @@
   gap: 8px;
   flex: 1;
   font-size: 14px;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .disabledBadge {
@@ -149,16 +151,16 @@
   font-family: 'Courier New', monospace;
   font-size: 13px;
   padding: 6px 12px;
-  background: var(--code-bg, #f5f5f5);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  color: var(--text-color);
+  color: var(--text-primary);
   min-width: 120px;
   text-align: center;
 }
 
 [data-theme="dark"] .shortcutKey {
-  background: var(--code-bg, #2d2d2d);
+  background: var(--bg-tertiary);
 }
 
 .shortcutButtons {
@@ -172,7 +174,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--text-color);
+  color: var(--text-primary);
   cursor: pointer;
 }
 
@@ -186,8 +188,8 @@
   padding: 6px 12px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-color);
-  color: var(--text-color);
+  background: var(--bg-button);
+  color: var(--text-primary);
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
@@ -196,7 +198,7 @@
 .editBtn:hover,
 .resetBtn:hover,
 .cancelBtn:hover {
-  background: var(--hover-bg);
+  background: var(--bg-button-hover);
 }
 
 .editBtn:disabled {
@@ -225,8 +227,8 @@
   padding: 8px 12px;
   border: 2px solid var(--accent-color);
   border-radius: 6px;
-  background: var(--bg-color);
-  color: var(--text-color);
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-family: 'Courier New', monospace;
   font-size: 13px;
   cursor: pointer;
@@ -236,7 +238,7 @@
 }
 
 .keyInput:hover {
-  background: var(--hover-bg);
+  background: var(--bg-tertiary);
 }
 
 .keyInput.recording {
@@ -286,7 +288,7 @@
   padding: 10px 20px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-color);
+  background: var(--bg-button);
   color: var(--warning-color, #f39c12);
   font-size: 14px;
   cursor: pointer;
@@ -311,17 +313,17 @@
 }
 
 .closeButton:hover {
-  background: var(--accent-hover, #3498db);
+  background: var(--accent-color-hover);
 }
 
 /* ダークモード対応 */
 [data-theme="dark"] .modal {
-  background: var(--bg-color, #1e1e1e);
+  background: var(--bg-modal);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .shortcutItem {
-  background: var(--card-bg, #2d2d2d);
+  background: var(--bg-secondary);
 }
 
 [data-theme="dark"] .closeButton {
@@ -330,5 +332,5 @@
 }
 
 [data-theme="dark"] .closeButton:hover {
-  background: var(--accent-hover, #5dade2);
+  background: var(--accent-color-hover);
 }
