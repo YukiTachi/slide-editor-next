@@ -118,3 +118,72 @@ export interface PresentationState {
   isFullscreen: boolean            // フルスクリーン状態か
 }
 
+// グラフタイプ
+export type ChartType = 
+  | 'bar'           // 棒グラフ
+  | 'line'          // 折れ線グラフ
+  | 'pie'           // 円グラフ
+  | 'doughnut'      // ドーナツチャート
+  | 'radar'         // レーダーチャート
+  | 'polarArea'     // 極座標エリアチャート
+  | 'bubble'        // バブルチャート
+  | 'scatter'       // 散布図
+
+// グラフデータセット
+export interface ChartDataset {
+  label: string               // データセットのラベル
+  data: number[]              // データ値
+  backgroundColor?: string | string[]  // 背景色
+  borderColor?: string | string[]      // 境界線の色
+  borderWidth?: number        // 境界線の太さ
+}
+
+// グラフデータ
+export interface ChartData {
+  labels: string[]            // X軸ラベル（またはカテゴリ）
+  datasets: ChartDataset[]    // データセット
+}
+
+// グラフオプション（Chart.jsのオプションを簡略化）
+export interface ChartOptions {
+  responsive?: boolean        // レスポンシブ
+  maintainAspectRatio?: boolean  // アスペクト比を維持
+  plugins?: {
+    legend?: {
+      display?: boolean       // 凡例の表示
+      position?: 'top' | 'bottom' | 'left' | 'right'
+    }
+    title?: {
+      display?: boolean       // タイトルの表示
+      text?: string          // タイトルテキスト
+    }
+  }
+  scales?: {
+    x?: {
+      title?: {
+        display?: boolean
+        text?: string
+      }
+    }
+    y?: {
+      title?: {
+        display?: boolean
+        text?: string
+      }
+    }
+  }
+}
+
+// グラフの設定
+export interface ChartConfig {
+  type: ChartType
+  title?: string              // グラフタイトル
+  data: ChartData             // グラフデータ
+  options?: ChartOptions      // Chart.jsのオプション
+  width?: number              // グラフの幅（px）
+  height?: number             // グラフの高さ（px）
+}
+
+// データ入力方法
+export type DataInputMethod = 'manual' | 'csv' | 'json'
+

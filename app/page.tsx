@@ -10,6 +10,7 @@ import ThemeToggle from '@/components/ThemeToggle/ThemeToggle'
 import TutorialModal from '@/components/Tutorial/TutorialModal'
 import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/ValidationErrorsPanel'
 import TableInserterModal from '@/components/TableInserter/TableInserterModal'
+import ChartInserterModal from '@/components/ChartInserter/ChartInserterModal'
 import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
 import PresentationMode from '@/components/PresentationMode/PresentationMode'
 import { useTheme } from '@/hooks/useTheme'
@@ -33,6 +34,7 @@ export default function Home() {
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
   const [isValidationErrorsPanelOpen, setIsValidationErrorsPanelOpen] = useState(false)
   const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
+  const [isChartInserterOpen, setIsChartInserterOpen] = useState(false)
   const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
   const [isPresentationModeOpen, setIsPresentationModeOpen] = useState(false)
   const presentationModeRef = useRef<{ startFullscreen: () => Promise<void> } | null>(null)
@@ -281,6 +283,7 @@ export default function Home() {
           onKeyboardShortcutsOpen={() => setIsKeyboardShortcutsOpen(true)}
           onTutorialOpen={tutorial.openTutorial}
           onTableInsertRequest={() => setIsTableInserterOpen(true)}
+          onChartInsertRequest={() => setIsChartInserterOpen(true)}
           onHierarchyPanelToggle={handleToggleHierarchy}
         />
         </div>
@@ -346,6 +349,15 @@ export default function Home() {
       <TableInserterModal
         isOpen={isTableInserterOpen}
         onClose={() => setIsTableInserterOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        editorRef={editorRef}
+        onStatusUpdate={setStatusMessage}
+      />
+
+      <ChartInserterModal
+        isOpen={isChartInserterOpen}
+        onClose={() => setIsChartInserterOpen(false)}
         htmlContent={htmlContent}
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}

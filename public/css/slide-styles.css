@@ -460,3 +460,30 @@ body {
 .slide-split .slide-table td {
     padding: 8px;
 }
+
+/* グラフコンテナ */
+.slide-chart-container {
+    margin: 20px 0;
+    text-align: center;
+    overflow: hidden;
+}
+
+.slide-chart-container canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* グラフ設定スクリプト（非表示） */
+.chart-config {
+    display: none;
+}
+
+/* 分割レイアウトでのグラフの調整 */
+.slide-split .slide-chart-container {
+    margin: 10px 0;
+}
+
+.slide-split .slide-chart-container canvas {
+    max-width: 100%;
+    max-height: 300px;
+}

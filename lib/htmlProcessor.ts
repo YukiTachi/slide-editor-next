@@ -64,6 +64,9 @@ export async function processHTMLForPreviewAsync(htmlContent: string): Promise<s
   // ローカルストレージの画像をdata URIに変換
   processedContent = convertStorageImagesToDataURI(processedContent)
 
+  // グラフを初期化するスクリプトを追加
+  processedContent = addChartInitializationScript(processedContent)
+
   return processedContent
 }
 
@@ -95,6 +98,73 @@ export function processHTMLForPreview(htmlContent: string): string {
   // ローカルストレージの画像をdata URIに変換
   processedContent = convertStorageImagesToDataURI(processedContent)
 
+  // グラフを初期化するスクリプトを追加
+  processedContent = addChartInitializationScript(processedContent)
+
   return processedContent
+}
+
+/**
+ * グラフを初期化するスクリプトを追加
+ */
+function addChartInitializationScript(htmlContent: string): string {
+  // グラフコンテナが存在するかチェック
+  if (!htmlContent.includes('slide-chart-container')) {
+    return htmlContent
+  }
+
+  // Chart.jsのCDNスクリプトと初期化スクリプトを追加
+  const chartScript = `
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+      (function() {
+        // すべてのグラフコンテナを処理
+        const chartContainers = document.querySelectorAll('.slide-chart-container');
+        chartContainers.forEach(function(container) {
+          const canvas = container.querySelector('canvas');
+          const configScript = container.querySelector('.chart-config');
+          
+          if (!canvas || !configScript) return;
+          
+          try {
+            const config = JSON.parse(configScript.textContent || '{}');
+            
+            // Chart.jsの設定を作成
+            const chartConfig = {
+              type: config.type,
+              data: config.data,
+              options: {
+                responsive: config.options?.responsive ?? true,
+                maintainAspectRatio: config.options?.maintainAspectRatio ?? false,
+                plugins: {
+                  legend: {
+                    display: config.options?.plugins?.legend?.display ?? true,
+                    position: config.options?.plugins?.legend?.position ?? 'top'
+                  },
+                  title: {
+                    display: config.options?.plugins?.title?.display ?? (!!config.title),
+                    text: config.options?.plugins?.title?.text ?? config.title
+                  }
+                },
+                scales: config.options?.scales
+              }
+            };
+            
+            // グラフを作成
+            new Chart(canvas, chartConfig);
+          } catch (error) {
+            console.error('グラフの初期化に失敗:', error);
+          }
+        });
+      })();
+    </script>`
+
+  // </body>の前にスクリプトを追加
+  if (htmlContent.includes('</body>')) {
+    return htmlContent.replace('</body>', chartScript + '</body>')
+  } else {
+    // </body>がない場合は末尾に追加
+    return htmlContent + chartScript
+  }
 }
 
