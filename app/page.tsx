@@ -11,6 +11,7 @@ import TutorialModal from '@/components/Tutorial/TutorialModal'
 import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/ValidationErrorsPanel'
 import TableInserterModal from '@/components/TableInserter/TableInserterModal'
 import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
+import PresentationMode from '@/components/PresentationMode/PresentationMode'
 import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -33,6 +34,8 @@ export default function Home() {
   const [isValidationErrorsPanelOpen, setIsValidationErrorsPanelOpen] = useState(false)
   const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
   const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
+  const [isPresentationModeOpen, setIsPresentationModeOpen] = useState(false)
+  const presentationModeRef = useRef<{ startFullscreen: () => Promise<void> } | null>(null)
   const isRestoreCheckedRef = useRef<boolean>(false)
 
   const autoSave = useAutoSave(htmlContent, defaultHTMLRef.current)
@@ -208,6 +211,23 @@ export default function Home() {
     setIsHierarchyPanelOpen(prev => !prev)
   }
 
+  const handleStartPresentation = async () => {
+    const { extractSlides } = require('@/lib/slideReorder')
+    const slides = extractSlides(htmlContent)
+    if (slides.length === 0) {
+      alert('スライドがありません。プレゼンテーションモードを開始できません。')
+      return
+    }
+    
+    // プレゼンテーションモードを開始（要素をレンダリング）
+    setIsPresentationModeOpen(true)
+    
+    // 要素がレンダリングされた後、ユーザーのクリックイベント内でフルスクリーンを開始
+    // ただし、Reactの状態更新は非同期なので、要素がレンダリングされるまで待つ必要がある
+    // そのため、PresentationModeコンポーネント側でフルスクリーンを開始する
+    // ここでは、コンポーネントがマウントされた後にフルスクリーンを開始するよう指示する
+  }
+
   // ショートカット用のアクション定義
   const shortcutActions: ShortcutActions = {
     'undo': handleUndo,
@@ -219,7 +239,8 @@ export default function Home() {
     'preview-window': handleOpenPreviewWindow,
     'add-slide': handleAddSlide,
     'insert-image': handleImageInsert,
-    'toggle-hierarchy': handleToggleHierarchy
+    'toggle-hierarchy': handleToggleHierarchy,
+    'presentation-mode': handleStartPresentation
   }
 
   // キーボードショートカット管理
@@ -277,7 +298,11 @@ export default function Home() {
         </div>
         <div className="resizer" onMouseDown={startResize}></div>
         <div style={{ width: `${100 - editorWidth}%`, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Preview htmlContent={htmlContent} setHtmlContent={setHtmlContent} />
+          <Preview 
+            htmlContent={htmlContent} 
+            setHtmlContent={setHtmlContent}
+            onPresentationModeStart={handleStartPresentation}
+          />
         </div>
       </div>
 
@@ -325,6 +350,31 @@ export default function Home() {
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}
         onStatusUpdate={setStatusMessage}
+      />
+
+      <PresentationMode
+        htmlContent={htmlContent}
+        isOpen={isPresentationModeOpen}
+        onClose={() => setIsPresentationModeOpen(false)}
+        onReady={(startFullscreen) => {
+          presentationModeRef.current = { startFullscreen }
+          // 準備ができたら、すぐにフルスクリーンを開始
+          startFullscreen().catch((error: any) => {
+            // ユーザージェスチャー関連のエラーは警告レベルに下げる
+            const errorMessage = error?.message || String(error)
+            if (
+              errorMessage.includes('user gesture') ||
+              errorMessage.includes('Permissions check failed') ||
+              errorMessage.includes('not allowed')
+            ) {
+              // ユーザージェスチャー関連のエラーは警告として記録（コンポーネント側で再試行される）
+              console.warn('フルスクリーン開始にユーザージェスチャーが必要です（再試行されます）')
+            } else {
+              // その他のエラーは通常通りエラーとして記録
+              console.error('フルスクリーン開始に失敗:', error)
+            }
+          })
+        }}
       />
 
       <HTMLHierarchyPanel

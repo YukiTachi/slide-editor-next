@@ -15,6 +15,7 @@ export interface ShortcutActions {
   'add-slide': () => void
   'insert-image': () => void
   'toggle-hierarchy': () => void
+  'presentation-mode': () => void
 }
 
 export function useKeyboardShortcuts(actions: ShortcutActions) {

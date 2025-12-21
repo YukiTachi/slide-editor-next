@@ -8,9 +8,10 @@ import { extractSlides, reorderSlides, getSlideTitle, deleteSlide, duplicateSlid
 interface PreviewProps {
   htmlContent: string
   setHtmlContent?: (content: string) => void
+  onPresentationModeStart?: () => void
 }
 
-export default function Preview({ htmlContent, setHtmlContent }: PreviewProps) {
+export default function Preview({ htmlContent, setHtmlContent, onPresentationModeStart }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [slides, setSlides] = useState<Array<{ html: string; title: string; index: number }>>([])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
@@ -117,9 +118,30 @@ export default function Preview({ htmlContent, setHtmlContent }: PreviewProps) {
   const hasContent = htmlContent.trim().length > 0
   const canReorder = slides.length > 1 && setHtmlContent !== undefined
 
+  const handleStartPresentation = () => {
+    if (slides.length === 0) {
+      alert('スライドがありません。プレゼンテーションモードを開始できません。')
+      return
+    }
+    if (onPresentationModeStart) {
+      onPresentationModeStart()
+    }
+  }
+
   return (
     <div className={styles.previewPanel}>
-      <div className={styles.panelHeader}>プレビュー</div>
+      <div className={styles.panelHeader}>
+        <span>プレビュー</span>
+        {hasContent && slides.length > 0 && (
+          <button
+            className={styles.presentationButton}
+            onClick={handleStartPresentation}
+            title="フルスクリーンプレゼンテーションモードを開始 (F5)"
+          >
+            🎬 プレゼンテーション
+          </button>
+        )}
+      </div>
       <div className={styles.previewContainer}>
         {hasContent ? (
           <div className={styles.previewWithSlides}>

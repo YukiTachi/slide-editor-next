@@ -101,3 +101,20 @@ export interface TableConfig {
   caption?: string          // 表のキャプション（任意）
 }
 
+// プレゼンテーションモードの設定
+export interface PresentationConfig {
+  startSlide: number              // 開始スライド番号（0ベース）
+  showProgress: boolean           // 進捗表示の有無
+  showControls: boolean            // コントロール表示の有無
+  transition: 'none' | 'fade' | 'slide'  // トランジション効果
+  backgroundColor: string          // 背景色（デフォルト: '#000000'）
+}
+
+// プレゼンテーションモードの状態
+export interface PresentationState {
+  isActive: boolean                // プレゼンテーションモードが有効か
+  currentSlide: number             // 現在のスライド番号（0ベース）
+  totalSlides: number              // 総スライド数
+  isFullscreen: boolean            // フルスクリーン状態か
+}
+

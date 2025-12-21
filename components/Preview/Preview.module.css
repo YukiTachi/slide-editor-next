@@ -25,6 +25,36 @@
   font-size: 18px;
 }
 
+.panelHeader {
+  justify-content: space-between;
+}
+
+.presentationButton {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.presentationButton:hover {
+  background: var(--accent-color-hover, var(--accent-color));
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.presentationButton:active {
+  transform: translateY(0);
+}
+
 .previewContainer {
   flex: 1;
   position: relative;

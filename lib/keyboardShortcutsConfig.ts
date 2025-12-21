@@ -69,6 +69,14 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     enabled: true,
     category: 'view'
   },
+  {
+    id: 'presentation-mode',
+    action: 'presentation-mode',
+    label: 'プレゼンテーションモード',
+    defaultKey: 'F5',
+    enabled: true,
+    category: 'view'
+  },
   // 挿入カテゴリ
   {
     id: 'add-slide',
