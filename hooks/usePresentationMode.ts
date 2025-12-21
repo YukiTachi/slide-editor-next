@@ -13,7 +13,7 @@ interface UsePresentationModeProps {
 const defaultConfig: PresentationConfig = {
   startSlide: 0,
   showProgress: true,
-  showControls: false,
+  showControls: true,
   transition: 'fade',
   backgroundColor: '#000000'
 }
