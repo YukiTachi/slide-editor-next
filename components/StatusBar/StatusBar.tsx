@@ -7,9 +7,10 @@ interface StatusBarProps {
   htmlContent: string
   statusMessage?: string
   validationErrors?: ValidationError[]
+  onValidationErrorsClick?: () => void
 }
 
-export default function StatusBar({ htmlContent, statusMessage, validationErrors = [] }: StatusBarProps) {
+export default function StatusBar({ htmlContent, statusMessage, validationErrors = [], onValidationErrorsClick }: StatusBarProps) {
   const lineCount = htmlContent.split('\n').length
   const charCount = htmlContent.length
 
@@ -26,7 +27,11 @@ export default function StatusBar({ htmlContent, statusMessage, validationErrors
     <div className={styles.statusBar}>
       <span className={styles.statusText}>{displayText}</span>
       {(errorCount > 0 || warningCount > 0) && (
-        <span className={styles.validationStatus}>
+        <span 
+          className={styles.validationStatus}
+          onClick={onValidationErrorsClick}
+          style={{ cursor: onValidationErrorsClick ? 'pointer' : 'default' }}
+        >
           {errorCount > 0 && <span className={styles.errorCount}>エラー: {errorCount}件</span>}
           {errorCount > 0 && warningCount > 0 && <span className={styles.separator}>、</span>}
           {warningCount > 0 && <span className={styles.warningCount}>警告: {warningCount}件</span>}

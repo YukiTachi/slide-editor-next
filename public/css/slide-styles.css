@@ -339,3 +339,124 @@ body {
 .slide-split .slide-list-item {
     margin-bottom: 12px !important;
 }
+
+/* 表スタイル */
+.slide-table-container {
+    margin: 20px 0;
+    overflow-x: auto;
+}
+
+/* 基本の表スタイル */
+.slide-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 18px;
+    margin: 0 auto;
+}
+
+/* シンプルスタイル */
+.slide-table-simple {
+    border: none;
+}
+
+.slide-table-simple th,
+.slide-table-simple td {
+    padding: 12px;
+    text-align: left;
+    border: none;
+}
+
+/* ボーダー付きスタイル */
+.slide-table-bordered {
+    border: 2px solid #34495e;
+}
+
+.slide-table-bordered th,
+.slide-table-bordered td {
+    padding: 12px;
+    border: 1px solid #bdc3c7;
+    text-align: left;
+}
+
+/* ストライプスタイル */
+.slide-table-striped {
+    border: 1px solid #bdc3c7;
+}
+
+.slide-table-striped th,
+.slide-table-striped td {
+    padding: 12px;
+    border: 1px solid #bdc3c7;
+    text-align: left;
+}
+
+.slide-table-striped tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* ヘッダー強調スタイル */
+.slide-table-highlight {
+    border: 1px solid #bdc3c7;
+}
+
+.slide-table-highlight th,
+.slide-table-highlight td {
+    padding: 12px;
+    border: 1px solid #bdc3c7;
+    text-align: left;
+}
+
+.slide-table-highlight thead {
+    background-color: #3498db;
+    color: white;
+}
+
+.slide-table-highlight thead th {
+    font-weight: bold;
+    padding: 15px;
+}
+
+/* ミニマルスタイル */
+.slide-table-minimal {
+    border: 1px solid #e0e0e0;
+}
+
+.slide-table-minimal th,
+.slide-table-minimal td {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.slide-table-minimal th {
+    border-top: 1px solid #e0e0e0;
+}
+
+/* 表のキャプション */
+.slide-table-caption {
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ヘッダーセル（共通） */
+.slide-table th {
+    font-weight: bold;
+    background-color: #ecf0f1;
+}
+
+/* データセル（共通） */
+.slide-table td {
+    background-color: white;
+}
+
+/* 分割レイアウトでの表の調整 */
+.slide-split .slide-table {
+    font-size: 16px;
+}
+
+.slide-split .slide-table th,
+.slide-split .slide-table td {
+    padding: 8px;
+}

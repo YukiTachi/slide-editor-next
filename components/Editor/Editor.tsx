@@ -1,10 +1,10 @@
 'use client'
 
-import { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo } from 'react'
+import { useRef, useEffect, useImperativeHandle, forwardRef, useState, useMemo, useCallback } from 'react'
 import { EditorView, gutter, GutterMarker } from '@codemirror/view'
 import { html } from '@codemirror/lang-html'
 import { autocompletion, CompletionContext, CompletionResult } from '@codemirror/autocomplete'
-import { EditorState, Extension, StateField, Compartment } from '@codemirror/state'
+import { EditorState, Extension, StateField, Compartment, RangeSetBuilder } from '@codemirror/state'
 import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, highlightActiveLine, keymap, rectangularSelection, crosshairCursor, Decoration, DecorationSet } from '@codemirror/view'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { foldGutter, foldKeymap, syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language'
@@ -131,6 +131,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
   const viewRef = useRef<EditorView | null>(null)
   const themeConfigRef = useRef<Compartment | null>(null)
   const tabSizeConfigRef = useRef<Compartment | null>(null)
+  const errorGutterConfigRef = useRef<Compartment | null>(null)
 
   // リアルタイム検証
   const validationErrors = useMemo(() => {
@@ -145,6 +146,46 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     }
   }, [validationErrors, onValidationChange])
 
+  // エラーガター拡張の作成
+  const createErrorGutterExtension = useCallback((errors: ValidationError[]) => {
+    // validationErrorsを行番号でグループ化
+    const errorsByLine = errors.reduce((acc, error) => {
+      if (!acc[error.line]) {
+        acc[error.line] = []
+      }
+      acc[error.line].push(error)
+      return acc
+    }, {} as Record<number, ValidationError[]>)
+
+    return gutter({
+      class: 'cm-error-gutter',
+      renderEmptyElements: false,
+      markers: (view) => {
+        const builder = new RangeSetBuilder<GutterMarker>()
+        const doc = view.state.doc
+
+        // 各行をチェック
+        for (let i = 1; i <= doc.lines; i++) {
+          const lineErrors = errorsByLine[i]
+          if (lineErrors && lineErrors.length > 0) {
+            try {
+              const line = doc.line(i)
+              // エラーを優先（type === 'error'）
+              const error = lineErrors.find(e => e.type === 'error') || lineErrors[0]
+              const message = lineErrors.map(e => e.message).join('\n')
+              const marker = new ErrorMarker(message, error.type === 'error')
+              builder.add(line.from, line.from, marker)
+            } catch (e) {
+              // 行が見つからない場合はスキップ
+            }
+          }
+        }
+
+        return builder.finish()
+      },
+    })
+  }, [])
+
   // CodeMirrorの初期化
   useEffect(() => {
     if (!editorRef.current) return
@@ -157,9 +198,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     if (!tabSizeConfigRef.current) {
       tabSizeConfigRef.current = new Compartment()
     }
+    if (!errorGutterConfigRef.current) {
+      errorGutterConfigRef.current = new Compartment()
+    }
 
     const themeConfig = themeConfigRef.current
     const tabSizeConfig = tabSizeConfigRef.current
+    const errorGutterConfig = errorGutterConfigRef.current
 
     // テーマ設定（フォントサイズ、フォントファミリー、行の高さ）
     const createThemeExtension = (settings: EditorSettings) => EditorView.theme({
@@ -231,6 +276,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
       // 設定可能なテーマとタブサイズ
       themeConfig.of(createThemeExtension(editorSettings)),
       tabSizeConfig.of(createTabSizeExtension(editorSettings.tabSize)),
+      // エラーガター
+      errorGutterConfig.of(createErrorGutterExtension(validationErrors)),
     ]
 
     const state = EditorState.create({
@@ -315,12 +362,16 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
 
   // エラー表示の更新
   useEffect(() => {
-    if (!viewRef.current) return
-    // エラー表示を更新するために、ドキュメントを再評価
-    viewRef.current.dispatch({
-      effects: [],
+    if (!viewRef.current || !errorGutterConfigRef.current) return
+    
+    const view = viewRef.current
+    const errorGutterConfig = errorGutterConfigRef.current
+    
+    // エラーガターを更新
+    view.dispatch({
+      effects: errorGutterConfig.reconfigure(createErrorGutterExtension(validationErrors)),
     })
-  }, [validationErrors])
+  }, [validationErrors, createErrorGutterExtension])
 
   // EditorHandleの実装
   useImperativeHandle(ref, () => ({

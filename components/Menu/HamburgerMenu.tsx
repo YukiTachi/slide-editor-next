@@ -39,9 +39,10 @@ interface HamburgerMenuProps {
   onKeyboardShortcutsCheckDuplicate?: (id: string, keyString: string) => KeyboardShortcut | null
   onKeyboardShortcutsOpen?: () => void
   onTutorialOpen?: () => void
+  onTableInsertRequest?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
@@ -496,6 +497,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
               }}
             >
               🖼️ 画像挿入
+            </button>
+            <button 
+              className={styles.menuBtn} 
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onTableInsertRequest) {
+                  onTableInsertRequest()
+                }
+              }}
+            >
+              📊 表を挿入
             </button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleBase64Convert(); }}>🔄 Base64変換</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleImageManager(); }}>📁 画像管理</button>

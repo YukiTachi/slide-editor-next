@@ -84,3 +84,20 @@ export interface TutorialConfig {
   allowRestart?: boolean        // 再表示を許可（デフォルト: true）
 }
 
+// 表スタイルの型定義
+export type TableStyle = 
+  | 'simple'        // シンプル（ボーダーなし）
+  | 'bordered'      // ボーダー付き
+  | 'striped'       // ストライプ（交互の背景色）
+  | 'highlight'     // ヘッダー強調
+  | 'minimal'       // ミニマル（細いボーダー）
+
+// 表の設定
+export interface TableConfig {
+  rows: number              // 行数（1-20）
+  columns: number           // 列数（1-10）
+  style: TableStyle         // スタイル
+  hasHeader: boolean        // ヘッダー行があるか
+  caption?: string          // 表のキャプション（任意）
+}
+

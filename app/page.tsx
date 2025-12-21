@@ -8,6 +8,8 @@ import StatusBar from '@/components/StatusBar/StatusBar'
 import SearchReplaceModal from '@/components/SearchReplace/SearchReplaceModal'
 import ThemeToggle from '@/components/ThemeToggle/ThemeToggle'
 import TutorialModal from '@/components/Tutorial/TutorialModal'
+import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/ValidationErrorsPanel'
+import TableInserterModal from '@/components/TableInserter/TableInserterModal'
 import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -27,6 +29,8 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchReplaceOpen, setIsSearchReplaceOpen] = useState(false)
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
+  const [isValidationErrorsPanelOpen, setIsValidationErrorsPanelOpen] = useState(false)
+  const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
   const isRestoreCheckedRef = useRef<boolean>(false)
 
   const autoSave = useAutoSave(htmlContent, defaultHTMLRef.current)
@@ -248,6 +252,7 @@ export default function Home() {
           onKeyboardShortcutsCheckDuplicate={keyboardShortcuts.checkDuplicate}
           onKeyboardShortcutsOpen={() => setIsKeyboardShortcutsOpen(true)}
           onTutorialOpen={tutorial.openTutorial}
+          onTableInsertRequest={() => setIsTableInserterOpen(true)}
         />
         </div>
       </header>
@@ -268,7 +273,12 @@ export default function Home() {
         </div>
       </div>
 
-      <StatusBar htmlContent={htmlContent} statusMessage={statusMessage} validationErrors={validationErrors} />
+      <StatusBar 
+        htmlContent={htmlContent} 
+        statusMessage={statusMessage} 
+        validationErrors={validationErrors}
+        onValidationErrorsClick={() => setIsValidationErrorsPanelOpen(true)}
+      />
 
       <SearchReplaceModal
         isOpen={isSearchReplaceOpen}
@@ -290,6 +300,23 @@ export default function Home() {
         onPrevious={tutorial.previousStep}
         onSkip={tutorial.skipTutorial}
         onComplete={tutorial.completeTutorial}
+      />
+
+      <ValidationErrorsPanel
+        isOpen={isValidationErrorsPanelOpen}
+        onClose={() => setIsValidationErrorsPanelOpen(false)}
+        validationErrors={validationErrors}
+        htmlContent={htmlContent}
+        editorRef={editorRef}
+      />
+
+      <TableInserterModal
+        isOpen={isTableInserterOpen}
+        onClose={() => setIsTableInserterOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        editorRef={editorRef}
+        onStatusUpdate={setStatusMessage}
       />
     </div>
   )
