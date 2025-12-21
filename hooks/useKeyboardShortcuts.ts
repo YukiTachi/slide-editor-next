@@ -14,6 +14,7 @@ export interface ShortcutActions {
   'preview-window': () => void
   'add-slide': () => void
   'insert-image': () => void
+  'toggle-hierarchy': () => void
 }
 
 export function useKeyboardShortcuts(actions: ShortcutActions) {
@@ -60,10 +61,19 @@ export function useKeyboardShortcuts(actions: ShortcutActions) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // エディタ内で入力中はショートカットを無効化
+      // エディタ内で入力中でも、グローバルショートカットは有効にする
       const target = e.target as HTMLElement
-      if (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') {
-        return
+      
+      // CodeMirrorエディタ内かどうかをチェック
+      const isInCodeMirror = target.closest('.cm-editor') !== null
+      
+      // 入力フィールド（TEXTAREA、INPUT）で、かつCodeMirrorエディタ内でない場合
+      // ただし、Ctrl/Metaキーが押されている場合はグローバルショートカットとして処理
+      if ((target.tagName === 'TEXTAREA' || target.tagName === 'INPUT') && !isInCodeMirror) {
+        // Ctrl/Metaキーが押されていない場合は無効化
+        if (!e.ctrlKey && !e.metaKey) {
+          return
+        }
       }
 
       // 有効なショートカットをチェック（常に最新のshortcutsを参照）
@@ -87,9 +97,10 @@ export function useKeyboardShortcuts(actions: ShortcutActions) {
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
+    // capture phaseで登録（CodeMirrorがイベントを消費する前に処理）
+    window.addEventListener('keydown', handleKeyDown, true)
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keydown', handleKeyDown, true)
     }
   }, []) // 依存配列を空にして、イベントリスナーは1回だけ登録
 

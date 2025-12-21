@@ -10,6 +10,7 @@ import ThemeToggle from '@/components/ThemeToggle/ThemeToggle'
 import TutorialModal from '@/components/Tutorial/TutorialModal'
 import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/ValidationErrorsPanel'
 import TableInserterModal from '@/components/TableInserter/TableInserterModal'
+import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
 import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -31,6 +32,7 @@ export default function Home() {
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
   const [isValidationErrorsPanelOpen, setIsValidationErrorsPanelOpen] = useState(false)
   const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
+  const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
   const isRestoreCheckedRef = useRef<boolean>(false)
 
   const autoSave = useAutoSave(htmlContent, defaultHTMLRef.current)
@@ -202,6 +204,10 @@ export default function Home() {
     history.resetHistory(content)
   }
 
+  const handleToggleHierarchy = () => {
+    setIsHierarchyPanelOpen(prev => !prev)
+  }
+
   // ショートカット用のアクション定義
   const shortcutActions: ShortcutActions = {
     'undo': handleUndo,
@@ -212,7 +218,8 @@ export default function Home() {
     'restore': handleRestore,
     'preview-window': handleOpenPreviewWindow,
     'add-slide': handleAddSlide,
-    'insert-image': handleImageInsert
+    'insert-image': handleImageInsert,
+    'toggle-hierarchy': handleToggleHierarchy
   }
 
   // キーボードショートカット管理
@@ -253,6 +260,7 @@ export default function Home() {
           onKeyboardShortcutsOpen={() => setIsKeyboardShortcutsOpen(true)}
           onTutorialOpen={tutorial.openTutorial}
           onTableInsertRequest={() => setIsTableInserterOpen(true)}
+          onHierarchyPanelToggle={handleToggleHierarchy}
         />
         </div>
       </header>
@@ -317,6 +325,13 @@ export default function Home() {
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}
         onStatusUpdate={setStatusMessage}
+      />
+
+      <HTMLHierarchyPanel
+        htmlContent={htmlContent}
+        editorRef={editorRef}
+        isOpen={isHierarchyPanelOpen}
+        onClose={() => setIsHierarchyPanelOpen(false)}
       />
     </div>
   )

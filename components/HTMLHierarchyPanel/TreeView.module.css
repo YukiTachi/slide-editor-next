@@ -1,0 +1,71 @@
+.treeNode {
+  user-select: none;
+}
+
+.treeNodeContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.treeNodeContent:hover {
+  background-color: var(--bg-button);
+}
+
+.expandButton {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.expandButton:hover {
+  color: var(--text-primary);
+}
+
+.spacer {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.tagIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tagName {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.lineNumber {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-left: auto;
+  transition: color 0.2s ease;
+}
+
+.treeChildren {
+  margin-left: 0;
+}
+

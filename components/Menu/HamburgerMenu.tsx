@@ -40,9 +40,10 @@ interface HamburgerMenuProps {
   onKeyboardShortcutsOpen?: () => void
   onTutorialOpen?: () => void
   onTableInsertRequest?: () => void
+  onHierarchyPanelToggle?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest, onHierarchyPanelToggle }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
@@ -532,6 +533,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
           <div className={styles.menuSection}>
             <h3>🔗 表示</h3>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); openPreviewWindow(); }}>🔗 別ウィンドウで開く</button>
+            {onHierarchyPanelToggle && (
+              <button 
+                className={styles.menuBtn} 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onHierarchyPanelToggle(); 
+                }}
+              >
+                📊 HTML階層構造
+              </button>
+            )}
           </div>
 
           <div className={styles.menuSection}>

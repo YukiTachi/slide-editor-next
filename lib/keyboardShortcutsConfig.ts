@@ -61,6 +61,14 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     enabled: true,
     category: 'view'
   },
+  {
+    id: 'toggle-hierarchy',
+    action: 'toggle-hierarchy',
+    label: 'HTML階層構造の表示/非表示',
+    defaultKey: 'Ctrl+B',
+    enabled: true,
+    category: 'view'
+  },
   // 挿入カテゴリ
   {
     id: 'add-slide',
