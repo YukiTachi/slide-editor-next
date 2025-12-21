@@ -135,6 +135,56 @@ export const DEFAULT_TEMPLATES: SlideTemplate[] = [
             PAGE_NUMBER_PLACEHOLDER
         </div>
     </div>`
+  },
+  {
+    id: 'table',
+    name: '表',
+    description: 'タイトルと表のみのシンプルなレイアウト',
+    icon: '📊',
+    category: 'layout',
+    html: `
+    <!-- 表テンプレート -->
+    <div class="slide">
+        <h1 class="slide-title">タイトル</h1>
+        
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-bordered">
+                <caption class="slide-table-caption">表の説明をここに記入</caption>
+                <thead>
+                    <tr>
+                        <th>列1</th>
+                        <th>列2</th>
+                        <th>列3</th>
+                        <th>列4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>データ1-1</td>
+                        <td>データ1-2</td>
+                        <td>データ1-3</td>
+                        <td>データ1-4</td>
+                    </tr>
+                    <tr>
+                        <td>データ2-1</td>
+                        <td>データ2-2</td>
+                        <td>データ2-3</td>
+                        <td>データ2-4</td>
+                    </tr>
+                    <tr>
+                        <td>データ3-1</td>
+                        <td>データ3-2</td>
+                        <td>データ3-3</td>
+                        <td>データ3-4</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            PAGE_NUMBER_PLACEHOLDER
+        </div>
+    </div>`
   }
 ]
 
