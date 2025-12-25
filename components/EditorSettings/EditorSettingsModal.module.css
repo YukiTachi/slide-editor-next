@@ -239,6 +239,11 @@
   transform: translateY(-2px);
 }
 
+/* ダークモード時のcancelBtn文字色を明示的に白にする */
+:global([data-theme="dark"]) .cancelBtn {
+  color: #ffffff !important;
+}
+
 .applyBtn {
   background: var(--gradient-bg);
   color: #ffffff;

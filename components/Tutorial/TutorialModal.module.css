@@ -238,6 +238,11 @@
   padding: 12px 24px;
 }
 
+/* ダークモード時のcompleteButton文字色を明示的に白にする */
+:global([data-theme="dark"]) .completeButton {
+  color: #ffffff !important;
+}
+
 .completeButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);

@@ -112,6 +112,19 @@
   box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
 }
 
+/* ダークモード時のボタン文字色を明示的に白にする */
+:global([data-theme="dark"]) .fileBtn {
+  color: #ffffff !important;
+}
+
+:global([data-theme="dark"]) .urlBtn {
+  color: #ffffff !important;
+}
+
+:global([data-theme="dark"]) .cancelBtn {
+  color: #ffffff !important;
+}
+
 .dropZone {
   border: 2px dashed var(--border-color-strong);
   padding: 40px 20px;

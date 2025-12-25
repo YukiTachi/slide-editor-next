@@ -123,6 +123,11 @@
   margin-left: 6px;
 }
 
+/* ダークモード時のlatestBadge文字色を明示的に白にする */
+:global([data-theme="dark"]) .latestBadge {
+  color: #ffffff !important;
+}
+
 .versionMeta {
   font-size: 12px;
   color: var(--text-secondary);

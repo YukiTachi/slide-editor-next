@@ -147,6 +147,11 @@
   transition: all 0.3s ease;
 }
 
+/* ダークモード時のボタン文字色を明示的に白にする */
+:global([data-theme="dark"]) .buttonGroup button {
+  color: #ffffff !important;
+}
+
 .closeBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
