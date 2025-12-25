@@ -12,6 +12,7 @@ import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/Validation
 import TableInserterModal from '@/components/TableInserter/TableInserterModal'
 import ChartInserterModal from '@/components/ChartInserter/ChartInserterModal'
 import CodeBlockInserterModal from '@/components/CodeBlockInserter/CodeBlockInserterModal'
+import EquationInserterModal from '@/components/EquationInserter/EquationInserterModal'
 import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
 import PresentationMode from '@/components/PresentationMode/PresentationMode'
 import { useTheme } from '@/hooks/useTheme'
@@ -37,6 +38,7 @@ export default function Home() {
   const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
   const [isChartInserterOpen, setIsChartInserterOpen] = useState(false)
   const [isCodeBlockInserterOpen, setIsCodeBlockInserterOpen] = useState(false)
+  const [isEquationInserterOpen, setIsEquationInserterOpen] = useState(false)
   const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
   const [isPresentationModeOpen, setIsPresentationModeOpen] = useState(false)
   const presentationModeRef = useRef<{ startFullscreen: () => Promise<void> } | null>(null)
@@ -287,6 +289,7 @@ export default function Home() {
           onTableInsertRequest={() => setIsTableInserterOpen(true)}
           onChartInsertRequest={() => setIsChartInserterOpen(true)}
           onCodeBlockInsertRequest={() => setIsCodeBlockInserterOpen(true)}
+          onEquationInsertRequest={() => setIsEquationInserterOpen(true)}
           onHierarchyPanelToggle={handleToggleHierarchy}
         />
         </div>
@@ -370,6 +373,15 @@ export default function Home() {
       <CodeBlockInserterModal
         isOpen={isCodeBlockInserterOpen}
         onClose={() => setIsCodeBlockInserterOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        editorRef={editorRef}
+        onStatusUpdate={setStatusMessage}
+      />
+
+      <EquationInserterModal
+        isOpen={isEquationInserterOpen}
+        onClose={() => setIsEquationInserterOpen(false)}
         htmlContent={htmlContent}
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}

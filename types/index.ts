@@ -215,3 +215,23 @@ export interface CodeBlockConfig {
   maxHeight?: number        // 最大高さ（px、スクロール表示用）
 }
 
+// 数式の表示タイプ
+export type EquationDisplayType = 
+  | 'inline'      // インライン数式（文中に埋め込む: $...$）
+  | 'block'       // ブロック数式（独立した行: $$...$$）
+
+// 数式の配置
+export type EquationAlignment = 
+  | 'left'        // 左寄せ
+  | 'center'      // 中央揃え（デフォルト）
+  | 'right'       // 右寄せ
+
+// 数式の設定
+export interface EquationConfig {
+  latex: string              // LaTeXコード
+  displayType: EquationDisplayType  // インライン or ブロック
+  alignment?: EquationAlignment     // 配置（ブロック数式のみ）
+  caption?: string                  // キャプション（任意、ブロック数式のみ）
+  label?: string                   // ラベル（参照用、ブロック数式のみ）
+}
+

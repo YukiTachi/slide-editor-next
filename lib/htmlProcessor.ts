@@ -70,6 +70,9 @@ export async function processHTMLForPreviewAsync(htmlContent: string): Promise<s
   // コードブロックのシンタックスハイライトを追加
   processedContent = addCodeBlockHighlighting(processedContent)
 
+  // 数式のレンダリングを追加
+  processedContent = addEquationRendering(processedContent)
+
   return processedContent
 }
 
@@ -106,6 +109,9 @@ export function processHTMLForPreview(htmlContent: string): string {
 
   // コードブロックのシンタックスハイライトを追加
   processedContent = addCodeBlockHighlighting(processedContent)
+
+  // 数式のレンダリングを追加
+  processedContent = addEquationRendering(processedContent)
 
   return processedContent
 }
@@ -171,6 +177,74 @@ function addChartInitializationScript(htmlContent: string): string {
   } else {
     // </body>がない場合は末尾に追加
     return htmlContent + chartScript
+  }
+}
+
+/**
+ * 数式のレンダリング（KaTeX）を追加
+ */
+function addEquationRendering(htmlContent: string): string {
+  // 数式が存在するかチェック
+  if (!htmlContent.includes('slide-equation-')) {
+    return htmlContent
+  }
+
+  // KaTeXのCDNスクリプトとスタイル、初期化スクリプトを追加
+  const katexScript = `
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+      (function() {
+        function renderEquations() {
+          if (window.katex) {
+            // インライン数式のレンダリング
+            document.querySelectorAll('.slide-equation-inline[data-latex]').forEach(function(el) {
+              const latex = el.getAttribute('data-latex');
+              if (latex) {
+                try {
+                  el.innerHTML = window.katex.renderToString(latex, { 
+                    throwOnError: false,
+                    errorColor: '#cc0000'
+                  });
+                } catch (error) {
+                  el.innerHTML = '<span class="slide-equation-error">エラー: ' + (error.message || 'レンダリングエラー') + '</span>';
+                }
+              }
+            });
+            
+            // ブロック数式のレンダリング
+            document.querySelectorAll('.slide-equation-block[data-latex]').forEach(function(el) {
+              const latex = el.getAttribute('data-latex');
+              if (latex) {
+                try {
+                  el.innerHTML = window.katex.renderToString(latex, { 
+                    displayMode: true,
+                    throwOnError: false,
+                    errorColor: '#cc0000'
+                  });
+                } catch (error) {
+                  el.innerHTML = '<div class="slide-equation-error">エラー: ' + (error.message || 'レンダリングエラー') + '</div>';
+                }
+              }
+            });
+          }
+        }
+        
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', renderEquations);
+        } else {
+          // 既に読み込み済みの場合は即座に実行
+          setTimeout(renderEquations, 100);
+        }
+      })();
+    </script>`
+
+  // </body>の前にスクリプトを追加
+  if (htmlContent.includes('</body>')) {
+    return htmlContent.replace('</body>', katexScript + '</body>')
+  } else {
+    // </body>がない場合は末尾に追加
+    return htmlContent + katexScript
   }
 }
 

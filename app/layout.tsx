@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import 'katex/dist/katex.min.css'
 import '../styles/globals.css'
 import '../styles/theme.css'
+import '../styles/equation.css'
 
 export const metadata: Metadata = {
   title: 'スライドエディタ',

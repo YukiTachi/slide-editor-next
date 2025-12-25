@@ -42,10 +42,11 @@ interface HamburgerMenuProps {
   onTableInsertRequest?: () => void
   onChartInsertRequest?: () => void
   onCodeBlockInsertRequest?: () => void
+  onEquationInsertRequest?: () => void
   onHierarchyPanelToggle?: () => void
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest, onChartInsertRequest, onCodeBlockInsertRequest, onHierarchyPanelToggle }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest, onChartInsertRequest, onCodeBlockInsertRequest, onEquationInsertRequest, onHierarchyPanelToggle }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
@@ -533,6 +534,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
               }}
             >
               💻 コードブロックを挿入
+            </button>
+            <button 
+              className={styles.menuBtn} 
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onEquationInsertRequest) {
+                  onEquationInsertRequest()
+                }
+              }}
+            >
+              📐 数式を挿入
             </button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleBase64Convert(); }}>🔄 Base64変換</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleImageManager(); }}>📁 画像管理</button>

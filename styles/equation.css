@@ -1,0 +1,72 @@
+/* インライン数式コンテナ */
+.slide-equation-inline {
+  display: inline;
+  margin: 0 0.2em;
+}
+
+/* data-latex属性を持つ要素のスタイル調整（必要に応じて） */
+.slide-equation-inline[data-latex] {
+  /* 編集機能用のスタイル */
+}
+
+/* ブロック数式コンテナ */
+.slide-equation-block {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  text-align: center;
+}
+
+.slide-equation-block-left {
+  text-align: left;
+}
+
+.slide-equation-block-right {
+  text-align: right;
+}
+
+/* data-latex属性を持つ要素のスタイル調整（必要に応じて） */
+.slide-equation-block[data-latex] {
+  /* 編集機能用のスタイル */
+}
+
+/* 数式キャプション */
+.slide-equation-caption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  text-align: center;
+  font-style: italic;
+}
+
+.slide-equation-caption-left {
+  text-align: left;
+}
+
+.slide-equation-caption-right {
+  text-align: right;
+}
+
+/* エラー表示 */
+.slide-equation-error {
+  padding: 0.5rem;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .slide-equation-caption {
+    color: #999;
+  }
+  
+  .slide-equation-error {
+    background-color: #422;
+    border-color: #633;
+    color: #f99;
+  }
+}
+
