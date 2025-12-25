@@ -187,3 +187,31 @@ export interface ChartConfig {
 // データ入力方法
 export type DataInputMethod = 'manual' | 'csv' | 'json'
 
+// コードブロックのスタイル
+export type CodeBlockStyle = 
+  | 'default'       // デフォルト（背景色付き）
+  | 'minimal'       // ミニマル（ボーダーのみ）
+  | 'dark'          // ダークテーマ
+  | 'transparent'   // 透明背景
+
+// プログラミング言語
+export type CodeLanguage = 
+  | 'javascript' | 'typescript' | 'jsx' | 'tsx'
+  | 'python' | 'java' | 'cpp' | 'c' | 'csharp'
+  | 'html' | 'css' | 'scss' | 'sass'
+  | 'json' | 'xml' | 'markdown'
+  | 'go' | 'rust' | 'php' | 'ruby' | 'swift'
+  | 'sql' | 'bash' | 'shell' | 'yaml'
+  | 'plaintext'  // プレーンテキスト（ハイライトなし）
+
+// コードブロックの設定
+export interface CodeBlockConfig {
+  code: string              // コード内容
+  language: CodeLanguage    // プログラミング言語
+  style: CodeBlockStyle     // スタイル
+  showLineNumbers: boolean  // 行番号を表示するか
+  startLineNumber?: number  // 開始行番号（デフォルト: 1）
+  caption?: string          // キャプション（任意）
+  maxHeight?: number        // 最大高さ（px、スクロール表示用）
+}
+

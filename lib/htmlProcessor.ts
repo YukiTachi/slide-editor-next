@@ -67,6 +67,9 @@ export async function processHTMLForPreviewAsync(htmlContent: string): Promise<s
   // グラフを初期化するスクリプトを追加
   processedContent = addChartInitializationScript(processedContent)
 
+  // コードブロックのシンタックスハイライトを追加
+  processedContent = addCodeBlockHighlighting(processedContent)
+
   return processedContent
 }
 
@@ -100,6 +103,9 @@ export function processHTMLForPreview(htmlContent: string): string {
 
   // グラフを初期化するスクリプトを追加
   processedContent = addChartInitializationScript(processedContent)
+
+  // コードブロックのシンタックスハイライトを追加
+  processedContent = addCodeBlockHighlighting(processedContent)
 
   return processedContent
 }
@@ -165,6 +171,67 @@ function addChartInitializationScript(htmlContent: string): string {
   } else {
     // </body>がない場合は末尾に追加
     return htmlContent + chartScript
+  }
+}
+
+/**
+ * コードブロックのシンタックスハイライト（Prism.js）を追加
+ */
+function addCodeBlockHighlighting(htmlContent: string): string {
+  // コードブロックが存在するかチェック
+  if (!htmlContent.includes('slide-code-block-container')) {
+    return htmlContent
+  }
+
+  // Prism.jsのCDNスクリプトとスタイル、初期化スクリプトを追加
+  const prismScript = `
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+    <script>
+      (function() {
+        // Prism.jsの自動ロードを設定
+        if (window.Prism) {
+          window.Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+        }
+        
+        // DOMContentLoadedまたは即座に実行
+        function highlightCode() {
+          if (window.Prism) {
+            // すべてのコードブロックをハイライト
+            const codeBlocks = document.querySelectorAll('.slide-code-block-container code');
+            codeBlocks.forEach(function(codeBlock) {
+              window.Prism.highlightElement(codeBlock);
+            });
+            
+            // 行番号を適用
+            if (window.Prism.plugins && window.Prism.plugins.lineNumbers) {
+              const lineNumberBlocks = document.querySelectorAll('.slide-code-block-container pre.line-numbers');
+              lineNumberBlocks.forEach(function(pre) {
+                window.Prism.plugins.lineNumbers.resize(pre);
+              });
+            }
+          }
+        }
+        
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', highlightCode);
+        } else {
+          // 既に読み込み済みの場合は即座に実行
+          setTimeout(highlightCode, 100);
+        }
+      })();
+    </script>`
+
+  // </body>の前にスクリプトを追加
+  if (htmlContent.includes('</body>')) {
+    return htmlContent.replace('</body>', prismScript + '</body>')
+  } else {
+    // </body>がない場合は末尾に追加
+    return htmlContent + prismScript
   }
 }
 

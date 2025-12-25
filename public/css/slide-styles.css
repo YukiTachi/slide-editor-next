@@ -487,3 +487,117 @@ body {
     max-width: 100%;
     max-height: 300px;
 }
+
+/* コードブロックコンテナ */
+.slide-code-block-container {
+    margin: 20px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* コードブロックのスタイルバリエーション */
+.slide-code-block-default {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+}
+
+.slide-code-block-minimal {
+    background-color: transparent;
+    border: 1px solid #ddd;
+}
+
+.slide-code-block-dark {
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+}
+
+.slide-code-block-transparent {
+    background-color: transparent;
+    border: none;
+}
+
+/* コードブロック内のpreとcode要素 */
+.slide-code-block-container pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border-radius: 6px;
+}
+
+.slide-code-block-container code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+}
+
+/* 行番号表示 */
+.slide-code-block-container pre.line-numbers {
+    position: relative;
+    padding-left: 3.8em;
+    counter-reset: linenumber;
+}
+
+.slide-code-block-container pre.line-numbers > code {
+    position: relative;
+    white-space: inherit;
+}
+
+.slide-code-block-container pre.line-numbers .line-numbers-rows {
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    font-size: 100%;
+    left: -3.8em;
+    width: 3em;
+    letter-spacing: -1px;
+    border-right: 1px solid #999;
+    user-select: none;
+    counter-reset: linenumber;
+}
+
+.slide-code-block-container pre.line-numbers .line-numbers-rows > span {
+    display: block;
+    counter-increment: linenumber;
+    padding-right: 0.8em;
+    text-align: right;
+}
+
+.slide-code-block-container pre.line-numbers .line-numbers-rows > span:before {
+    content: counter(linenumber);
+    color: #999;
+    display: block;
+    padding-right: 0.8em;
+    text-align: right;
+}
+
+/* スクロール可能なコードブロック */
+.slide-code-block-container[style*="max-height"] pre {
+    max-height: inherit;
+    overflow-y: auto;
+}
+
+/* キャプション */
+.slide-code-block-caption {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #666;
+    text-align: center;
+    padding: 0 16px;
+}
+
+.slide-code-block-dark .slide-code-block-caption {
+    color: #aaa;
+}
+
+/* 分割レイアウトでのコードブロックの調整 */
+.slide-split .slide-code-block-container {
+    margin: 10px 0;
+}
+
+.slide-split .slide-code-block-container pre {
+    font-size: 12px;
+    padding: 12px;
+}

@@ -65,7 +65,9 @@ const EXTERNAL_LIBRARY_CLASSES = new Set([
   'container', 'container-fluid', 'row', 'col', 'btn', 'card', 'modal', 'navbar', 'alert', 
   'badge', 'dropdown', 'nav', 'table', 'form-control', 'form-group', 'form-check', 'input-group',
   'list-group', 'breadcrumb', 'pagination', 'progress', 'spinner', 'tooltip', 'popover', 'carousel',
-  'accordion', 'offcanvas', 'toast', 'collapse', 'tab', 'scrollspy'
+  'accordion', 'offcanvas', 'toast', 'collapse', 'tab', 'scrollspy',
+  // Prism.js（シンタックスハイライトライブラリ）
+  'line-numbers'  // Prism.jsの行番号プラグイン
 ])
 
 // 外部ライブラリのクラスパターン（正規表現でマッチ）
@@ -105,6 +107,12 @@ const EXTERNAL_LIBRARY_PATTERNS = [
   /^align-items-/,  // Bootstrap アライン（align-items-center など）
   /^order-/,        // Bootstrap オーダー（order-1, order-2 など）
   /^offset-/,       // Bootstrap オフセット（offset-1, offset-md-2 など）
+  
+  // Prism.js（シンタックスハイライトライブラリ）
+  /^language-/,     // Prism.js言語クラス（language-javascript, language-python など）
+  
+  // コードブロック関連クラス（public/css/slide-styles.cssで定義）
+  /^slide-code-block-/,  // コードブロックスタイル（slide-code-block-default, slide-code-block-dark など）
   
   // Tailwind CSS パターン
   /^flex$/,         // Tailwind flex

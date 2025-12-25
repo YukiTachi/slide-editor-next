@@ -11,6 +11,7 @@ import TutorialModal from '@/components/Tutorial/TutorialModal'
 import ValidationErrorsPanel from '@/components/ValidationErrorsPanel/ValidationErrorsPanel'
 import TableInserterModal from '@/components/TableInserter/TableInserterModal'
 import ChartInserterModal from '@/components/ChartInserter/ChartInserterModal'
+import CodeBlockInserterModal from '@/components/CodeBlockInserter/CodeBlockInserterModal'
 import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
 import PresentationMode from '@/components/PresentationMode/PresentationMode'
 import { useTheme } from '@/hooks/useTheme'
@@ -35,6 +36,7 @@ export default function Home() {
   const [isValidationErrorsPanelOpen, setIsValidationErrorsPanelOpen] = useState(false)
   const [isTableInserterOpen, setIsTableInserterOpen] = useState(false)
   const [isChartInserterOpen, setIsChartInserterOpen] = useState(false)
+  const [isCodeBlockInserterOpen, setIsCodeBlockInserterOpen] = useState(false)
   const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
   const [isPresentationModeOpen, setIsPresentationModeOpen] = useState(false)
   const presentationModeRef = useRef<{ startFullscreen: () => Promise<void> } | null>(null)
@@ -284,6 +286,7 @@ export default function Home() {
           onTutorialOpen={tutorial.openTutorial}
           onTableInsertRequest={() => setIsTableInserterOpen(true)}
           onChartInsertRequest={() => setIsChartInserterOpen(true)}
+          onCodeBlockInsertRequest={() => setIsCodeBlockInserterOpen(true)}
           onHierarchyPanelToggle={handleToggleHierarchy}
         />
         </div>
@@ -358,6 +361,15 @@ export default function Home() {
       <ChartInserterModal
         isOpen={isChartInserterOpen}
         onClose={() => setIsChartInserterOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={setHtmlContent}
+        editorRef={editorRef}
+        onStatusUpdate={setStatusMessage}
+      />
+
+      <CodeBlockInserterModal
+        isOpen={isCodeBlockInserterOpen}
+        onClose={() => setIsCodeBlockInserterOpen(false)}
         htmlContent={htmlContent}
         setHtmlContent={setHtmlContent}
         editorRef={editorRef}

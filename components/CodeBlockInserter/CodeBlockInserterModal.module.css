@@ -1,0 +1,274 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
+  padding: 20px;
+  transition: background 0.3s ease;
+}
+
+.modal {
+  background: var(--bg-modal);
+  padding: 30px;
+  border-radius: 12px;
+  min-width: 500px;
+  max-width: 700px;
+  box-shadow: 0 10px 30px var(--shadow-strong);
+  animation: modalFadeIn 0.3s ease-out;
+  margin: auto;
+  position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal h3 {
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.label span:first-child {
+  min-width: 150px;
+  font-size: 14px;
+}
+
+.selectInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.codeInput {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  resize: vertical;
+  min-height: 200px;
+  transition: border-color 0.2s;
+  line-height: 1.5;
+}
+
+.codeInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.numberInput {
+  width: 100px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.numberInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.rangeLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.textInput {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.styleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.styleOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg-primary);
+}
+
+.styleOption:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-button);
+}
+
+.styleOption.selected {
+  border-color: var(--accent-color);
+  background: var(--bg-button);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.styleOption input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.styleIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.styleInfo {
+  flex: 1;
+}
+
+.styleName {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.styleDescription {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.checkboxLabel:hover {
+  background: var(--bg-button);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.insertBtn {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  background: var(--gradient-bg);
+  color: var(--text-inverse);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.insertBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ダークモード時のボタン文字色を明示的に白にする */
+:global([data-theme="dark"]) .insertBtn {
+  color: #ffffff !important;
+}
+
+:global([data-theme="dark"]) .cancelBtn {
+  color: #ffffff !important;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--error-color) 0%, #c0392b 100%);
+  color: var(--text-inverse);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cancelBtn:hover {
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+
