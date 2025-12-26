@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { usePresentationMode } from '@/hooks/usePresentationMode'
 import { processSlideForPresentation } from '@/lib/presentationUtils'
 import { useSlideSize } from '@/hooks/useSlideSize'
+import type { SlideSizeConfig } from '@/types'
 import styles from './PresentationMode.module.css'
 
 interface PresentationModeProps {
@@ -13,6 +14,15 @@ interface PresentationModeProps {
   onClose: () => void
   startSlide?: number
   onReady?: (startFullscreen: () => Promise<void>) => void
+}
+
+// スライドサイズをピクセルに変換
+function getSlideDimensionsInPx(sizeConfig: SlideSizeConfig): { width: number; height: number } {
+  if (sizeConfig.type === '16-9') {
+    return { width: 1920, height: 1080 }
+  }
+  // A4横向き: 297mm x 210mm → px変換 (96dpi基準: 1mm = 3.7795px)
+  return { width: 1122, height: 794 }
 }
 
 export default function PresentationMode({
@@ -25,6 +35,56 @@ export default function PresentationMode({
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [slideHTML, setSlideHTML] = useState<string>('')
   const { sizeConfig, sizeType } = useSlideSize()
+  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 })
+
+  // 画面サイズを監視
+  useEffect(() => {
+    if (!isOpen) return
+
+    const updateScreenSize = () => {
+      setScreenSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    }
+
+    // 初期サイズを設定
+    updateScreenSize()
+
+    // リサイズイベントを監視
+    window.addEventListener('resize', updateScreenSize)
+    // フルスクリーン変更も監視
+    document.addEventListener('fullscreenchange', updateScreenSize)
+
+    return () => {
+      window.removeEventListener('resize', updateScreenSize)
+      document.removeEventListener('fullscreenchange', updateScreenSize)
+    }
+  }, [isOpen])
+
+  // スライドのスケールとスタイルを計算
+  const slideStyle = useMemo(() => {
+    if (screenSize.width === 0 || screenSize.height === 0) {
+      return { width: 0, height: 0, scale: 1 }
+    }
+
+    const slideDimensions = getSlideDimensionsInPx(sizeConfig)
+    const padding = 40 // 上下左右の余白
+
+    const availableWidth = screenSize.width - padding
+    const availableHeight = screenSize.height - padding
+
+    // アスペクト比を保ちながら画面に収まるスケールを計算
+    const scaleX = availableWidth / slideDimensions.width
+    const scaleY = availableHeight / slideDimensions.height
+    const scale = Math.min(scaleX, scaleY)
+
+    return {
+      width: slideDimensions.width,
+      height: slideDimensions.height,
+      scale
+    }
+  }, [screenSize, sizeConfig])
 
   const {
     state,
@@ -162,6 +222,11 @@ export default function PresentationMode({
           ref={iframeRef}
           className={styles.slideFrame}
           title={`スライド ${state.currentSlide + 1}`}
+          style={{
+            width: `${slideStyle.width}px`,
+            height: `${slideStyle.height}px`,
+            transform: `scale(${slideStyle.scale})`,
+          }}
         />
       </div>
 
