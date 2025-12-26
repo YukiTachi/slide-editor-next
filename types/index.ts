@@ -235,3 +235,18 @@ export interface EquationConfig {
   label?: string                   // ラベル（参照用、ブロック数式のみ）
 }
 
+// スライドサイズの種類
+export type SlideSizeType = 'a4-landscape' | '16-9'
+
+// スライドサイズ設定
+export interface SlideSizeConfig {
+  type: SlideSizeType
+  width: string        // CSS値（例: '297mm', '1920px'）
+  height: string       // CSS値（例: '210mm', '1080px'）
+  pageSize?: string    // @page用（例: 'A4 landscape', '1920px 1080px'）
+}
+
+// スライド設定（将来の拡張用）
+export interface SlideSettings {
+  size: SlideSizeConfig
+}

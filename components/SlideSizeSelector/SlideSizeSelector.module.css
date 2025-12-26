@@ -1,0 +1,106 @@
+.container {
+  position: relative;
+  display: inline-block;
+  z-index: 10000;
+}
+
+.selectorButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-button, #e8e8e8);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #333);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectorButton:hover {
+  background: var(--bg-button-hover, #e8e8e8);
+  border-color: var(--accent-color, #3498db);
+}
+
+.selectorIcon {
+  font-size: 14px;
+}
+
+.selectorLabel {
+  font-weight: 600;
+}
+
+.selectorArrow {
+  font-size: 10px;
+  opacity: 0.6;
+  transition: transform 0.2s ease;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  background: var(--bg-primary, white);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: var(--text-primary, #333);
+}
+
+.option:hover {
+  background: var(--bg-button-hover, #f5f5f5);
+}
+
+.option.selected {
+  background: var(--bg-button-hover, #f0f7ff);
+  font-weight: 600;
+}
+
+.optionIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.optionContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionLabel {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.optionDescription {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.checkmark {
+  color: var(--accent-color, #3498db);
+  font-size: 16px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+

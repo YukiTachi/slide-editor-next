@@ -83,10 +83,16 @@ export const slideStyleConfig = {
 }
 
 // CSS文字列を生成する関数
-export function generateSlideStylesCSS(): string {
+export function generateSlideStylesCSS(sizeConfig?: import('@/types').SlideSizeConfig): string {
   const c = slideStyleConfig
   
-  return `/* A4横向きスライド用スタイル */
+  // サイズ設定が指定されていない場合はデフォルトを使用
+  const slideWidth = sizeConfig?.width ?? c.layout.slide.width
+  const slideHeight = sizeConfig?.height ?? c.layout.slide.height
+  const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
+  const sizeTypeLabel = sizeConfig?.type === '16-9' ? '16:9' : 'A4横向き'
+  
+  return `/* ${sizeTypeLabel}スライド用スタイル */
 body {
     margin: 0;
     padding: 0;
@@ -95,10 +101,10 @@ body {
 }
 
 .slide {
-    width: ${c.layout.slide.width};
-    height: ${c.layout.slide.height};
-    min-height: ${c.layout.slide.height};
-    max-height: ${c.layout.slide.height};
+    width: ${slideWidth};
+    height: ${slideHeight};
+    min-height: ${slideHeight};
+    max-height: ${slideHeight};
     background: white;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     margin: ${c.spacing.slide.margin}px auto;
@@ -209,10 +215,10 @@ body {
     .slide {
         box-shadow: none !important;
         margin: 0 !important;
-        width: ${c.layout.slide.width} !important;
-        height: ${c.layout.slide.height} !important;
-        min-height: ${c.layout.slide.height} !important;
-        max-height: ${c.layout.slide.height} !important;
+        width: ${slideWidth} !important;
+        height: ${slideHeight} !important;
+        min-height: ${slideHeight} !important;
+        max-height: ${slideHeight} !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
         break-after: always !important;
@@ -243,7 +249,7 @@ body {
 }
 
 @page {
-    size: A4 landscape;
+    size: ${pageSize};
     margin: 0;
 }
 

@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import styles from './Preview.module.css'
 import { processHTMLForPreviewAsync, processHTMLForPreview } from '@/lib/htmlProcessor'
 import { extractSlides, reorderSlides, getSlideTitle, deleteSlide, duplicateSlide } from '@/lib/slideReorder'
+import { useSlideSize } from '@/hooks/useSlideSize'
+import SlideSizeSelector from '@/components/SlideSizeSelector/SlideSizeSelector'
+import { calculatePreviewScale } from '@/lib/slideSizeConfig'
 
 interface PreviewProps {
   htmlContent: string
@@ -13,9 +16,12 @@ interface PreviewProps {
 
 export default function Preview({ htmlContent, setHtmlContent, onPresentationModeStart }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
   const [slides, setSlides] = useState<Array<{ html: string; title: string; index: number }>>([])
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const { sizeConfig, sizeType, setSlideSize } = useSlideSize()
+  const [previewScale, setPreviewScale] = useState(1)
 
   // スライドを抽出
   useEffect(() => {
@@ -27,6 +33,68 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
     })))
   }, [htmlContent])
 
+  // プレビュースケールを計算（16:9サイズの場合に縮小が必要）
+  useEffect(() => {
+    // A4横向きの場合はスケーリング不要
+    if (sizeConfig.type === 'a4-landscape') {
+      setPreviewScale(1)
+      if (iframeRef.current) {
+        iframeRef.current.style.transform = 'none'
+        iframeRef.current.style.transformOrigin = 'unset'
+        iframeRef.current.style.width = '100%'
+        iframeRef.current.style.height = '100%'
+      }
+      return
+    }
+    
+    const calculateScale = () => {
+      if (previewContainerRef.current && iframeRef.current) {
+        // パディングを考慮した幅と高さを計算（左右・上下20pxずつ）
+        const containerWidth = previewContainerRef.current.clientWidth - 40
+        const containerHeight = previewContainerRef.current.clientHeight - 40
+        
+        // 16:9サイズの実際のピクセル値
+        const slideWidth = 1920
+        const slideHeight = 1080
+        
+        // コンテナに収まるスケールを計算（幅と高さの両方を考慮）
+        const widthScale = containerWidth / slideWidth
+        const heightScale = containerHeight / slideHeight
+        const scale = Math.min(widthScale, heightScale, 1) // 最大1.0
+        
+        setPreviewScale(scale)
+        
+        // iframeにスケーリングを適用（16:9の場合のみ）
+        if (scale < 1) {
+          // スケール後の実際のサイズを計算
+          const scaledWidth = slideWidth * scale
+          const scaledHeight = slideHeight * scale
+          
+          // iframeのサイズをスケール後のサイズに設定
+          iframeRef.current.style.width = `${scaledWidth}px`
+          iframeRef.current.style.height = `${scaledHeight}px`
+          iframeRef.current.style.transform = 'none'
+          iframeRef.current.style.transformOrigin = 'unset'
+        } else {
+          iframeRef.current.style.width = '100%'
+          iframeRef.current.style.height = '100%'
+          iframeRef.current.style.transform = 'none'
+          iframeRef.current.style.transformOrigin = 'unset'
+        }
+      }
+    }
+    
+    // 初期計算（少し遅延させてDOMのサイズが確定してから）
+    const timeoutId = setTimeout(calculateScale, 100)
+    
+    // ウィンドウリサイズ時にも再計算
+    window.addEventListener('resize', calculateScale)
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('resize', calculateScale)
+    }
+  }, [sizeConfig])
+
   useEffect(() => {
     if (!iframeRef.current) return
 
@@ -35,8 +103,8 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
 
     if (!doc) return
 
-    // 実際のCSSファイルを読み込む（非同期）
-    processHTMLForPreviewAsync(htmlContent).then((processedContent) => {
+    // サイズ設定に基づいてHTMLを処理
+    processHTMLForPreviewAsync(htmlContent, sizeConfig).then((processedContent) => {
       if (processedContent && iframeRef.current) {
         const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
         if (currentDoc) {
@@ -48,7 +116,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
     }).catch((error) => {
       console.warn('CSS読み込みエラー、フォールバックを使用:', error)
       // エラー時は同期版を使用
-      const processedContent = processHTMLForPreview(htmlContent)
+      const processedContent = processHTMLForPreview(htmlContent, sizeConfig)
       if (processedContent && iframeRef.current) {
         const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
         if (currentDoc) {
@@ -58,7 +126,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
         }
       }
     })
-  }, [htmlContent])
+  }, [htmlContent, sizeConfig])
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index)
@@ -132,6 +200,13 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
     <div className={styles.previewPanel}>
       <div className={styles.panelHeader}>
         <span>プレビュー</span>
+        {/* 中央にスライドサイズセレクターを配置 */}
+        <div className={styles.headerCenter}>
+          <SlideSizeSelector
+            currentSizeType={sizeType}
+            onSizeChange={setSlideSize}
+          />
+        </div>
         {hasContent && slides.length > 0 && (
           <button
             className={styles.presentationButton}
@@ -200,15 +275,20 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
                 </div>
               </div>
             )}
-            <iframe
-              ref={iframeRef}
-              className={styles.previewFrame}
-              title="プレビュー"
-            />
+            <div 
+              ref={previewContainerRef}
+              className={styles.previewWrapper}
+            >
+              <iframe
+                ref={iframeRef}
+                className={styles.previewFrame}
+                title="プレビュー"
+              />
+            </div>
           </div>
         ) : (
           <div className={styles.placeholder}>
-            A4横向きスライドのプレビューがここに表示されます
+            {sizeType === 'a4-landscape' ? 'A4横向き' : '16:9'}スライドのプレビューがここに表示されます
           </div>
         )}
       </div>

@@ -1,5 +1,7 @@
-import { slideStylesCSS } from './slideStyles'
+import { slideStylesCSS, getSlideStylesCSS } from './slideStyles'
 import { convertStorageImagesToDataURI } from './imageStorage'
+import type { SlideSizeConfig } from '@/types'
+import { DEFAULT_SLIDE_SIZE_TYPE, getSlideSizeConfig } from './slideSizeConfig'
 
 // CSSキャッシュ（クライアント側でfetchで読み込んだCSSを保存）
 let cachedCSS: string | null = null
@@ -37,15 +39,21 @@ async function loadActualCSS(): Promise<string> {
  * HTMLコンテンツをプレビュー用に処理する
  * CSSリンクをインラインスタイルに置き換え、画像をdata URIに変換
  */
-export async function processHTMLForPreviewAsync(htmlContent: string): Promise<string> {
+export async function processHTMLForPreviewAsync(
+  htmlContent: string,
+  sizeConfig?: SlideSizeConfig
+): Promise<string> {
   let processedContent = htmlContent.trim()
 
   if (!processedContent) {
     return processedContent
   }
 
-  // 実際のCSSファイルを読み込む
-  const css = await loadActualCSS()
+  // sizeConfig が渡されない場合はデフォルトを使用
+  const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(DEFAULT_SLIDE_SIZE_TYPE)
+
+  // サイズ設定に基づいてCSSを動的に生成
+  const css = getSlideStylesCSS(effectiveSizeConfig)
 
   // <link rel="stylesheet" href="css/slide-styles.css"> を <style> タグに置き換え
   processedContent = processedContent.replace(
@@ -80,24 +88,33 @@ export async function processHTMLForPreviewAsync(htmlContent: string): Promise<s
  * HTMLコンテンツをプレビュー用に処理する（同期版、互換性のため）
  * CSSリンクをインラインスタイルに置き換え、画像をdata URIに変換
  */
-export function processHTMLForPreview(htmlContent: string): string {
+export function processHTMLForPreview(
+  htmlContent: string,
+  sizeConfig?: SlideSizeConfig
+): string {
   let processedContent = htmlContent.trim()
 
   if (!processedContent) {
     return processedContent
   }
 
+  // sizeConfig が渡されない場合はデフォルトを使用
+  const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(DEFAULT_SLIDE_SIZE_TYPE)
+
+  // サイズ設定に基づいてCSSを動的に生成
+  const css = getSlideStylesCSS(effectiveSizeConfig)
+
   // <link rel="stylesheet" href="css/slide-styles.css"> を <style> タグに置き換え
   processedContent = processedContent.replace(
     /<link[^>]*rel=["']stylesheet["'][^>]*href=["'][^"']*slide-styles\.css["'][^>]*>/gi,
-    `<style>${slideStylesCSS}</style>`
+    `<style>${css}</style>`
   )
 
   // 既に<style>タグがない場合、head内に追加
   if (!processedContent.includes('<style>')) {
     processedContent = processedContent.replace(
       /<\/head>/i,
-      `<style>${slideStylesCSS}</style></head>`
+      `<style>${css}</style></head>`
     )
   }
 
