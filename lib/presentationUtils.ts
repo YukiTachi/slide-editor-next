@@ -1,5 +1,8 @@
 import { extractSlides } from './slideReorder'
 import { processHTMLForPreviewAsync } from './htmlProcessor'
+import type { SlideSizeConfig } from '@/types'
+import { getSlideSizeConfig, DEFAULT_SLIDE_SIZE_TYPE } from './slideSizeConfig'
+import { getSlideSize } from './slideSizeStorage'
 
 /**
  * 現在のスライドのHTMLを取得
@@ -15,7 +18,10 @@ export function getCurrentSlideHTML(htmlContent: string, slideIndex: number): st
 /**
  * プレゼンテーション用にスライドを処理
  */
-export async function processSlideForPresentation(slideHTML: string): Promise<string> {
+export async function processSlideForPresentation(
+  slideHTML: string,
+  sizeConfig?: SlideSizeConfig
+): Promise<string> {
   // 単一のスライドをHTMLコンテンツとして処理
   // スライドは既にdiv.slideで囲まれているので、そのまま処理
   // 全体のHTML構造を作成
@@ -33,7 +39,10 @@ export async function processSlideForPresentation(slideHTML: string): Promise<st
 </html>
   `.trim()
 
-  return await processHTMLForPreviewAsync(fullHTML)
+  // sizeConfigが渡されない場合は、LocalStorageから取得
+  const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(getSlideSize())
+
+  return await processHTMLForPreviewAsync(fullHTML, effectiveSizeConfig)
 }
 
 /**

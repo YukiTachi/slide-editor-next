@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { usePresentationMode } from '@/hooks/usePresentationMode'
 import { processSlideForPresentation } from '@/lib/presentationUtils'
+import { useSlideSize } from '@/hooks/useSlideSize'
 import styles from './PresentationMode.module.css'
 
 interface PresentationModeProps {
@@ -23,6 +24,7 @@ export default function PresentationMode({
 }: PresentationModeProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [slideHTML, setSlideHTML] = useState<string>('')
+  const { sizeConfig, sizeType } = useSlideSize()
 
   const {
     state,
@@ -50,13 +52,13 @@ export default function PresentationMode({
       return
     }
 
-    processSlideForPresentation(currentSlideHTML).then((processedHTML) => {
+    processSlideForPresentation(currentSlideHTML, sizeConfig).then((processedHTML) => {
       setSlideHTML(processedHTML)
     }).catch((error) => {
       console.error('スライド処理エラー:', error)
       setSlideHTML('')
     })
-  }, [isOpen, currentSlideHTML])
+  }, [isOpen, currentSlideHTML, sizeConfig, sizeType])
 
   // iframeにスライドを表示
   useEffect(() => {
