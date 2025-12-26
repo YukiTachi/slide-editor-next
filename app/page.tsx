@@ -23,6 +23,7 @@ import { useHistory } from '@/hooks/useHistory'
 import { useEditorSettings } from '@/hooks/useEditorSettings'
 import { useKeyboardShortcuts, type ShortcutActions } from '@/hooks/useKeyboardShortcuts'
 import { useTutorial } from '@/hooks/useTutorial'
+import { useSlideSize } from '@/hooks/useSlideSize'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -50,6 +51,7 @@ export default function Home() {
   const theme = useTheme()
   const editorSettings = useEditorSettings()
   const tutorial = useTutorial()
+  const { sizeConfig } = useSlideSize()
 
   useEffect(() => {
     // 初期化は1回だけ実行
@@ -158,7 +160,7 @@ export default function Home() {
       return
     }
     const { processHTMLForPreview } = require('@/lib/htmlProcessor')
-    const processedHTML = processHTMLForPreview(trimmedContent)
+    const processedHTML = processHTMLForPreview(trimmedContent, sizeConfig)
     const newWindow = window.open('', 'preview', 'width=1200,height=800,scrollbars=yes,resizable=yes')
     if (newWindow) {
       newWindow.document.title = 'プレビュー - スライドエディタ'
