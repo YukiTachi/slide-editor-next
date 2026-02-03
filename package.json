@@ -11,6 +11,7 @@
     "export": "next build"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.34.2",
     "@codemirror/autocomplete": "^6.20.0",
     "@codemirror/basic-setup": "^0.20.0",
     "@codemirror/commands": "^6.10.0",

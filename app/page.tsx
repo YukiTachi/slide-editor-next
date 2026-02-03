@@ -15,6 +15,7 @@ import CodeBlockInserterModal from '@/components/CodeBlockInserter/CodeBlockInse
 import EquationInserterModal from '@/components/EquationInserter/EquationInserterModal'
 import HTMLHierarchyPanel from '@/components/HTMLHierarchyPanel/HTMLHierarchyPanel'
 import PresentationMode from '@/components/PresentationMode/PresentationMode'
+import SlideGeneratorModal from '@/components/SlideGenerator/SlideGeneratorModal'
 import { useTheme } from '@/hooks/useTheme'
 import { SlideTemplates } from '@/lib/slideTemplates'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -42,6 +43,7 @@ export default function Home() {
   const [isEquationInserterOpen, setIsEquationInserterOpen] = useState(false)
   const [isHierarchyPanelOpen, setIsHierarchyPanelOpen] = useState(false)
   const [isPresentationModeOpen, setIsPresentationModeOpen] = useState(false)
+  const [isSlideGeneratorOpen, setIsSlideGeneratorOpen] = useState(false)
   const presentationModeRef = useRef<{ startFullscreen: () => Promise<void> } | null>(null)
   const isRestoreCheckedRef = useRef<boolean>(false)
 
@@ -263,6 +265,30 @@ export default function Home() {
       <header className="header">
         <h1>スライドエディタ</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            onClick={() => setIsSlideGeneratorOpen(true)}
+            style={{
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)',
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(52, 152, 219, 0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            🤖 AI生成
+          </button>
           <ThemeToggle />
           <HamburgerMenu 
           htmlContent={htmlContent}
@@ -420,6 +446,18 @@ export default function Home() {
         editorRef={editorRef}
         isOpen={isHierarchyPanelOpen}
         onClose={() => setIsHierarchyPanelOpen(false)}
+      />
+
+      <SlideGeneratorModal
+        isOpen={isSlideGeneratorOpen}
+        onClose={() => setIsSlideGeneratorOpen(false)}
+        htmlContent={htmlContent}
+        setHtmlContent={(newContent) => {
+          setHtmlContent(newContent)
+          history.resetHistory(newContent)
+        }}
+        editorRef={editorRef}
+        onStatusUpdate={setStatusMessage}
       />
     </div>
   )
