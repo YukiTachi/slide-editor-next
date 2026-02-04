@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_LAMBDA_API_URL: ${{ secrets.NEXT_PUBLIC_LAMBDA_API_URL }}
+      NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
 
     steps:
       - name: Checkout repository
