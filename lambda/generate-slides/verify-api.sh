@@ -5,6 +5,16 @@
 
 API_URL="${1:?Usage: $0 <API_ENDPOINT_URL>}"
 
+# プロジェクトルートの .env.local から NEXT_PUBLIC_API_KEY を読み込む（未設定時のみ）
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+ENV_LOCAL="${SCRIPT_DIR}/../../.env.local"
+if [ -z "$NEXT_PUBLIC_API_KEY" ] && [ -f "$ENV_LOCAL" ]; then
+  _val=$(grep -E '^NEXT_PUBLIC_API_KEY=' "$ENV_LOCAL" 2>/dev/null | cut -d= -f2- | sed 's/^["'\'']//;s/["'\'']$//' | tr -d '\r')
+  if [ -n "$_val" ]; then
+    export NEXT_PUBLIC_API_KEY="$_val"
+  fi
+fi
+
 echo "エンドポイント: $API_URL"
 echo "テストリクエストを送信しています...（最大90秒待機）"
 echo ""
