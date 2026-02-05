@@ -112,6 +112,36 @@ exports.handler = async (event) => {
       }
     }
 
+    // 許可オリジン（ホスト）のチェック（ALLOWED_ORIGINS が設定されている場合のみ）
+    const allowedOriginsStr = process.env.ALLOWED_ORIGINS;
+    if (allowedOriginsStr && allowedOriginsStr.trim()) {
+      const allowedOrigins = allowedOriginsStr.split(',').map(s => s.trim()).filter(Boolean);
+      const origin = event.headers?.['origin'] || event.headers?.['Origin'];
+      const referer = event.headers?.['referer'] || event.headers?.['Referer'];
+      let requestOrigin = origin;
+      if (!requestOrigin && referer) {
+        try {
+          requestOrigin = new URL(referer).origin;
+        } catch (_) {
+          requestOrigin = null;
+        }
+      }
+      const allowed = requestOrigin && allowedOrigins.some(allowed => {
+        if (allowed.endsWith('*')) {
+          const prefix = allowed.slice(0, -1);
+          return requestOrigin === prefix || requestOrigin.startsWith(prefix);
+        }
+        return requestOrigin === allowed;
+      });
+      if (!allowed) {
+        return {
+          statusCode: 403,
+          headers,
+          body: JSON.stringify({ error: 'Forbidden: Origin not allowed' }),
+        };
+      }
+    }
+
     // リクエストボディのパース（HTTP APIとREST APIで形式が異なる）
     let requestBody;
     try {

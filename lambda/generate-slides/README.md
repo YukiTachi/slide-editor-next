@@ -39,6 +39,7 @@ AWSコンソールでLambda関数を作成する必要があります：
 
    - `ANTHROPIC_API_KEY`（必須）: Anthropic APIキー
    - `API_GATEWAY_KEY`（オプション）: API Gateway認証用のキー
+   - `ALLOWED_ORIGINS`（オプション）: 許可するオリジン（カンマ区切り）。例: `https://example.com,http://localhost:3000`。末尾に `*` でプレフィックス一致（例: `https://*.example.com`）。未設定時は全オリジン許可
    - `CLAUDE_MODEL`（オプション）: ClaudeモデルID（デフォルト: `claude-3-5-sonnet-20241022`）。例: Haiku 4.5 は `claude-haiku-4-5-20251001`
    - `MAX_TOKENS`（オプション）: 最大トークン数（デフォルト: `8192`）
 
