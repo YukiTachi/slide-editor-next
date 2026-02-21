@@ -43,7 +43,21 @@ export async function processSlideForPresentation(
   // sizeConfigが渡されない場合は、LocalStorageから取得
   const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(getSlideSize())
 
-  return await processHTMLForPreviewAsync(fullHTML, effectiveSizeConfig, template)
+  let result = await processHTMLForPreviewAsync(fullHTML, effectiveSizeConfig, template)
+
+  // プレゼンテーション用オーバーライドCSS（スライドCSSの後に注入して優先させる）
+  const presentationOverrideCSS = `<style>
+  body { overflow: hidden !important; background: transparent !important; margin: 0 !important; padding: 0 !important; }
+  .slide { margin: 0 !important; box-shadow: none !important; }
+</style>`
+
+  if (result.includes('</head>')) {
+    result = result.replace('</head>', `${presentationOverrideCSS}</head>`)
+  } else {
+    result = presentationOverrideCSS + result
+  }
+
+  return result
 }
 
 /**

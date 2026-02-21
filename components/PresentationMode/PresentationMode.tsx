@@ -71,10 +71,12 @@ export default function PresentationMode({
     }
 
     const slideDimensions = getSlideDimensionsInPx(sizeConfig)
-    const padding = 40 // 上下左右の余白
+    const paddingH = 40 // 左右の余白
+    const paddingTop = 20 // 上の余白
+    const paddingBottom = 80 // 下の余白（コントロールバー分）
 
-    const availableWidth = screenSize.width - padding
-    const availableHeight = screenSize.height - padding
+    const availableWidth = screenSize.width - paddingH
+    const availableHeight = screenSize.height - paddingTop - paddingBottom
 
     // アスペクト比を保ちながら画面に収まるスケールを計算
     const scaleX = availableWidth / slideDimensions.width
@@ -219,7 +221,14 @@ export default function PresentationMode({
       onClick={handleClick}
       onContextMenu={handleContextMenu}
     >
-      <div className={styles.slideWrapper}>
+      <div
+        className={styles.slideWrapper}
+        style={{
+          width: `${slideStyle.width * slideStyle.scale}px`,
+          height: `${slideStyle.height * slideStyle.scale}px`,
+          position: 'relative',
+        }}
+      >
         <iframe
           ref={iframeRef}
           className={styles.slideFrame}
@@ -228,6 +237,10 @@ export default function PresentationMode({
             width: `${slideStyle.width}px`,
             height: `${slideStyle.height}px`,
             transform: `scale(${slideStyle.scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
           }}
         />
       </div>
