@@ -32,6 +32,18 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     skipable: true
   },
   {
+    id: 'aiSlideGenerator',
+    title: 'AIスライド作成',
+    content: `
+      <p>右上の「🤖 AI生成」ボタンで、AIスライド作成ダイアログを開けます。</p>
+      <p>テーマと内容を入力し、必要に応じて章を追加すると、AIがスライド用のHTMLを生成します。</p>
+      <p>生成後はエディタに反映され、そのまま編集・プレビューできます。</p>
+    `,
+    highlightElement: 'button[aria-label="AIスライド作成"]',
+    highlightPosition: 'bottom',
+    skipable: true
+  },
+  {
     id: 'menu',
     title: 'ハンバーガーメニュー',
     content: `

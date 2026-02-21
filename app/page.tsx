@@ -266,6 +266,7 @@ export default function Home() {
         <h1>スライドエディタ</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
+            aria-label="AIスライド作成"
             onClick={() => setIsSlideGeneratorOpen(true)}
             style={{
               padding: '8px 16px',
