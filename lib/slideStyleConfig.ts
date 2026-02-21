@@ -82,6 +82,38 @@ export const slideStyleConfig = {
   },
 }
 
+// スライドサイズのみを !important 付きで上書きするCSS（カスタムテンプレート用）
+export function getSlideSizeOverrideCSS(sizeConfig?: import('@/types').SlideSizeConfig): string {
+  const c = slideStyleConfig
+  const slideWidth = sizeConfig?.width ?? c.layout.slide.width
+  const slideHeight = sizeConfig?.height ?? c.layout.slide.height
+  const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
+
+  return `
+/* スライドサイズ上書き（アプリ設定に連動） */
+.slide {
+    width: ${slideWidth} !important;
+    height: ${slideHeight} !important;
+    min-height: ${slideHeight} !important;
+    max-height: ${slideHeight} !important;
+}
+
+@media print {
+    .slide {
+        width: ${slideWidth} !important;
+        height: ${slideHeight} !important;
+        min-height: ${slideHeight} !important;
+        max-height: ${slideHeight} !important;
+    }
+}
+
+@page {
+    size: ${pageSize};
+    margin: 0;
+}
+`
+}
+
 // CSS文字列を生成する関数
 export function generateSlideStylesCSS(sizeConfig?: import('@/types').SlideSizeConfig, template?: import('@/types').CSSDesignTemplate): string {
   const c = slideStyleConfig

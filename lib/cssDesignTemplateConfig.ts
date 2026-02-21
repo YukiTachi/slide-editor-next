@@ -1,8 +1,9 @@
-import type { CSSDesignTemplateType, CSSDesignTemplate } from '@/types'
+import type { BuiltInCSSDesignTemplateType, CSSDesignTemplateType, CSSDesignTemplate } from '@/types'
+import { loadCustomTemplates, getCustomTemplateCSS } from './customCSSTemplateStorage'
 
 export const DEFAULT_CSS_DESIGN_TEMPLATE_TYPE: CSSDesignTemplateType = 'default'
 
-export const CSS_DESIGN_TEMPLATE_PRESETS: Record<CSSDesignTemplateType, CSSDesignTemplate> = {
+export const CSS_DESIGN_TEMPLATE_PRESETS: Record<BuiltInCSSDesignTemplateType, CSSDesignTemplate> = {
   default: {
     id: 'default',
     name: 'スタンダード',
@@ -91,9 +92,23 @@ export const CSS_DESIGN_TEMPLATE_PRESETS: Record<CSSDesignTemplateType, CSSDesig
 }
 
 export function getCSSDesignTemplate(type: CSSDesignTemplateType): CSSDesignTemplate {
-  return CSS_DESIGN_TEMPLATE_PRESETS[type] || CSS_DESIGN_TEMPLATE_PRESETS[DEFAULT_CSS_DESIGN_TEMPLATE_TYPE]
+  // ビルトインテンプレート
+  if (type in CSS_DESIGN_TEMPLATE_PRESETS) {
+    return CSS_DESIGN_TEMPLATE_PRESETS[type as BuiltInCSSDesignTemplateType]
+  }
+
+  // カスタムテンプレート
+  if (typeof type === 'string' && type.startsWith('custom_')) {
+    const customTemplates = loadCustomTemplates()
+    const found = customTemplates.find(t => t.id === type)
+    if (found) return found
+  }
+
+  return CSS_DESIGN_TEMPLATE_PRESETS[DEFAULT_CSS_DESIGN_TEMPLATE_TYPE as BuiltInCSSDesignTemplateType]
 }
 
 export function getAllCSSDesignTemplates(): CSSDesignTemplate[] {
-  return Object.values(CSS_DESIGN_TEMPLATE_PRESETS)
+  const builtIn = Object.values(CSS_DESIGN_TEMPLATE_PRESETS)
+  const custom = loadCustomTemplates()
+  return [...builtIn, ...custom]
 }

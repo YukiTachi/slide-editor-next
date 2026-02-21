@@ -236,7 +236,8 @@ export interface EquationConfig {
 }
 
 // CSSデザインテンプレートの種類
-export type CSSDesignTemplateType = 'default' | 'nature' | 'monochrome' | 'ocean' | 'warm'
+export type BuiltInCSSDesignTemplateType = 'default' | 'nature' | 'monochrome' | 'ocean' | 'warm'
+export type CSSDesignTemplateType = BuiltInCSSDesignTemplateType | `custom_${string}`
 
 // CSSデザインテンプレート
 export interface CSSDesignTemplate {
@@ -255,6 +256,7 @@ export interface CSSDesignTemplate {
     background: string
   }
   listBullet: string  // リスト装飾文字（▶, ●, ◆ 等）
+  customCSS?: string  // 自作CSS全文（カスタムテンプレート用）
 }
 
 // スライドサイズの種類

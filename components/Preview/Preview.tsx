@@ -23,7 +23,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const { sizeConfig, sizeType, setSlideSize } = useSlideSize()
-  const { templateType, template, setCSSDesignTemplate } = useCSSDesignTemplate()
+  const { templateType, template, allTemplates, setCSSDesignTemplate, addCustomTemplate, removeCustomTemplate } = useCSSDesignTemplate()
   const [previewScale, setPreviewScale] = useState(1)
 
   // スライドを抽出
@@ -212,6 +212,9 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
           <CSSDesignTemplateSelector
             currentTemplateType={templateType}
             onTemplateChange={setCSSDesignTemplate}
+            allTemplates={allTemplates}
+            onAddCustomTemplate={addCustomTemplate}
+            onDeleteCustomTemplate={removeCustomTemplate}
           />
         </div>
         {hasContent && slides.length > 0 && (

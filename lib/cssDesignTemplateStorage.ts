@@ -1,15 +1,21 @@
 import { DEFAULT_CSS_DESIGN_TEMPLATE_TYPE } from './cssDesignTemplateConfig'
-import type { CSSDesignTemplateType } from '@/types'
+import type { BuiltInCSSDesignTemplateType, CSSDesignTemplateType } from '@/types'
 
 const STORAGE_KEY = 'slideEditor_cssDesignTemplate'
 export const CSS_DESIGN_TEMPLATE_CHANGE_EVENT = 'cssDesignTemplateChange'
 
-const VALID_TYPES: CSSDesignTemplateType[] = ['default', 'nature', 'monochrome', 'ocean', 'warm']
+const VALID_BUILTIN_TYPES: BuiltInCSSDesignTemplateType[] = ['default', 'nature', 'monochrome', 'ocean', 'warm']
+
+function isValidTemplateType(value: string): value is CSSDesignTemplateType {
+  if (VALID_BUILTIN_TYPES.includes(value as BuiltInCSSDesignTemplateType)) return true
+  if (value.startsWith('custom_')) return true
+  return false
+}
 
 export function getCSSDesignTemplateType(): CSSDesignTemplateType {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && VALID_TYPES.includes(stored as CSSDesignTemplateType)) {
+    if (stored && isValidTemplateType(stored)) {
       return stored as CSSDesignTemplateType
     }
   } catch (error) {

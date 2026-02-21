@@ -1,6 +1,6 @@
 // スライドスタイルCSS（インライン埋め込み用）
 // サーバー側では実際のCSSファイルを読み込み、クライアント側ではフォールバックを使用
-import { generateSlideStylesCSS } from './slideStyleConfig'
+import { generateSlideStylesCSS, getSlideSizeOverrideCSS } from './slideStyleConfig'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 
 // テンプレート用のCSS（generateSlideStylesCSSには含まれていない）
@@ -103,7 +103,7 @@ function getTemplateCSS(): string {
         flex: 1 !important;
         margin-top: 20px !important;
     }
-    
+
     .split .left,
     .split .right {
         flex: 1 !important;
@@ -119,8 +119,12 @@ const slideStylesCSS: string = generateSlideStylesCSS() + getTemplateCSS()
 
 // サイズ設定とデザインテンプレートを受け取れる関数
 export function getSlideStylesCSS(sizeConfig?: SlideSizeConfig, template?: CSSDesignTemplate): string {
+  // カスタムCSSがある場合: カスタムCSS + サイズ上書きCSS
+  if (template?.customCSS) {
+    return template.customCSS + getSlideSizeOverrideCSS(sizeConfig)
+  }
+  // ビルトインテンプレート: 従来どおり
   return generateSlideStylesCSS(sizeConfig, template) + getTemplateCSS()
 }
 
 export { slideStylesCSS }
-
