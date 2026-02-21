@@ -83,21 +83,36 @@ export const slideStyleConfig = {
 }
 
 // CSS文字列を生成する関数
-export function generateSlideStylesCSS(sizeConfig?: import('@/types').SlideSizeConfig): string {
+export function generateSlideStylesCSS(sizeConfig?: import('@/types').SlideSizeConfig, template?: import('@/types').CSSDesignTemplate): string {
   const c = slideStyleConfig
-  
+
+  // テンプレートが指定された場合、カラー/装飾値を上書き
+  const colors = template ? {
+    h1: template.colors.heading,
+    h2: template.colors.headingSub,
+    text: template.colors.text,
+    footer: template.colors.footer,
+    h1Border: template.colors.primary,
+    h2Border: template.colors.secondary,
+    liBullet: template.colors.primary,
+    highlight: template.colors.highlight,
+  } : c.colors
+
+  const listBullet = template?.listBullet ?? '▶'
+  const bodyBackground = template?.colors.background ?? '#f0f0f0'
+
   // サイズ設定が指定されていない場合はデフォルトを使用
   const slideWidth = sizeConfig?.width ?? c.layout.slide.width
   const slideHeight = sizeConfig?.height ?? c.layout.slide.height
   const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
   const sizeTypeLabel = sizeConfig?.type === '16-9' ? '16:9' : 'A4横向き'
-  
+
   return `/* ${sizeTypeLabel}スライド用スタイル */
 body {
     margin: 0;
     padding: 0;
     font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-    background: #f0f0f0;
+    background: ${bodyBackground};
 }
 
 .slide {
@@ -142,27 +157,27 @@ body {
 /* タイトル（h1タグの代替） */
 .slide-title {
     font-size: ${c.fontSize.h1}px;
-    color: ${c.colors.h1};
+    color: ${colors.h1};
     text-align: center;
     margin-bottom: ${c.spacing.h1.marginBottom}px;
-    border-bottom: ${c.spacing.h1.borderBottom}px solid ${c.colors.h1Border};
+    border-bottom: ${c.spacing.h1.borderBottom}px solid ${colors.h1Border};
     padding-bottom: ${c.spacing.h1.paddingBottom}px;
 }
 
 /* サブタイトル（h2タグの代替） */
 .slide-subtitle {
     font-size: ${c.fontSize.h2}px;
-    color: ${c.colors.h2};
+    color: ${colors.h2};
     margin-bottom: ${c.spacing.h2.marginBottom}px;
     padding-left: ${c.spacing.h2.paddingLeft}px;
-    border-left: ${c.spacing.h2.borderLeft}px solid ${c.colors.h2Border};
+    border-left: ${c.spacing.h2.borderLeft}px solid ${colors.h2Border};
 }
 
 /* テキスト（pタグの代替） */
 .slide-text {
     font-size: ${c.fontSize.p}px;
     line-height: ${c.spacing.p.lineHeight};
-    color: ${c.colors.text};
+    color: ${colors.text};
     margin-bottom: ${c.spacing.p.marginBottom}px;
     padding-left: ${c.spacing.p.paddingLeft}px;
 }
@@ -171,7 +186,7 @@ body {
 .slide-list {
     font-size: ${c.fontSize.ul}px;
     line-height: ${c.spacing.ul.lineHeight};
-    color: ${c.colors.text};
+    color: ${colors.text};
     padding-left: ${c.spacing.ul.marginLeft}px;
 }
 
@@ -182,15 +197,15 @@ body {
 }
 
 .slide-list-item:before {
-    content: "▶";
-    color: ${c.colors.liBullet};
+    content: "${listBullet}";
+    color: ${colors.liBullet};
     font-weight: bold;
     position: absolute;
     left: -${c.spacing.li.bulletOffset}px;
 }
 
 .highlight {
-    background: linear-gradient(transparent 60%, ${c.colors.highlight} 60%);
+    background: linear-gradient(transparent 60%, ${colors.highlight} 60%);
     padding: 2px 4px;
 }
 
@@ -203,7 +218,7 @@ body {
     bottom: ${c.spacing.footer.bottom}px;
     right: ${c.spacing.footer.right}px;
     font-size: ${c.fontSize.footer}px;
-    color: ${c.colors.footer};
+    color: ${colors.footer};
 }
 
 @media print {

@@ -1,6 +1,6 @@
 import { extractSlides } from './slideReorder'
 import { processHTMLForPreviewAsync } from './htmlProcessor'
-import type { SlideSizeConfig } from '@/types'
+import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 import { getSlideSizeConfig, DEFAULT_SLIDE_SIZE_TYPE } from './slideSizeConfig'
 import { getSlideSize } from './slideSizeStorage'
 
@@ -20,7 +20,8 @@ export function getCurrentSlideHTML(htmlContent: string, slideIndex: number): st
  */
 export async function processSlideForPresentation(
   slideHTML: string,
-  sizeConfig?: SlideSizeConfig
+  sizeConfig?: SlideSizeConfig,
+  template?: CSSDesignTemplate
 ): Promise<string> {
   // 単一のスライドをHTMLコンテンツとして処理
   // スライドは既にdiv.slideで囲まれているので、そのまま処理
@@ -42,7 +43,7 @@ export async function processSlideForPresentation(
   // sizeConfigが渡されない場合は、LocalStorageから取得
   const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(getSlideSize())
 
-  return await processHTMLForPreviewAsync(fullHTML, effectiveSizeConfig)
+  return await processHTMLForPreviewAsync(fullHTML, effectiveSizeConfig, template)
 }
 
 /**

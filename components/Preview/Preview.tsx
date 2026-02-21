@@ -5,7 +5,9 @@ import styles from './Preview.module.css'
 import { processHTMLForPreviewAsync, processHTMLForPreview } from '@/lib/htmlProcessor'
 import { extractSlides, reorderSlides, getSlideTitle, deleteSlide, duplicateSlide } from '@/lib/slideReorder'
 import { useSlideSize } from '@/hooks/useSlideSize'
+import { useCSSDesignTemplate } from '@/hooks/useCSSDesignTemplate'
 import SlideSizeSelector from '@/components/SlideSizeSelector/SlideSizeSelector'
+import CSSDesignTemplateSelector from '@/components/CSSDesignTemplateSelector/CSSDesignTemplateSelector'
 import { calculatePreviewScale } from '@/lib/slideSizeConfig'
 
 interface PreviewProps {
@@ -21,6 +23,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const { sizeConfig, sizeType, setSlideSize } = useSlideSize()
+  const { templateType, template, setCSSDesignTemplate } = useCSSDesignTemplate()
   const [previewScale, setPreviewScale] = useState(1)
 
   // スライドを抽出
@@ -103,8 +106,8 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
 
     if (!doc) return
 
-    // サイズ設定に基づいてHTMLを処理
-    processHTMLForPreviewAsync(htmlContent, sizeConfig).then((processedContent) => {
+    // サイズ設定とテンプレートに基づいてHTMLを処理
+    processHTMLForPreviewAsync(htmlContent, sizeConfig, template).then((processedContent) => {
       if (processedContent && iframeRef.current) {
         const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
         if (currentDoc) {
@@ -116,7 +119,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
     }).catch((error) => {
       console.warn('CSS読み込みエラー、フォールバックを使用:', error)
       // エラー時は同期版を使用
-      const processedContent = processHTMLForPreview(htmlContent, sizeConfig)
+      const processedContent = processHTMLForPreview(htmlContent, sizeConfig, template)
       if (processedContent && iframeRef.current) {
         const currentDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
         if (currentDoc) {
@@ -126,7 +129,7 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
         }
       }
     })
-  }, [htmlContent, sizeConfig])
+  }, [htmlContent, sizeConfig, template])
 
   const handleDragStart = (index: number) => {
     setDraggedIndex(index)
@@ -200,11 +203,15 @@ export default function Preview({ htmlContent, setHtmlContent, onPresentationMod
     <div className={styles.previewPanel}>
       <div className={styles.panelHeader}>
         <span>プレビュー</span>
-        {/* 中央にスライドサイズセレクターを配置 */}
+        {/* 中央にスライドサイズセレクターとテンプレートセレクターを配置 */}
         <div className={styles.headerCenter}>
           <SlideSizeSelector
             currentSizeType={sizeType}
             onSizeChange={setSlideSize}
+          />
+          <CSSDesignTemplateSelector
+            currentTemplateType={templateType}
+            onTemplateChange={setCSSDesignTemplate}
           />
         </div>
         {hasContent && slides.length > 0 && (

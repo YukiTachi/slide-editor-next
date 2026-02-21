@@ -12,6 +12,7 @@ import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal
 import SlideTemplateSelectorModal from '@/components/SlideTemplateSelector/SlideTemplateSelectorModal'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcuts/KeyboardShortcutsModal'
 import { useSlideSize } from '@/hooks/useSlideSize'
+import { useCSSDesignTemplate } from '@/hooks/useCSSDesignTemplate'
 import type { EditorSettings, KeyboardShortcut } from '@/types'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
@@ -58,6 +59,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const { sizeConfig } = useSlideSize()
+  const { template } = useCSSDesignTemplate()
 
   // 画像ストレージを初期化
   useEffect(() => {
@@ -327,8 +329,8 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
     previewWindowRef.current = newWindow
 
     try {
-      // HTMLを処理（実際のCSSファイルを読み込む、選択中のサイズ設定を適用）
-      const processedHTML = await processHTMLForPreviewAsync(trimmedContent, sizeConfig)
+      // HTMLを処理（実際のCSSファイルを読み込む、選択中のサイズ設定とテンプレートを適用）
+      const processedHTML = await processHTMLForPreviewAsync(trimmedContent, sizeConfig, template)
 
       // ウィンドウにHTMLを書き込む
       newWindow.document.title = 'プレビュー - スライドエディタ'
@@ -348,7 +350,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
     } catch (error) {
       console.warn('CSS読み込みエラー、フォールバックを使用:', error)
       // エラー時は同期版を使用
-      const processedHTML = processHTMLForPreview(trimmedContent, sizeConfig)
+      const processedHTML = processHTMLForPreview(trimmedContent, sizeConfig, template)
       newWindow.document.title = 'プレビュー - スライドエディタ'
       newWindow.document.open()
       newWindow.document.write(processedHTML)

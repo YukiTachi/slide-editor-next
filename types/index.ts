@@ -235,6 +235,28 @@ export interface EquationConfig {
   label?: string                   // ラベル（参照用、ブロック数式のみ）
 }
 
+// CSSデザインテンプレートの種類
+export type CSSDesignTemplateType = 'default' | 'nature' | 'monochrome' | 'ocean' | 'warm'
+
+// CSSデザインテンプレート
+export interface CSSDesignTemplate {
+  id: CSSDesignTemplateType
+  name: string
+  description: string
+  icon: string
+  colors: {
+    primary: string
+    secondary: string
+    text: string
+    heading: string
+    headingSub: string
+    footer: string
+    highlight: string
+    background: string
+  }
+  listBullet: string  // リスト装飾文字（▶, ●, ◆ 等）
+}
+
 // スライドサイズの種類
 export type SlideSizeType = 'a4-landscape' | '16-9'
 

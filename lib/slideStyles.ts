@@ -1,7 +1,7 @@
 // スライドスタイルCSS（インライン埋め込み用）
 // サーバー側では実際のCSSファイルを読み込み、クライアント側ではフォールバックを使用
 import { generateSlideStylesCSS } from './slideStyleConfig'
-import type { SlideSizeConfig } from '@/types'
+import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 
 // テンプレート用のCSS（generateSlideStylesCSSには含まれていない）
 function getTemplateCSS(): string {
@@ -117,9 +117,9 @@ function getTemplateCSS(): string {
 // クライアント側ではこれを使用し、サーバー側では実際のファイルを読み込む（htmlProcessorで処理）
 const slideStylesCSS: string = generateSlideStylesCSS() + getTemplateCSS()
 
-// サイズ設定を受け取れる関数
-export function getSlideStylesCSS(sizeConfig?: SlideSizeConfig): string {
-  return generateSlideStylesCSS(sizeConfig) + getTemplateCSS()
+// サイズ設定とデザインテンプレートを受け取れる関数
+export function getSlideStylesCSS(sizeConfig?: SlideSizeConfig, template?: CSSDesignTemplate): string {
+  return generateSlideStylesCSS(sizeConfig, template) + getTemplateCSS()
 }
 
 export { slideStylesCSS }

@@ -1,6 +1,6 @@
 import { slideStylesCSS, getSlideStylesCSS } from './slideStyles'
 import { convertStorageImagesToDataURI } from './imageStorage'
-import type { SlideSizeConfig } from '@/types'
+import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 import { DEFAULT_SLIDE_SIZE_TYPE, getSlideSizeConfig } from './slideSizeConfig'
 
 // CSSキャッシュ（クライアント側でfetchで読み込んだCSSを保存）
@@ -41,7 +41,8 @@ async function loadActualCSS(): Promise<string> {
  */
 export async function processHTMLForPreviewAsync(
   htmlContent: string,
-  sizeConfig?: SlideSizeConfig
+  sizeConfig?: SlideSizeConfig,
+  template?: CSSDesignTemplate
 ): Promise<string> {
   let processedContent = htmlContent.trim()
 
@@ -52,8 +53,8 @@ export async function processHTMLForPreviewAsync(
   // sizeConfig が渡されない場合はデフォルトを使用
   const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(DEFAULT_SLIDE_SIZE_TYPE)
 
-  // サイズ設定に基づいてCSSを動的に生成
-  const css = getSlideStylesCSS(effectiveSizeConfig)
+  // サイズ設定とテンプレートに基づいてCSSを動的に生成
+  const css = getSlideStylesCSS(effectiveSizeConfig, template)
 
   // <link rel="stylesheet" href="css/slide-styles.css"> を <style> タグに置き換え
   processedContent = processedContent.replace(
@@ -90,7 +91,8 @@ export async function processHTMLForPreviewAsync(
  */
 export function processHTMLForPreview(
   htmlContent: string,
-  sizeConfig?: SlideSizeConfig
+  sizeConfig?: SlideSizeConfig,
+  template?: CSSDesignTemplate
 ): string {
   let processedContent = htmlContent.trim()
 
@@ -101,8 +103,8 @@ export function processHTMLForPreview(
   // sizeConfig が渡されない場合はデフォルトを使用
   const effectiveSizeConfig = sizeConfig || getSlideSizeConfig(DEFAULT_SLIDE_SIZE_TYPE)
 
-  // サイズ設定に基づいてCSSを動的に生成
-  const css = getSlideStylesCSS(effectiveSizeConfig)
+  // サイズ設定とテンプレートに基づいてCSSを動的に生成
+  const css = getSlideStylesCSS(effectiveSizeConfig, template)
 
   // <link rel="stylesheet" href="css/slide-styles.css"> を <style> タグに置き換え
   processedContent = processedContent.replace(
