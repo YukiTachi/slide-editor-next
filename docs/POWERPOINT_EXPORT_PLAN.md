@@ -175,58 +175,58 @@ interface PowerPointExporterModalProps {
 **スコープを意図的に狭める**: Phase 1 は「テキストのみ + サイズ追従 + メニュー1ボタン」。画像・表・グラフは Phase 2 以降。設定モーダルと `page.tsx` の変更は入れない。
 
 #### 6.1 依存関係の追加
-- [ ] `package.json` に `pptxgenjs` を追加
+- [x] `package.json` に `pptxgenjs` を追加
   ```bash
   npm install pptxgenjs
   ```
-- [ ] `lib/powerpointExporter.ts` 内でクリック時に **dynamic import** する（初期バンドルを肥やさない）
+- [x] `lib/powerpointExporter.ts` 内でクリック時に **dynamic import** する（初期バンドルを肥やさない）
 
 #### 6.2 型定義と設定
-- [ ] `types/index.ts` に型定義を追加（`PowerPointExportConfig` / `PptxRegion` / `PptxSlideElement` / `PptxPageGeometry`）
-- [ ] `lib/powerpointExporter.ts` を作成
-  - [ ] **`getPageGeometry(sizeConfig)` ヘルパの実装**（全座標計算の基準。固定座標を書かない）
-  - [ ] 基本的なエクスポート関数の実装
-  - [ ] スライド抽出ロジック（既存の `extractSlides()` を使用）
+- [x] `types/index.ts` に型定義を追加（`PowerPointExportConfig` / `PptxRegion` / `PptxSlideElement` / `PptxPageGeometry`）
+- [x] `lib/powerpointExporter.ts` を作成
+  - [x] **`getPageGeometry(sizeConfig)` ヘルパの実装**（全座標計算の基準。固定座標を書かない）
+  - [x] 基本的なエクスポート関数の実装
+  - [x] スライド抽出ロジック（**実装変更**: `extractSlides()` のregexは `class="slide slide-split"` にマッチしないため、DOMParserで `div.slide` を列挙する方式にした）
 
 #### 6.3 HTML解析ロジック
-- [ ] **`DOMParser` ベースの解析基盤を作成**（regexでの解析は属性順序・入れ子で壊れるため使わない）
-- [ ] **クラスで役割を取る**テキスト要素の抽出（テンプレートの命名規約 `SLIDE_CSS_CLASS_CONVENTION.md` に準拠。タグ名やフォントサイズでの判定はしない）
-  - [ ] `h1.slide-title` → タイトル
-  - [ ] `h2.slide-subtitle` → サブタイトル
-  - [ ] `p.slide-text` → 段落
-  - [ ] `ul.slide-list` / `li.slide-list-item` → `type: 'list'`（`items: string[]` に格納）
-  - [ ] クラスなしの素の `h1` / `h2` / `p` / `li` はフォールバックとして同じ役割にマップ
-- [ ] **レイアウト領域（region）の判定**（**`.slide-split` / `.slide-split-content` 自体は領域判定に使わない**。`.slide-split-content` は左右両方を包む親コンテナで、タイトルはその外にある全幅要素）
-  - [ ] slide-split（`lib/imageProcessor.ts:100-110`）: `.slide-content` → `left`、`.slide-image` → `right`
-  - [ ] two-columnテンプレート: `.left` → `left`、`.right` → `right`
-  - [ ] それ以外の要素（splitスライドのタイトル含む）は `full`
-- [ ] 本文として扱わない要素の除外
-  - [ ] グラフ設定JSON（`<script type="application/json" class="chart-config">`）
-  - [ ] `<style>` / `<script>` 全般
-  - [ ] フッター（`<div class="footer">`）は本文と分けて処理（→ 6.4 のページ番号）
-- [ ] **インライン数式を分断しない**: `p` 内の `data-latex` 要素は Phase 1 では remove せず、`textContent`（KaTeXの描画テキスト）ごと段落の一部として残す（高度な扱いは Phase 3.6）
-- [ ] スタイル情報の抽出（フォントサイズ、色など）
+- [x] **`DOMParser` ベースの解析基盤を作成**（regexでの解析は属性順序・入れ子で壊れるため使わない）
+- [x] **クラスで役割を取る**テキスト要素の抽出（テンプレートの命名規約 `SLIDE_CSS_CLASS_CONVENTION.md` に準拠。タグ名やフォントサイズでの判定はしない）
+  - [x] `h1.slide-title` → タイトル
+  - [x] `h2.slide-subtitle` → サブタイトル
+  - [x] `p.slide-text` → 段落
+  - [x] `ul.slide-list` / `li.slide-list-item` → `type: 'list'`（`items: string[]` に格納）
+  - [x] クラスなしの素の `h1` / `h2` / `p` / `li` はフォールバックとして同じ役割にマップ
+- [x] **レイアウト領域（region）の判定**（**`.slide-split` / `.slide-split-content` 自体は領域判定に使わない**。`.slide-split-content` は左右両方を包む親コンテナで、タイトルはその外にある全幅要素）
+  - [x] slide-split（`lib/imageProcessor.ts:100-110`）: `.slide-content` → `left`、`.slide-image` → `right`
+  - [x] two-columnテンプレート: `.left` → `left`、`.right` → `right`
+  - [x] それ以外の要素（splitスライドのタイトル含む）は `full`
+- [x] 本文として扱わない要素の除外
+  - [x] グラフ設定JSON（`<script type="application/json" class="chart-config">`）
+  - [x] `<style>` / `<script>` 全般
+  - [x] フッター（`<div class="footer">`）は本文と分けて処理（→ 6.4 のページ番号）
+- [x] **インライン数式を分断しない**: `p` 内の `data-latex` 要素は Phase 1 では remove せず、`textContent`（KaTeXの描画テキスト）ごと段落の一部として残す（高度な扱いは Phase 3.6）
+- [x] スタイル情報の抽出（フォントサイズ、色など）
 
 #### 6.4 PowerPoint生成（基本）
-- [ ] pptxgenjsを使用してプレゼンテーションオブジェクトを作成
-- [ ] スライドサイズの設定（**エディタの現在のサイズ設定に追従**）
-  - [ ] `a4-landscape` → カスタムレイアウト 11.69" x 8.27"
-  - [ ] `16-9` → `LAYOUT_WIDE`（13.33" x 7.5"）
-  - [ ] PDF出力と同様に `HamburgerMenu` から `sizeConfig` を受け渡す
-- [ ] **座標は `getPageGeometry()` と region から計算**（`full` は全幅、`left` / `right` は半幅。固定値を書かない）
-- [ ] **日本語フォントの明示**: 全 `addText` に `fontFace` を指定（例: `Yu Gothic` / `Meiryo`）。pptxgenjs の既定は Arial のため未指定だと日本語が崩れる
-- [ ] 各スライドをPowerPointスライドに変換
-  - [ ] `.slide-title` をスライドタイトルとして追加
-  - [ ] テキストコンテンツを region に応じた位置に追加
-- [ ] ページ番号: フッターの `PAGE_NUMBER_PLACEHOLDER` 由来のテキストは本文に含めず、pptxgenjsの `slideNumber` オプションで右下に出す
-- [ ] ファイルとしてダウンロード（ファイル名: `スライド_YYYY-MM-DD.pptx`。日付は**ローカル時刻**で生成する。`toISOString()` はUTCのため日本時間では1日ずれることがある）
+- [x] pptxgenjsを使用してプレゼンテーションオブジェクトを作成
+- [x] スライドサイズの設定（**エディタの現在のサイズ設定に追従**）
+  - [x] `a4-landscape` → カスタムレイアウト 11.69" x 8.27"
+  - [x] `16-9` → `LAYOUT_WIDE`（13.33" x 7.5"）
+  - [x] PDF出力と同様に `HamburgerMenu` から `sizeConfig` を受け渡す
+- [x] **座標は `getPageGeometry()` と region から計算**（`full` は全幅、`left` / `right` は半幅。固定値を書かない）
+- [x] **日本語フォントの明示**: 全 `addText` に `fontFace` を指定（例: `Yu Gothic` / `Meiryo`）。pptxgenjs の既定は Arial のため未指定だと日本語が崩れる
+- [x] 各スライドをPowerPointスライドに変換
+  - [x] `.slide-title` をスライドタイトルとして追加
+  - [x] テキストコンテンツを region に応じた位置に追加
+- [x] ページ番号: フッターの `PAGE_NUMBER_PLACEHOLDER` 由来のテキストは本文に含めず、pptxgenjsの `slideNumber` オプションで右下に出す
+- [x] ファイルとしてダウンロード（ファイル名: `スライド_YYYY-MM-DD.pptx`。日付は**ローカル時刻**で生成する。`toISOString()` はUTCのため日本時間では1日ずれることがある）
 
 #### 6.5 メニューへの統合
-- [ ] `components/Menu/HamburgerMenu.tsx` に「📊 PowerPoint出力」ボタンを追加
-  - [ ] 「💾 データ」セクションのPDF出力の隣に追加
-  - [ ] クリックでエクスポートを実行（ハンドラは `handleExportPDF` と同じパターンで `HamburgerMenu` 内に完結。`app/page.tsx` は変更しない）
-  - [ ] 空コンテンツ時は `alert` で通知して中断
-  - [ ] 失敗時は `alert` + `console.error`（PDF出力と同じエラーハンドリング）
+- [x] `components/Menu/HamburgerMenu.tsx` に「📊 PowerPoint出力」ボタンを追加
+  - [x] 「💾 データ」セクションのPDF出力の隣に追加
+  - [x] クリックでエクスポートを実行（ハンドラは `handleExportPDF` と同じパターンで `HamburgerMenu` 内に完結。`app/page.tsx` は変更しない）
+  - [x] 空コンテンツ時は `alert` で通知して中断
+  - [x] 失敗時は `alert` + `console.error`（PDF出力と同じエラーハンドリング）
 
 **Phase 1 完了条件**:
 - テキストのみのスライド（title / subtitle / text / list）が変換される
@@ -234,6 +234,16 @@ interface PowerPointExporterModalProps {
 - メニューのボタン1つでダウンロードまで完結する
 - 空コンテンツで壊れない
 - PowerPointで開いて日本語が正しく表示される
+
+**Phase 1 検証結果（2026-08-16、headless Chromium + CDPによる実UI検証）**:
+- ✅ 通常 / slide-split / two-column の3スライドがメニューのボタン1つで.pptxとしてダウンロードされる
+- ✅ A4横: `sldSz cx=10689336 cy=7562088`（11.69"×8.27"）、16:9: `cx=12192000 cy=6858000`（LAYOUT_WIDE）— サイズ設定に追従
+- ✅ OOXML構造検証: 全テキストに `typeface="Yu Gothic"`、リストは `buChar` 付き、日本語テキスト正常
+- ✅ region配置: splitスライドのタイトルは全幅（x=0.5, w=10.69）、左テキストは半幅（w=5.25）でタイトルの下（y=1.42）から開始、two-columnの右カラムは x=5.95 — 重なりなし
+- ✅ フッターのテキスト（`1 / 3` 等）は本文から除外され、スライドマスターの `slideNumber` で右下に出力
+- ✅ スライドが1枚もないHTMLでは alert でエラー通知
+- 補足1: webpackが pptxgenjs 4.x の `node:fs` / `node:https` importを解決できずビルドが落ちるため、`next.config.js` に NormalModuleReplacementPlugin + resolve.fallback の対処を追加した
+- 補足2: この開発コンテナのheadless Chromiumは非ASCIIのダウンロードファイル名を落とす（`download` になる）が、ASCII名は正常。実ブラウザ（Chrome/Edge）はUnicodeファイル名を扱えるため `スライド_YYYY-MM-DD.pptx` 命名は維持
 
 ---
 

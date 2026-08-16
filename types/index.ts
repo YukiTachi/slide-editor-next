@@ -274,3 +274,37 @@ export interface SlideSizeConfig {
 export interface SlideSettings {
   size: SlideSizeConfig
 }
+
+// PowerPointエクスポート設定
+// スライドサイズは含めない（エクスポート時にエディタの現在のSlideSizeConfigを受け取る）
+export interface PowerPointExportConfig {
+  includePageNumbers: boolean      // ページ番号を含めるか
+  imageQuality: 'high' | 'medium' | 'low'  // 画像品質（Phase 2以降で使用）
+}
+
+// PowerPoint出力時の配置先（slide-split / two-columnの2分割レイアウト対応）
+export type PptxRegion = 'full' | 'left' | 'right'
+
+// PowerPoint出力用のスライド要素
+// 座標は持たせない（生成時にregionとPptxPageGeometryから計算する）
+export interface PptxSlideElement {
+  type: 'text' | 'image' | 'table' | 'list' | 'chart' | 'equation' | 'code'
+  region: PptxRegion               // 配置先。1カラムスライドは常に'full'
+  content: string                  // テキスト・画像src・LaTeXソース・chart-config JSON
+  rows?: string[][]                // type: 'table'のみ。抽出時点で構造化する
+  items?: string[]                 // type: 'list'のみ。リスト項目
+  style?: {
+    fontSize?: number
+    color?: string
+    alignment?: 'left' | 'center' | 'right'
+    bold?: boolean
+    italic?: boolean
+  }
+}
+
+// PowerPointのページ寸法（インチ）。SlideSizeConfigから計算する
+export interface PptxPageGeometry {
+  w: number       // ページ幅（a4-landscape: 11.69 / 16-9: 13.33）
+  h: number       // ページ高さ（a4-landscape: 8.27 / 16-9: 7.5）
+  margin: number  // 標準マージン
+}

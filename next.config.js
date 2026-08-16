@@ -10,6 +10,25 @@ const nextConfig = {
   
   // React 19のStrict Modeはデフォルトで有効
   reactStrictMode: true,
+
+  webpack: (config, { isServer, webpack }) => {
+    // pptxgenjsのESビルドが node:fs / node:https を参照しており、webpackが
+    // node: スキームを解決できずビルドが落ちる。プレフィックスを剥がして
+    // package.jsonのbrowserフィールド（fs/https → false）に解決を委ねる
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:(fs|https)$/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, '')
+      })
+    )
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        https: false,
+      }
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig

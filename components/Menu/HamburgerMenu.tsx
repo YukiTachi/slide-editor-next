@@ -8,6 +8,7 @@ import ImageManager from '@/components/ImageInserter/ImageManager'
 import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/imageStorage'
 import { initializeImageStorage } from '@/lib/imageStorage'
 import { exportToPDF } from '@/lib/pdfExporter'
+import { exportToPowerPoint } from '@/lib/powerpointExporter'
 import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
 import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal'
 import SlideTemplateSelectorModal from '@/components/SlideTemplateSelector/SlideTemplateSelectorModal'
@@ -333,6 +334,33 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
     }
   }
 
+  // PowerPoint出力（詳細は docs/POWERPOINT_EXPORT_PLAN.md）
+  const handleExportPowerPoint = async () => {
+    const trimmedContent = htmlContent.trim()
+
+    if (!trimmedContent) {
+      alert('出力するスライドがありません')
+      return
+    }
+
+    try {
+      if (onStatusUpdate) {
+        onStatusUpdate('PowerPointを生成中…')
+      }
+      await exportToPowerPoint(trimmedContent, sizeConfig, template)
+      if (onStatusUpdate) {
+        onStatusUpdate('PowerPointをダウンロードしました')
+        setTimeout(() => onStatusUpdate(''), 5000)
+      }
+    } catch (error) {
+      console.error('PowerPoint出力に失敗:', error)
+      alert('PowerPoint出力に失敗しました。コンソールを確認してください。')
+      if (onStatusUpdate) {
+        onStatusUpdate('')
+      }
+    }
+  }
+
   const openPreviewWindow = async () => {
     const trimmedContent = htmlContent.trim()
 
@@ -587,6 +615,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleRestore(); }}>🔄 復元</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleCopyToClipboard(); }}>📋 HTMLコピー</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleExportPDF(); }}>📄 PDF出力</button>
+            <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleExportPowerPoint(); }}>📊 PowerPoint出力</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handlePasteFromClipboard(); }}>📥 クリップボードから読み込み</button>
             <button
               className={styles.menuBtn}
