@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF出力テストスライド</title>
+    <!-- スライドスタイル -->
+    <link rel="stylesheet" href="css/slide-styles.css">
+</head>
+<body>
+    <!-- スライド1: 基本テキスト（Phase 1 完了条件の確認） -->
+    <div class="slide">
+        <h1 class="slide-title">PDF出力テストスライド</h1>
+
+        <h2 class="slide-subtitle">このデッキの目的</h2>
+
+        <ul class="slide-list">
+            <li class="slide-list-item"><span class="highlight">見た目そのまま</span> - プレビューとPDFの一致確認</li>
+            <li class="slide-list-item"><span class="highlight">1スライド=1ページ</span> - 改ページ位置の確認</li>
+            <li class="slide-list-item"><span class="highlight">末尾空白ページなし</span> - 最終スライド後の確認</li>
+            <li class="slide-list-item"><span class="highlight">テキスト選択</span> - PDF内で文字が選択・検索できること</li>
+        </ul>
+
+        <p class="slide-text center" style="margin-top: 40px; font-size: 28px; color: #3498db;">
+            <strong>全8枚 / A4横向き・16:9の両方で確認</strong>
+        </p>
+
+        <div class="footer">
+            PDF出力テスト - スライド 1/8
+        </div>
+    </div>
+
+    <!-- スライド2: テキスト装飾（蛍光ペン・色・中央揃え） -->
+    <div class="slide">
+        <h1 class="slide-title">テキスト装飾の確認</h1>
+
+        <h2 class="slide-subtitle">背景グラフィックが印刷されること</h2>
+
+        <p class="slide-text">
+            この行には<span class="highlight">蛍光ペン（linear-gradient背景）</span>が含まれます。
+            PDFで<span class="highlight">黄色のマーカー</span>が消えていないか確認してください。
+        </p>
+
+        <p class="slide-text" style="color: #e74c3c;">
+            この行はインラインstyleによる赤色テキストです。
+        </p>
+
+        <p class="slide-text center">
+            この行は中央揃え（.center）です。
+        </p>
+
+        <ul class="slide-list">
+            <li class="slide-list-item">リスト記号（::before の ▶）が印刷されること</li>
+            <li class="slide-list-item">見出しの<strong>下線・左線の色</strong>がテンプレート通りであること</li>
+            <li class="slide-list-item">行間・余白がプレビューと一致すること</li>
+        </ul>
+
+        <div class="footer">
+            PDF出力テスト - スライド 2/8
+        </div>
+    </div>
+
+    <!-- スライド3: 表（ストライプ+キャプション / 罫線） -->
+    <div class="slide">
+        <h1 class="slide-title">表の確認</h1>
+
+        <h2 class="slide-subtitle">ストライプ表（背景色の印刷確認）</h2>
+
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-striped">
+                <caption class="slide-table-caption">四半期別売上（ストライプの縞背景が出ること）</caption>
+                <thead>
+                    <tr>
+                        <th>四半期</th>
+                        <th>売上（百万円）</th>
+                        <th>前年比</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Q1</td><td>120</td><td>+8%</td></tr>
+                    <tr><td>Q2</td><td>135</td><td>+12%</td></tr>
+                    <tr><td>Q3</td><td>128</td><td>+5%</td></tr>
+                    <tr><td>Q4</td><td>152</td><td>+18%</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="slide-subtitle" style="margin-top: 30px;">罫線表</h2>
+
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-bordered">
+                <thead>
+                    <tr><th>項目</th><th>確認内容</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>罫線</td><td>全セルのボーダーが印刷されること</td></tr>
+                    <tr><td>ヘッダー</td><td>見出し行の背景色が印刷されること</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            PDF出力テスト - スライド 3/8
+        </div>
+    </div>
+
+    <!-- スライド4: グラフ2種（Chart.js / 空描画・アニメーション中間状態の確認） -->
+    <div class="slide">
+        <h1 class="slide-title">グラフの確認（Chart.js）</h1>
+
+        <p class="slide-text">
+            2つのグラフが<span class="highlight">空にならず完全な状態</span>で印刷されること（フェードイン途中でないこと）。
+        </p>
+
+        <div class="split">
+            <div class="left">
+                <div class="slide-chart-container" data-chart-id="test-bar">
+                    <canvas id="chart-test-bar" width="500" height="350"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"bar","title":"四半期別売上","data":{"labels":["Q1","Q2","Q3","Q4"],"datasets":[{"label":"売上（百万円）","data":[120,135,128,152],"backgroundColor":["#3498db","#2ecc71","#f39c12","#e74c3c"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}},"scales":{"y":{"beginAtZero":true}}}}</script>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-chart-container" data-chart-id="test-pie">
+                    <canvas id="chart-test-pie" width="500" height="350"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"pie","title":"市場シェア","data":{"labels":["製品A","製品B","製品C","その他"],"datasets":[{"data":[45,25,20,10],"backgroundColor":["#3498db","#2ecc71","#f39c12","#95a5a6"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"right"}}}}</script>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            PDF出力テスト - スライド 4/8
+        </div>
+    </div>
+
+    <!-- スライド5: 数式（KaTeX / ブロック+インライン+キャプション） -->
+    <div class="slide">
+        <h1 class="slide-title">数式の確認（KaTeX）</h1>
+
+        <h2 class="slide-subtitle">ブロック数式</h2>
+
+        <div class="slide-equation-block slide-equation-block-center" data-latex="x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}" data-alignment="center">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div>
+        <div class="slide-equation-caption slide-equation-caption-center">二次方程式の解の公式（KaTeXフォントで描画されること）</div>
+
+        <div class="slide-equation-block slide-equation-block-center" data-latex="\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}" data-alignment="center">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div>
+
+        <h2 class="slide-subtitle" style="margin-top: 30px;">インライン数式</h2>
+
+        <p class="slide-text">
+            文中の数式 <span class="slide-equation-inline" data-latex="E = mc^2"></span> が
+            行内に崩れず収まること。相対性理論では質量とエネルギーが等価です。
+        </p>
+
+        <div class="footer">
+            PDF出力テスト - スライド 5/8
+        </div>
+    </div>
+
+    <!-- スライド6: コードブロック（Prism / ダークテーマ+行番号+キャプション） -->
+    <div class="slide">
+        <h1 class="slide-title">コードブロックの確認（Prism）</h1>
+
+        <p class="slide-text">
+            <span class="highlight">ダーク背景が印刷されること</span>・シンタックスハイライトの色・行番号を確認。
+        </p>
+
+        <div class="slide-code-block-container slide-code-block-dark">
+  <pre class="line-numbers"><code class="language-javascript">// PDF出力の待機ロジック（サンプル）
+async function waitForRenderComplete(iframe, timeoutMs) {
+  const doc = iframe.contentDocument
+  const deadline = Date.now() + timeoutMs
+  for (let i = 0; i &lt; 10; i++) {
+    if (doc.readyState === 'complete') break
+    await new Promise((resolve) =&gt; setTimeout(resolve, 50))
+  }
+  return doc
+}</code></pre>
+  <div class="slide-code-block-caption">リスト1: レンダリング待機のサンプルコード</div>
+</div>
+
+        <div class="footer">
+            PDF出力テスト - スライド 6/8
+        </div>
+    </div>
+
+    <!-- スライド7: 2分割レイアウト+画像（data URI） -->
+    <div class="slide slide-split">
+        <h1 class="slide-title">分割レイアウトと画像</h1>
+
+        <div class="slide-split-content">
+            <div class="slide-content">
+                <h2 class="slide-subtitle">確認ポイント</h2>
+                <ul class="slide-list">
+                    <li class="slide-list-item">左右のカラムが横並びのまま印刷されること</li>
+                    <li class="slide-list-item">分割時の縮小フォントサイズが適用されること</li>
+                    <li class="slide-list-item">画像の角丸・影が保持されること</li>
+                    <li class="slide-list-item">画像のアスペクト比が崩れないこと</li>
+                </ul>
+            </div>
+            <div class="slide-image">
+                <img class="slide-img" alt="テスト画像（SVGグラデーション）" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMzQ5OGRiIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOGU0NGFkIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIzMjAiIHJ4PSIxMiIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjExMCIgcj0iNTAiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuODUiLz48cmVjdCB4PSIyMjAiIHk9IjcwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjgwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC43Ii8+PHRleHQgeD0iMjQwIiB5PSIyNTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7jg4bjgrnjg4jnlLvlg48gKFNWRyk8L3RleHQ+PC9zdmc+">
+            </div>
+        </div>
+
+        <div class="footer">
+            PDF出力テスト - スライド 7/8
+        </div>
+    </div>
+
+    <!-- スライド8: 最終スライド（末尾空白ページの確認・重要） -->
+    <!-- このスライドには数式が含まれるため、処理後HTMLでは</body>直前に<script>が注入され、
+         最後の .slide は :last-child にならない。:last-of-type による末尾空白ページ防止の検証用 -->
+    <div class="slide">
+        <h1 class="slide-title">最終スライド</h1>
+
+        <h2 class="slide-subtitle">末尾空白ページの確認</h2>
+
+        <ul class="slide-list">
+            <li class="slide-list-item"><span class="highlight">このスライドがPDFの最終ページ</span>であること</li>
+            <li class="slide-list-item">この後に<strong>空白ページが追加されていない</strong>こと</li>
+            <li class="slide-list-item">合計ページ数が<strong>8ページ</strong>であること</li>
+        </ul>
+
+        <p class="slide-text">
+            このスライドには意図的にインライン数式
+            <span class="slide-equation-inline" data-latex="\sum_{k=1}^{n} k = \frac{n(n+1)}{2}"></span>
+            を含めています（末尾にスクリプトが注入される状態を再現するため）。
+        </p>
+
+        <p class="slide-text center" style="margin-top: 40px; font-size: 32px; color: #27ae60;">
+            <strong>テスト完了</strong>
+        </p>
+
+        <div class="footer">
+            PDF出力テスト - スライド 8/8
+        </div>
+    </div>
+</body>
+</html>
