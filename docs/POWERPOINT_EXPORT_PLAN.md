@@ -252,28 +252,35 @@ interface PowerPointExporterModalProps {
 **目標**: 画像を含むスライドをPowerPointに変換
 
 #### 6.6 画像処理ロジック
-- [ ] 画像要素の抽出
-  - [ ] `<img>` タグの検出
-  - [ ] `src` 属性から画像データを取得
-- [ ] 画像データの取得（**新設せず既存関数を再利用**）
-  - [ ] base64画像（`data:image/...`）はそのまま使用
-  - [ ] ローカルストレージ画像（`images/...`）は `getImageFromStorage()` / `convertStorageImagesToDataURI()`（`lib/imageStorage.ts`）で解決
-  - [ ] 外部URL画像はCORS失敗時に警告してスキップ（7.2の方針どおり）
-- [ ] 画像サイズの調整
-  - [ ] スライドサイズに合わせてリサイズ
-  - [ ] アスペクト比を維持
+- [x] 画像要素の抽出
+  - [x] `<img>` タグの検出
+  - [x] `src` 属性から画像データを取得
+- [x] 画像データの取得（**新設せず既存関数を再利用**）
+  - [x] base64画像（`data:image/...`）はそのまま使用
+  - [x] ローカルストレージ画像（`images/...`）は `getImageFromStorage()` / `convertStorageImagesToDataURI()`（`lib/imageStorage.ts`）で解決
+  - [x] 外部URL画像はCORS失敗時に警告してスキップ（7.2の方針どおり）
+- [x] 画像サイズの調整
+  - [x] スライドサイズに合わせてリサイズ
+  - [x] アスペクト比を維持
 
 #### 6.7 PowerPointへの画像追加
-- [ ] pptxgenjsで画像をスライドに追加
-- [ ] 画像の位置とサイズの設定
-- [ ] 2分割レイアウトの対応（**2系統ある点に注意**）
-  - [ ] `slide-split`（`lib/imageProcessor.ts` が生成）: 左側にテキスト、右側に画像
-  - [ ] two-columnテンプレート（`.left` / `.right`、`lib/slideTemplates.ts`）
+- [x] pptxgenjsで画像をスライドに追加
+- [x] 画像の位置とサイズの設定
+- [x] 2分割レイアウトの対応（**2系統ある点に注意**）
+  - [x] `slide-split`（`lib/imageProcessor.ts` が生成）: 左側にテキスト、右側に画像
+  - [x] two-columnテンプレート（`.left` / `.right`、`lib/slideTemplates.ts`）
 
 **確認事項**:
 - 画像がPowerPointに正しく表示される
 - 画像サイズが適切に調整される
 - 2分割レイアウトが正しく変換される
+
+**Phase 2 検証結果（2026-08-16、headless Chromium + CDPによる実UI検証）**:
+- ✅ base64画像（200×100px）: アスペクト比2:1を維持して2.08"×1.04"、全幅カラムの中央（x=4.80）に配置。96dpi原寸のまま拡大されない
+- ✅ ローカルストレージ画像（`images/test.png`、400×400px）: slide-splitの右カラム内に4.17"×4.17"で収まり、カラム内中央（x=6.48）・タイトル下（y=1.42）から配置。左カラムのテキストと重なりなし
+- ✅ 取得できない外部URL画像: `console.warn` してスキップし、pptx生成は継続（7.2の方針どおり）
+- ✅ `ppt/media/` に画像ファイルが埋め込まれ、`<p:pic>` 要素として出力される
+- 実装メモ: Phase 1の `parseSlideHTML` は走査セレクタに `img` を含めていなかったため、`h1, h2, p, ul, ol, img` に拡張してドキュメント順を保ったまま画像を抽出するようにした
 
 ---
 

@@ -1,6 +1,8 @@
 // PowerPointエクスポート（pptxgenjsによる編集可能なpptx生成）
 // 設計の詳細は docs/POWERPOINT_EXPORT_PLAN.md を参照
-// Phase 1: テキスト要素（title / subtitle / text / list）のみ。画像・表・グラフはPhase 2以降
+// Phase 1: テキスト要素（title / subtitle / text / list）
+// Phase 2: 画像（base64 / ローカルストレージ / 外部URL）。表・グラフはPhase 3以降
+import { getImageFromStorage } from './imageStorage'
 import type {
   SlideSizeConfig,
   CSSDesignTemplate,
@@ -69,8 +71,14 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   // ※ インラインのdata-latex要素はremoveしない（段落が分断されるため、描画テキストごと残す）
   doc.querySelectorAll('script, style, .footer').forEach(el => el.remove())
 
-  doc.querySelectorAll('h1, h2, p, ul, ol').forEach(el => {
+  doc.querySelectorAll('h1, h2, p, ul, ol, img').forEach(el => {
     const region = regionOf(el)
+
+    if (el.matches('img')) {
+      const src = el.getAttribute('src') ?? ''
+      if (src) elements.push({ type: 'image', region, content: src })
+      return
+    }
 
     if (el.matches('ul, ol')) {
       const items = Array.from(el.querySelectorAll('li'))
@@ -99,6 +107,39 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   })
 
   return elements
+}
+
+// 画像srcをdata URIに解決する。解決できない場合はnull（呼び出し側で警告してスキップ）
+async function resolveImageData(src: string): Promise<string | null> {
+  if (src.startsWith('data:image/')) return src
+  if (src.startsWith('images/')) {
+    return getImageFromStorage(src.slice('images/'.length))
+  }
+  // 外部URL: CORS制限で取得できないことがある（計画書7.2の方針どおり警告してスキップ）
+  try {
+    const res = await fetch(src)
+    if (!res.ok) return null
+    const blob = await res.blob()
+    if (!blob.type.startsWith('image/')) return null
+    return await new Promise<string | null>((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => resolve(null)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return null
+  }
+}
+
+// data URI画像の実寸（px）を取得。デコードできない場合はnull
+function measureImage(dataUri: string): Promise<{ w: number; h: number } | null> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight })
+    img.onerror = () => resolve(null)
+    img.src = dataUri
+  })
 }
 
 // テキストボックスの高さ概算（インチ）。明示的な改行に加え、ボックス幅と
@@ -181,28 +222,53 @@ export async function exportToPowerPoint(
       }
 
       for (const el of parseSlideHTML(slideNode.outerHTML)) {
-        // 画像・表・グラフ・数式・コードはPhase 2以降
-        if (el.type !== 'text' && el.type !== 'list') continue
-
-        const text = el.type === 'list' ? (el.items ?? []).join('\n') : el.content
-        if (!text) continue
-
         const box = regionBox(el.region, geo)
-        const fontSize = el.style?.fontSize ?? FONT_SIZE.body
-        const h = estimateHeight(text, fontSize, box.w)
+        let h: number
 
-        pptxSlide.addText(text, {
-          x: box.x,
-          y: yCursor[el.region],
-          w: box.w,
-          h,
-          fontSize,
-          bold: el.style?.bold ?? false,
-          align: el.style?.alignment ?? 'left',
-          valign: 'top',
-          fontFace: FONT_FACE,
-          ...(el.type === 'list' ? { bullet: true } : {}),
-        })
+        if (el.type === 'image') {
+          const data = await resolveImageData(el.content)
+          if (!data) {
+            console.warn('PowerPoint出力: 画像を取得できないためスキップしました:', el.content)
+            continue
+          }
+          // 96dpi換算の原寸を基準に、カラム幅と残り高さに収まるよう縮小（拡大はしない）
+          const px = await measureImage(data)
+          const naturalW = px ? px.w / 96 : box.w
+          const naturalH = px ? px.h / 96 : box.w * 0.75
+          const availH = Math.max(geo.h - geo.margin - yCursor[el.region], 0.5)
+          const scale = Math.min(box.w / naturalW, availH / naturalH, 1)
+          const w = naturalW * scale
+          h = naturalH * scale
+          pptxSlide.addImage({
+            data,
+            x: box.x + (box.w - w) / 2,  // カラム内で中央寄せ
+            y: yCursor[el.region],
+            w,
+            h,
+          })
+        } else if (el.type === 'text' || el.type === 'list') {
+          const text = el.type === 'list' ? (el.items ?? []).join('\n') : el.content
+          if (!text) continue
+
+          const fontSize = el.style?.fontSize ?? FONT_SIZE.body
+          h = estimateHeight(text, fontSize, box.w)
+
+          pptxSlide.addText(text, {
+            x: box.x,
+            y: yCursor[el.region],
+            w: box.w,
+            h,
+            fontSize,
+            bold: el.style?.bold ?? false,
+            align: el.style?.alignment ?? 'left',
+            valign: 'top',
+            fontFace: FONT_FACE,
+            ...(el.type === 'list' ? { bullet: true } : {}),
+          })
+        } else {
+          // 表・グラフ・数式・コードはPhase 3以降
+          continue
+        }
 
         yCursor[el.region] += h + ELEMENT_GAP
         if (el.region === 'full') {
