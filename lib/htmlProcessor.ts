@@ -1,43 +1,11 @@
-import { slideStylesCSS, getSlideStylesCSS } from './slideStyles'
+import { getSlideStylesCSS } from './slideStyles'
 import { convertStorageImagesToDataURI } from './imageStorage'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 import { DEFAULT_SLIDE_SIZE_TYPE, getSlideSizeConfig } from './slideSizeConfig'
 
-// CSSキャッシュ（クライアント側でfetchで読み込んだCSSを保存）
-let cachedCSS: string | null = null
-
 // HTML処理のオプション
 export interface ProcessHTMLOptions {
   disableAnimation?: boolean // グラフのアニメーションを無効化（PDF出力用: 中間状態の印刷を防ぐ）
-}
-
-/**
- * 実際のCSSファイルを読み込む（クライアント側のみ）
- */
-async function loadActualCSS(): Promise<string> {
-  // サーバー側ではデフォルトCSSを使用（fsモジュールの動的インポートはビルドエラーの原因となるため）
-  if (typeof window === 'undefined') {
-    return slideStylesCSS
-  }
-
-  // キャッシュがあれば使用
-  if (cachedCSS) {
-    return cachedCSS
-  }
-
-  // クライアント側: fetchで実際のCSSファイルを読み込む
-  try {
-    const response = await fetch('/css/slide-styles.css')
-    if (response.ok) {
-      cachedCSS = await response.text()
-      return cachedCSS
-    }
-  } catch (error) {
-    console.warn('CSSファイルの読み込みに失敗しました。デフォルトCSSを使用します。', error)
-  }
-
-  // フォールバック: slideStylesCSSを使用
-  return slideStylesCSS
 }
 
 /**
@@ -291,7 +259,6 @@ function addCodeBlockHighlighting(htmlContent: string): string {
 
   // Prism.jsのCDNスクリプトとスタイル、初期化スクリプトを追加
   const prismScript = `
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
