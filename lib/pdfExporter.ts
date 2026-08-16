@@ -173,6 +173,10 @@ function injectPrintCSS(htmlContent: string, sizeConfig: SlideSizeConfig): strin
     break-after: auto !important;
     page-break-after: auto !important;
   }
+  /* スクロールバーの描画をPDFに写さない（はみ出しコンテンツのクリップ自体はプレビューと同じ挙動を維持） */
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
 }
 @page {
   size: ${pageSize};
