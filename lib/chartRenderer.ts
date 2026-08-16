@@ -9,9 +9,13 @@ import type { ChartConfig } from '@/types'
 Chart.register(...registerables)
 
 // グラフをレンダリング
+// disableAnimation: 生成直後にcanvasを画像化する用途（PowerPoint出力等）ではtrueにする。
+// Chart.js v4は描画をrequestAnimationFrame経由で行うため、生成時にanimation:falseを
+// 渡した場合のみコンストラクタ内で同期的に描画される（後からのupdate('none')では不可）
 export function renderChart(
   canvas: HTMLCanvasElement,
-  config: ChartConfig
+  config: ChartConfig,
+  opts?: { disableAnimation?: boolean }
 ): Chart | null {
   if (!canvas) {
     return null
@@ -25,6 +29,7 @@ export function renderChart(
       options: {
         responsive: config.options?.responsive ?? true,
         maintainAspectRatio: config.options?.maintainAspectRatio ?? false,
+        ...(opts?.disableAnimation ? { animation: false as const } : {}),
         plugins: {
           legend: {
             display: config.options?.plugins?.legend?.display ?? true,

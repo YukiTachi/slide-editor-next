@@ -6,6 +6,7 @@ import { getImageFromStorage } from './imageStorage'
 import type {
   SlideSizeConfig,
   CSSDesignTemplate,
+  ChartConfig,
   PowerPointExportConfig,
   PptxRegion,
   PptxSlideElement,
@@ -82,16 +83,21 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   const elements: PptxSlideElement[] = []
   const doc = new DOMParser().parseFromString(slideHTML, 'text/html')
 
-  // グラフはPhase 3.5で対応。設定JSONを本文として拾わないよう先にコンテナごと除去
-  doc.querySelectorAll('.slide-chart-container').forEach(el => el.remove())
   // コードブロックはPhase 3.6で対応。ハイライト用マークアップを本文として拾わない
   doc.querySelectorAll('.slide-code-block-container').forEach(el => el.remove())
   // 本文として扱わない要素を除去（フッターのページ番号はslideNumberで出す）
+  // ※ グラフ設定JSON（script.chart-config）は抽出に使うため除去対象から外す
   // ※ インラインのdata-latex要素はremoveしない（段落が分断されるため、描画テキストごと残す）
-  doc.querySelectorAll('script, style, .footer').forEach(el => el.remove())
+  doc.querySelectorAll('script:not(.chart-config), style, .footer').forEach(el => el.remove())
 
-  doc.querySelectorAll('h1, h2, p, ul, ol, img, table').forEach(el => {
+  doc.querySelectorAll('h1, h2, p, ul, ol, img, table, .slide-chart-container').forEach(el => {
     const region = regionOf(el)
+
+    if (el.matches('.slide-chart-container')) {
+      const config = el.querySelector('script.chart-config')?.textContent?.trim()
+      if (config) elements.push({ type: 'chart', region, content: config })
+      return
+    }
 
     if (el.matches('img')) {
       const src = el.getAttribute('src') ?? ''
@@ -181,6 +187,72 @@ function measureImage(dataUri: string): Promise<{ w: number; h: number } | null>
     img.onerror = () => resolve(null)
     img.src = dataUri
   })
+}
+
+// 方式Aでネイティブ変換できるグラフタイプ（それ以外はchartRendererで画像化する方式B）
+const NATIVE_CHART_TYPES = ['bar', 'line', 'pie', 'doughnut', 'radar'] as const
+type NativeChartType = (typeof NATIVE_CHART_TYPES)[number]
+
+function isNativeChartType(type: ChartConfig['type']): type is NativeChartType {
+  return (NATIVE_CHART_TYPES as readonly string[]).includes(type)
+}
+
+// CSS色をpptxgenjsのRRGGBB形式へ変換。変換できない場合はnull
+function toPptxColor(color: string | undefined): string | null {
+  if (!color) return null
+  const hex = color.trim().match(/^#?([0-9a-fA-F]{6})$/)
+  if (hex) return hex[1].toUpperCase()
+  const rgb = color.trim().match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if (rgb) {
+    return rgb.slice(1).map(v => Number(v).toString(16).padStart(2, '0')).join('').toUpperCase()
+  }
+  return null
+}
+
+// Chart.jsの設定から系列色を取り出す。1つでも変換できない色があればnull（pptx既定色に任せる）
+function extractChartColors(config: ChartConfig): string[] | null {
+  const { type, data } = config
+  const raw: (string | undefined)[] = (type === 'pie' || type === 'doughnut')
+    // 円系は1系列で、要素ごとの色が先頭データセットのbackgroundColor配列に入っている
+    ? (Array.isArray(data.datasets[0]?.backgroundColor) ? data.datasets[0].backgroundColor : [])
+    : data.datasets.map(ds => {
+        const bg = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor
+        const border = Array.isArray(ds.borderColor) ? ds.borderColor[0] : ds.borderColor
+        return type === 'line' ? (border ?? bg) : (bg ?? border)
+      })
+  if (raw.length === 0) return null
+  const colors = raw.map(toPptxColor)
+  return colors.every((c): c is string => c !== null) ? colors : null
+}
+
+// 方式B: chartRenderer（プレビューと同じChart.js）でオフスクリーン描画してPNG化する
+async function renderChartToImage(config: ChartConfig): Promise<string | null> {
+  try {
+    const { renderChart } = await import('./chartRenderer')
+    const canvas = document.createElement('canvas')
+    canvas.width = config.width ?? 800
+    canvas.height = config.height ?? 500
+    // Chart.jsのレイアウト計算が動くよう、画面外でDOMに一時追加する
+    canvas.style.cssText = 'position:fixed;left:-10000px;top:0;'
+    document.body.appendChild(canvas)
+    try {
+      // disableAnimation必須: 生成時にanimation:falseの場合のみ同期描画される
+      const chart = renderChart(
+        canvas,
+        { ...config, options: { ...config.options, responsive: false, maintainAspectRatio: false } },
+        { disableAnimation: true }
+      )
+      if (!chart) return null
+      const dataUri = canvas.toDataURL('image/png')
+      chart.destroy()
+      return dataUri
+    } finally {
+      canvas.remove()
+    }
+  } catch (error) {
+    console.warn('PowerPoint出力: グラフのオフスクリーン描画に失敗:', error)
+    return null
+  }
 }
 
 // テキストボックスの高さ概算（インチ）。明示的な改行に加え、ボックス幅と
@@ -306,6 +378,65 @@ export async function exportToPowerPoint(
             fontFace: FONT_FACE,
             ...(el.type === 'list' ? { bullet: true } : {}),
           })
+        } else if (el.type === 'chart') {
+          let chartConfig: ChartConfig
+          try {
+            chartConfig = JSON.parse(el.content) as ChartConfig
+          } catch {
+            console.warn('PowerPoint出力: グラフ設定JSONを解析できないためスキップしました')
+            continue
+          }
+
+          // 表示サイズ: 元のcanvas比率をカラム幅に当てはめ、残り高さに収まるよう縮小
+          const aspect = (chartConfig.height ?? 500) / (chartConfig.width ?? 800)
+          const availH = Math.max(geo.h - geo.margin - yCursor[el.region], 1.5)
+          h = Math.min(box.w * aspect, availH)
+          const chartW = Math.min(box.w, h / aspect)
+          const chartX = box.x + (box.w - chartW) / 2
+
+          const chartType = chartConfig.type
+          if (isNativeChartType(chartType)) {
+            // 方式A: 設定JSON → addChart（PowerPoint上でデータ編集可能なネイティブグラフ）
+            const isCircular = chartType === 'pie' || chartType === 'doughnut'
+            // データ形の変換: Chart.jsの{labels, datasets[].data} → pptxgenjsの{name, labels, values}[]
+            const series = isCircular
+              ? [{
+                  name: chartConfig.data.datasets[0]?.label ?? 'データ',
+                  labels: chartConfig.data.labels,
+                  values: chartConfig.data.datasets[0]?.data ?? [],
+                }]
+              : chartConfig.data.datasets.map(ds => ({
+                  name: ds.label,
+                  labels: chartConfig.data.labels,
+                  values: ds.data,
+                }))
+            const legendPos = ({ top: 't', bottom: 'b', left: 'l', right: 'r' } as const)[
+              chartConfig.options?.plugins?.legend?.position ?? 'top'
+            ]
+            const chartColors = extractChartColors(chartConfig)
+            const title = chartConfig.options?.plugins?.title?.text ?? chartConfig.title
+
+            pptxSlide.addChart(pptx.ChartType[chartType], series, {
+              x: chartX,
+              y: yCursor[el.region],
+              w: chartW,
+              h,
+              showLegend: chartConfig.options?.plugins?.legend?.display ?? true,
+              legendPos,
+              ...(title ? { showTitle: true, title, titleFontSize: 14 } : {}),
+              ...(chartColors ? { chartColors } : {}),
+              ...(chartType === 'bar' ? { barDir: 'col' as const } : {}),
+            })
+          } else {
+            // 方式B: polarAreaはpptxgenjsに存在せず、bubble / scatterはデータ形が異なる
+            // （本アプリはnumber[]）ため、プレビューと同じChart.js描画の画像を貼る
+            const dataUri = await renderChartToImage(chartConfig)
+            if (!dataUri) {
+              console.warn('PowerPoint出力: グラフを画像化できないためスキップしました:', chartConfig.type)
+              continue
+            }
+            pptxSlide.addImage({ data: dataUri, x: chartX, y: yCursor[el.region], w: chartW, h })
+          }
         } else if (el.type === 'table') {
           const rows = el.rows ?? []
           if (rows.length === 0) continue

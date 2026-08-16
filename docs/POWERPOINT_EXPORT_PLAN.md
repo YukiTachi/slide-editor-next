@@ -349,25 +349,31 @@ interface PowerPointExporterModalProps {
 **データ形の変換が必須**: Chart.jsの `{labels, datasets[].data}` を pptxgenjsの `{name, labels, values}[]` に変換する。
 
 #### 6.10 グラフ・チャート処理ロジック
-- [ ] グラフ要素の抽出
-  - [ ] `.slide-chart-container` の検出（DOMParser）
-  - [ ] `script.chart-config` から設定JSONを取得・パース
-- [ ] Chart.js設定 → pptxgenjs `addChart()` パラメータへの変換
-  - [ ] グラフタイプのマッピング（上表のとおり）
-  - [ ] データ形の変換（`{labels, datasets[].data}` → `{name, labels, values}[]`）
-  - [ ] 色・凡例・タイトルの変換
-- [ ] 方式B対象（polarArea / bubble / scatter）の判定と `chartRenderer` によるオフスクリーン描画
+- [x] グラフ要素の抽出
+  - [x] `.slide-chart-container` の検出（DOMParser）
+  - [x] `script.chart-config` から設定JSONを取得・パース
+- [x] Chart.js設定 → pptxgenjs `addChart()` パラメータへの変換
+  - [x] グラフタイプのマッピング（上表のとおり）
+  - [x] データ形の変換（`{labels, datasets[].data}` → `{name, labels, values}[]`）
+  - [x] 色・凡例・タイトルの変換
+- [x] 方式B対象（polarArea / bubble / scatter）の判定と `chartRenderer` によるオフスクリーン描画
 
 #### 6.11 PowerPointへのグラフ追加
-- [ ] `addChart()` でネイティブグラフをスライドに追加
-- [ ] グラフのサイズと位置の調整
-- [ ] （フォールバック時）画像としての追加
+- [x] `addChart()` でネイティブグラフをスライドに追加
+- [x] グラフのサイズと位置の調整
+- [x] （フォールバック時）画像としての追加
 
 **確認事項**:
 - グラフ・チャートがPowerPointに正しく表示される
 - PowerPoint上でグラフデータが編集できる（方式A）
 - グラフのサイズが適切に調整される
 - グラフのデータが正しく反映される
+
+**Phase 3.5 検証結果（2026-08-16、headless Chromium + CDPによる実UI検証）**:
+- ✅ 方式A（bar・2系列）: `ppt/charts/chart1.xml` にネイティブbarChartとして出力。系列名（A商品/B商品）・データ値・カテゴリ（1月〜3月）・系列色（3498DB/E74C3C）・凡例位置（bottom→b）・タイトルすべて反映。PowerPoint上で編集可能
+- ✅ 方式B（polarArea）: `chartRenderer` のオフスクリーン描画でPNG化され、タイトル・凡例・3色の扇形が正しく描画された画像として埋め込まれる（ピクセル解析と目視で確認）
+- ✅ rgba()色 → RRGGBB変換、タイトル下からの縦積み配置（グラフ下端+GAPに次要素）
+- ⚠️ 実装上の重要な知見: **Chart.js v4は描画をrequestAnimationFrame経由で行うため、生成後の `chart.options.animation = false` + `update('none')` では同期描画されない**（透明PNGになる）。生成時にanimation:falseを渡した場合のみコンストラクタ内で同期描画される。このため `renderChart()` に `opts.disableAnimation` を追加した（既存のプレビュー呼び出しには影響なし）
 
 ---
 
