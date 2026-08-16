@@ -292,6 +292,8 @@ export interface PptxSlideElement {
   region: PptxRegion               // 配置先。1カラムスライドは常に'full'
   content: string                  // テキスト・画像src・LaTeXソース・chart-config JSON
   rows?: string[][]                // type: 'table'のみ。抽出時点で構造化する
+  tableStyle?: TableStyle          // type: 'table'のみ。slide-table-{style}クラス由来
+  hasHeaderRow?: boolean           // type: 'table'のみ。rows[0]がヘッダー行か
   items?: string[]                 // type: 'list'のみ。リスト項目
   style?: {
     fontSize?: number

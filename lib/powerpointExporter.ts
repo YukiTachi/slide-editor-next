@@ -10,6 +10,7 @@ import type {
   PptxRegion,
   PptxSlideElement,
   PptxPageGeometry,
+  TableStyle,
 } from '@/types'
 
 // pptxgenjs既定のArialでは日本語が崩れるため、全addTextで必ず指定する
@@ -20,10 +21,28 @@ const FONT_SIZE = {
   title: 32,
   subtitle: 24,
   body: 18,
+  table: 14,
+  caption: 14,
 } as const
 
 const ELEMENT_GAP = 0.15  // 要素間の縦マージン（インチ）
+const TABLE_ROW_H = 0.35  // 表1行の高さ概算（インチ、14pt + パディング）
 const MASTER_NAME = 'SLIDE_MASTER'
+
+// slide-table-{style} のCSS（lib/slideComponentStyles.ts）に対応するpptx表スタイル
+const TABLE_STYLE_DEFS: Record<TableStyle, {
+  border: { type: 'solid' | 'none'; pt: number; color: string }
+  headerFill?: string   // ヘッダー行の背景色
+  headerColor?: string  // ヘッダー行の文字色
+  stripeFill?: string   // 偶数行の背景色（striped）
+}> = {
+  simple:    { border: { type: 'none', pt: 0, color: 'FFFFFF' } },
+  bordered:  { border: { type: 'solid', pt: 1, color: 'BDC3C7' } },
+  striped:   { border: { type: 'solid', pt: 0.5, color: 'BDC3C7' }, stripeFill: 'F8F9FA' },
+  highlight: { border: { type: 'solid', pt: 0.5, color: 'BDC3C7' }, headerFill: '3498DB', headerColor: 'FFFFFF' },
+  minimal:   { border: { type: 'solid', pt: 0.5, color: 'E0E0E0' } },
+}
+const TABLE_STYLE_NAMES = Object.keys(TABLE_STYLE_DEFS) as TableStyle[]
 
 // 多重起動防止フラグ（ボタン連打で生成が多重に走らないようにする）
 let isExporting = false
@@ -71,7 +90,7 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   // ※ インラインのdata-latex要素はremoveしない（段落が分断されるため、描画テキストごと残す）
   doc.querySelectorAll('script, style, .footer').forEach(el => el.remove())
 
-  doc.querySelectorAll('h1, h2, p, ul, ol, img').forEach(el => {
+  doc.querySelectorAll('h1, h2, p, ul, ol, img, table').forEach(el => {
     const region = regionOf(el)
 
     if (el.matches('img')) {
@@ -79,6 +98,28 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
       if (src) elements.push({ type: 'image', region, content: src })
       return
     }
+
+    if (el.matches('table')) {
+      // 抽出時点でstring[][]に構造化する（HTMLの持ち回り・再パースを避ける）
+      const rows = Array.from(el.querySelectorAll('tr'))
+        .map(tr => Array.from(tr.querySelectorAll('th, td')).map(cell => cell.textContent?.trim() ?? ''))
+        .filter(cells => cells.length > 0)
+      if (rows.length === 0) return
+
+      // キャプションは表の直前のテキストとして出力
+      const caption = el.querySelector('caption')?.textContent?.trim()
+      if (caption) {
+        elements.push({ type: 'text', region, content: caption, style: { fontSize: FONT_SIZE.caption, italic: true } })
+      }
+
+      const hasHeaderRow = el.querySelector('thead th, thead td, tr:first-child th') !== null
+      const tableStyle = TABLE_STYLE_NAMES.find(name => el.classList.contains(`slide-table-${name}`)) ?? 'bordered'
+      elements.push({ type: 'table', region, content: '', rows, tableStyle, hasHeaderRow })
+      return
+    }
+
+    // 表のセル内テキストは表として取得済みのため二重に拾わない
+    if (el.closest('table')) return
 
     if (el.matches('ul, ol')) {
       const items = Array.from(el.querySelectorAll('li'))
@@ -265,8 +306,45 @@ export async function exportToPowerPoint(
             fontFace: FONT_FACE,
             ...(el.type === 'list' ? { bullet: true } : {}),
           })
+        } else if (el.type === 'table') {
+          const rows = el.rows ?? []
+          if (rows.length === 0) continue
+
+          const styleDef = TABLE_STYLE_DEFS[el.tableStyle ?? 'bordered']
+          const colCount = Math.max(...rows.map(r => r.length))
+          const tableRows = rows.map((cells, ri) => {
+            const isHeader = (el.hasHeaderRow ?? false) && ri === 0
+            // stripedの偶数行判定はtbody基準（CSSのnth-child(even)と一致させる）
+            const bodyIndex = ri - (el.hasHeaderRow ? 1 : 0)
+            const stripe = styleDef.stripeFill && bodyIndex >= 0 && bodyIndex % 2 === 1
+            return cells.map(text => ({
+              text,
+              options: {
+                bold: isHeader,
+                color: isHeader && styleDef.headerColor ? styleDef.headerColor : '000000',
+                ...(isHeader && styleDef.headerFill
+                  ? { fill: { color: styleDef.headerFill } }
+                  : stripe
+                    ? { fill: { color: styleDef.stripeFill! } }
+                    : {}),
+              },
+            }))
+          })
+
+          pptxSlide.addTable(tableRows, {
+            x: box.x,
+            y: yCursor[el.region],
+            w: box.w,
+            colW: Array(colCount).fill(box.w / colCount),
+            fontSize: FONT_SIZE.table,
+            fontFace: FONT_FACE,
+            border: styleDef.border,
+            valign: 'middle',
+            autoPage: false,
+          })
+          h = TABLE_ROW_H * rows.length
         } else {
-          // 表・グラフ・数式・コードはPhase 3以降
+          // グラフ・数式・コードはPhase 3.5以降
           continue
         }
 
