@@ -1,7 +1,7 @@
 // PowerPointエクスポート（pptxgenjsによる編集可能なpptx生成）
 // 設計の詳細は docs/POWERPOINT_EXPORT_PLAN.md を参照
-// Phase 1: テキスト要素（title / subtitle / text / list）
-// Phase 2: 画像（base64 / ローカルストレージ / 外部URL）。表・グラフはPhase 3以降
+// 対応コンテンツ: テキスト（title/subtitle/text/list）・画像・表・グラフ・数式・コードブロック
+// テンプレート色の反映はPhase 4で対応予定
 import { getImageFromStorage } from './imageStorage'
 import type {
   SlideSizeConfig,
@@ -28,6 +28,7 @@ const FONT_SIZE = {
 } as const
 
 const ELEMENT_GAP = 0.15  // 要素間の縦マージン（インチ）
+const IMAGE_FETCH_TIMEOUT_MS = 10000  // 外部URL画像の取得タイムアウト
 const TABLE_ROW_H = 0.35  // 表1行の高さ概算（インチ、14pt + パディング）
 const MASTER_NAME = 'SLIDE_MASTER'
 
@@ -224,9 +225,10 @@ async function resolveImageData(src: string): Promise<string | null> {
   if (src.startsWith('images/')) {
     return getImageFromStorage(src.slice('images/'.length))
   }
-  // 外部URL: CORS制限で取得できないことがある（計画書7.2の方針どおり警告してスキップ）
+  // 外部URL: CORS制限で取得できないことがある（計画書7.2の方針どおり警告してスキップ）。
+  // 応答しないURLでエクスポートが固まらないようタイムアウトを設ける
   try {
-    const res = await fetch(src)
+    const res = await fetch(src, { signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS) })
     if (!res.ok) return null
     const blob = await res.blob()
     if (!blob.type.startsWith('image/')) return null
@@ -542,7 +544,11 @@ export async function exportToPowerPoint(
 
           const styleDef = TABLE_STYLE_DEFS[el.tableStyle ?? 'bordered']
           const colCount = Math.max(...rows.map(r => r.length))
-          const tableRows = rows.map((cells, ri) => {
+          // 列数が揃っていない行は空セルで埋める（欠けたセルがあると列がずれる）
+          const normalizedRows = rows.map(cells =>
+            cells.length < colCount ? [...cells, ...Array<string>(colCount - cells.length).fill('')] : cells
+          )
+          const tableRows = normalizedRows.map((cells, ri) => {
             const isHeader = (el.hasHeaderRow ?? false) && ri === 0
             // stripedの偶数行判定はtbody基準（CSSのnth-child(even)と一致させる）
             const bodyIndex = ri - (el.hasHeaderRow ? 1 : 0)
@@ -572,9 +578,16 @@ export async function exportToPowerPoint(
             valign: 'middle',
             autoPage: false,
           })
-          h = TABLE_ROW_H * rows.length
+          // セルの折り返しを考慮した高さ概算: 行内で最も折り返すセルの行数を基準にする
+          // （全角1文字≒fontSize幅。行数だけの概算だと折り返し時に次の要素と重なる）
+          const colW = box.w / colCount
+          const cellCharsPerLine = Math.max(1, Math.floor(colW / (FONT_SIZE.table / 72)))
+          h = normalizedRows.reduce((sum, cells) => {
+            const wrapped = Math.max(...cells.map(c => Math.max(1, Math.ceil(c.length / cellCharsPerLine))))
+            return sum + Math.max(TABLE_ROW_H, wrapped * (FONT_SIZE.table / 72) * 1.5 + 0.12)
+          }, 0)
         } else {
-          // グラフ・数式・コードはPhase 3.5以降
+          // 未対応の要素タイプはスキップ
           continue
         }
 
