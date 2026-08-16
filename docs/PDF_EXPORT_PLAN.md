@@ -277,16 +277,16 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 
 ### Phase 1: 印刷ベースPDF出力（必須・本体）
 
-- [ ] `lib/pdfExporter.ts` を作成
-  - [ ] `exportToPDF()` 本体（実寸オフスクリーンiframe生成 → write → 待機 → print → 後片付け）
-  - [ ] 共有deadline方式の `waitForImages` / `waitForCharts`（iframe側window参照） / `waitForKaTeX` / `waitForPrism`（コード無しは即スキップ）
-  - [ ] `fonts.ready` はリッチ要素待機の後に await
-  - [ ] 印刷CSSの独立注入（5.3の全文: print-color-adjust / `:last-of-type` break制御 / `@page` 再指定）
-  - [ ] iframeの幅は `sizeConfig.width` をそのまま使用、高さはload後に `scrollHeight` で設定し直す
-  - [ ] `document.title = スライド_YYYY-MM-DD`
-  - [ ] 多重起動防止フラグ、後片付けは「afterprint→短遅延→破棄・フラグ解除」＋afterprint不達時のみ60s上限タイマー
-- [ ] `lib/htmlProcessor.ts` に `disableAnimation` オプションを追加（`addChartInitializationScript` へ貫通）
-- [ ] `HamburgerMenu.tsx` に「📄 PDF出力」ボタンとハンドラを追加（ここで完結、`onStatusUpdate` 連携）
+- [x] `lib/pdfExporter.ts` を作成
+  - [x] `exportToPDF()` 本体（実寸オフスクリーンiframe生成 → write → 待機 → print → 後片付け）
+  - [x] 共有deadline方式の `waitForImages` / `waitForCharts`（iframe側window参照） / `waitForKaTeX` / `waitForPrism`（コード無しは即スキップ）
+  - [x] `fonts.ready` はリッチ要素待機の後に await
+  - [x] 印刷CSSの独立注入（5.3の全文: print-color-adjust / `:last-of-type` break制御 / `@page` 再指定）
+  - [x] iframeの幅は `sizeConfig.width` をそのまま使用、高さはload後に `scrollHeight` で設定し直す
+  - [x] `document.title = スライド_YYYY-MM-DD`
+  - [x] 多重起動防止フラグ、後片付けは「afterprint→短遅延→破棄・フラグ解除」＋afterprint不達時のみ60s上限タイマー
+- [x] `lib/htmlProcessor.ts` に `disableAnimation` オプションを追加（`addChartInitializationScript` へ貫通）
+- [x] `HamburgerMenu.tsx` に「📄 PDF出力」ボタンとハンドラを追加（ここで完結、`onStatusUpdate` 連携）
 
 **完了条件**: テキストのみのスライドが、A4横向き・16:9の両方で、プレビューと同じ見た目のPDFとして保存できる（1スライド=1ページ、余白なし、末尾に空白ページなし）。ファイル名既定値が `スライド_YYYY-MM-DD`。
 
@@ -294,17 +294,17 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 
 実装はPhase 1に含まれるため、このフェーズは**全機能の組み合わせ検証と微調整**:
 
-- [ ] 画像（localStorage参照 → data URI変換済み）を含むスライド
-- [ ] 表（`tableStyles` の全スタイル）を含むスライド
-- [ ] グラフ（全チャート種別）を含むスライド — **空描画にならないこと**・アニメーション中間状態が写らないこと・**末尾に空白ページが出ないこと**
-- [ ] 数式（インライン・ブロック）を含むスライド — KaTeXフォント適用後の見た目で出力されること
-- [ ] コードブロック（ハイライト・行番号）を含むスライド
-- [ ] 2分割レイアウト（slide-split）
-- [ ] CSSデザインテンプレート5種＋**カスタムテンプレート**で、**見出し色・蛍光ペン・リスト記号**が反映されること
+- [x] 画像（localStorage参照 → data URI変換済み）を含むスライド
+- [x] 表（`tableStyles` の全スタイル）を含むスライド
+- [x] グラフ（全チャート種別）を含むスライド — **空描画にならないこと**・アニメーション中間状態が写らないこと・**末尾に空白ページが出ないこと**
+- [x] 数式（インライン・ブロック）を含むスライド — KaTeXフォント適用後の見た目で出力されること
+- [x] コードブロック（ハイライト・行番号）を含むスライド
+- [x] 2分割レイアウト（slide-split）
+- [x] CSSデザインテンプレート5種＋**カスタムテンプレート**で、**見出し色・蛍光ペン・リスト記号**が反映されること
   （※ テンプレートの `background` はプレビュー周囲色でありPDFには現れない — 5.3参照）
-- [ ] 10枚以上のスライドでページ落ち・ページ跨ぎがないこと
+- [x] 10枚以上のスライドでページ落ち・ページ跨ぎがないこと
   （Flex + `break-inside: avoid` はChrome印刷の既知の弱点のため重点確認）
-- [ ] 画面用 `overflow: hidden` と印刷用 `overflow: visible` の差で、はみ出しコンテンツの見え方がプレビューと変わるケースの確認
+- [x] 画面用 `overflow: hidden` と印刷用 `overflow: visible` の差で、はみ出しコンテンツの見え方がプレビューと変わるケースの確認
 
 ### Phase 3: オプション機能（必要になったら）
 

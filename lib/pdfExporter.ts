@@ -1,6 +1,7 @@
 // PDFエクスポート（印刷ダイアログ方式）
 // 設計の詳細は docs/PDF_EXPORT_PLAN.md を参照
 import { processHTMLForPreviewAsync } from './htmlProcessor'
+import { extractSlides } from './slideReorder'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 
 export interface PDFExportOptions {
@@ -55,7 +56,10 @@ export async function exportToPDF(
     iframe.style.left = '-10000px'
     iframe.style.top = '0'
     iframe.style.width = sizeConfig.width // px換算せずCSS値をそのまま使う
-    iframe.style.height = sizeConfig.height
+    // 初期高さは「枚数 ×（スライド高さ + 画面用margin 20px×2）」の概算。
+    // write中に走るChart.js初期化がクリップされないための保険で、load後にscrollHeight実測で上書きする
+    const slideCount = Math.max(1, extractSlides(trimmedContent).length)
+    iframe.style.height = `calc(${slideCount} * (${sizeConfig.height} + 40px))`
     iframe.style.border = '0'
     iframe.setAttribute('aria-hidden', 'true')
     document.body.appendChild(iframe)
@@ -214,7 +218,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, deadline: number
 
   await waitForImages(doc, deadline)
   await waitForCharts(win, doc, deadline)
-  await waitForKaTeX(doc, deadline)
+  await waitForKaTeX(win, doc, deadline)
   await waitForPrism(win, doc, deadline)
   // KaTeXのwebfontは描画後に読み込みが始まるため、fonts.readyはリッチ要素の後に待つ
   await race(doc.fonts.ready.then(() => undefined), deadline)
@@ -247,22 +251,28 @@ async function waitForCharts(win: Window, doc: Document, deadline: number): Prom
 
   await pollUntil(() => {
     const chartGlobal = (win as any).Chart
-    if (!chartGlobal || typeof chartGlobal.getChart !== 'function') return false
-    return canvases.every((canvas) => chartGlobal.getChart(canvas) !== undefined)
+    if (chartGlobal && typeof chartGlobal.getChart === 'function') {
+      if (canvases.every((canvas) => chartGlobal.getChart(canvas) !== undefined)) return true
+    }
+    // グラフ初期化スクリプトはパース時に同期実行されるため、文書読込が完了していれば
+    // 以後インスタンスは増えない（CDN不達や設定JSON不正のcanvas）。deadlineまで待たずに打ち切る
+    return doc.readyState === 'complete'
   }, deadline)
 }
 
-async function waitForKaTeX(doc: Document, deadline: number): Promise<void> {
+async function waitForKaTeX(win: Window, doc: Document, deadline: number): Promise<void> {
+  // data-latexが空の要素はレンダラーがスキップするため待機対象にしない
   const equations = Array.from(
     doc.querySelectorAll('.slide-equation-inline[data-latex], .slide-equation-block[data-latex]')
-  )
+  ).filter((el) => (el.getAttribute('data-latex') || '').trim() !== '')
   if (equations.length === 0) return
 
   // レンダリング成功（.katex）またはエラー表示（.slide-equation-error）まで待つ
-  await pollUntil(
-    () => equations.every((el) => el.querySelector('.katex, .slide-equation-error') !== null),
-    deadline
-  )
+  await pollUntil(() => {
+    if (equations.every((el) => el.querySelector('.katex, .slide-equation-error') !== null)) return true
+    // 文書読込完了後もKaTeX本体が存在しなければCDN不達であり、以後描画されない
+    return doc.readyState === 'complete' && !(win as any).katex
+  }, deadline)
 }
 
 async function waitForPrism(win: Window, doc: Document, deadline: number): Promise<void> {

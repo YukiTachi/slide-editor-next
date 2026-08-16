@@ -116,12 +116,14 @@ export function processHTMLForPreview(
  * 最初の出現ではなく最後の出現位置に挿入する。
  */
 function insertBeforeClosingBody(htmlContent: string, snippet: string): string {
-  const idx = htmlContent.lastIndexOf('</body>')
-  if (idx === -1) {
+  // 大文字小文字を無視して最後の</body>を探す
+  const matches = Array.from(htmlContent.matchAll(/<\/body\s*>/gi))
+  const last = matches[matches.length - 1]
+  if (!last || last.index === undefined) {
     // </body>がない場合は末尾に追加
     return htmlContent + snippet
   }
-  return htmlContent.slice(0, idx) + snippet + htmlContent.slice(idx)
+  return htmlContent.slice(0, last.index) + snippet + htmlContent.slice(last.index)
 }
 
 /**
