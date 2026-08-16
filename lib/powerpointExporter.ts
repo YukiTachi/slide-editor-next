@@ -7,6 +7,7 @@ import type {
   SlideSizeConfig,
   CSSDesignTemplate,
   ChartConfig,
+  CodeBlockStyle,
   PowerPointExportConfig,
   PptxRegion,
   PptxSlideElement,
@@ -44,6 +45,23 @@ const TABLE_STYLE_DEFS: Record<TableStyle, {
   minimal:   { border: { type: 'solid', pt: 0.5, color: 'E0E0E0' } },
 }
 const TABLE_STYLE_NAMES = Object.keys(TABLE_STYLE_DEFS) as TableStyle[]
+
+const CODE_FONT_FACE = 'Consolas'  // コードは等幅フォント
+const CODE_FONT_SIZE = 12
+
+// slide-code-block-{style} のCSS（lib/slideComponentStyles.ts）に対応するpptxスタイル
+// シンタックスハイライトの配色は再現しない（計画書7.6の制約）
+const CODE_STYLE_DEFS: Record<CodeBlockStyle, {
+  fill?: string     // 背景色
+  color: string     // 文字色
+  border?: string   // 枠線色
+}> = {
+  default:     { fill: 'F5F5F5', color: '333333', border: 'DDDDDD' },
+  minimal:     { color: '333333', border: 'DDDDDD' },
+  dark:        { fill: '2D2D2D', color: 'F8F8F2' },
+  transparent: { color: '333333' },
+}
+const CODE_STYLE_NAMES = Object.keys(CODE_STYLE_DEFS) as CodeBlockStyle[]
 
 // 多重起動防止フラグ（ボタン連打で生成が多重に走らないようにする）
 let isExporting = false
@@ -83,19 +101,63 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   const elements: PptxSlideElement[] = []
   const doc = new DOMParser().parseFromString(slideHTML, 'text/html')
 
-  // コードブロックはPhase 3.6で対応。ハイライト用マークアップを本文として拾わない
-  doc.querySelectorAll('.slide-code-block-container').forEach(el => el.remove())
   // 本文として扱わない要素を除去（フッターのページ番号はslideNumberで出す）
   // ※ グラフ設定JSON（script.chart-config）は抽出に使うため除去対象から外す
-  // ※ インラインのdata-latex要素はremoveしない（段落が分断されるため、描画テキストごと残す）
   doc.querySelectorAll('script:not(.chart-config), style, .footer').forEach(el => el.remove())
 
-  doc.querySelectorAll('h1, h2, p, ul, ol, img, table, .slide-chart-container').forEach(el => {
+  // インライン数式はエディタHTML上では空のspan（KaTeX描画はプレビュー側で行われる）。
+  // removeすると段落が分断されるため、LaTeXソースを流し込んで段落の一部として残す
+  doc.querySelectorAll('span.slide-equation-inline[data-latex]').forEach(span => {
+    if (!span.textContent?.trim()) {
+      span.textContent = ` ${span.getAttribute('data-latex') ?? ''} `
+    }
+  })
+
+  doc.querySelectorAll(
+    'h1, h2, p, ul, ol, img, table, .slide-chart-container, .slide-code-block-container, .slide-equation-block, .slide-equation-caption'
+  ).forEach(el => {
     const region = regionOf(el)
 
     if (el.matches('.slide-chart-container')) {
       const config = el.querySelector('script.chart-config')?.textContent?.trim()
       if (config) elements.push({ type: 'chart', region, content: config })
+      return
+    }
+
+    if (el.matches('.slide-code-block-container')) {
+      // エディタHTML上のコードはエスケープ済みテキスト（Prismのハイライトはプレビュー側）。
+      // textContentでプレーンテキストとして取得する
+      const code = (el.querySelector('pre')?.textContent ?? '').replace(/\s+$/, '')
+      if (code) {
+        const codeStyle = CODE_STYLE_NAMES.find(name => el.classList.contains(`slide-code-block-${name}`)) ?? 'default'
+        elements.push({ type: 'code', region, content: code, codeStyle })
+      }
+      // キャプションはコードの直後のテキストとして出力（HTMLでもpreの後に置かれる）
+      const caption = el.querySelector('.slide-code-block-caption')?.textContent?.trim()
+      if (caption) {
+        elements.push({ type: 'text', region, content: caption, style: { fontSize: FONT_SIZE.caption, italic: true } })
+      }
+      return
+    }
+
+    if (el.matches('.slide-equation-block')) {
+      // ブロック数式もエディタHTML上は空div。元のLaTeXソースがdata-latex属性に保存済み
+      const latex = el.getAttribute('data-latex')?.trim()
+      if (latex) {
+        const alignment = (el.getAttribute('data-alignment') as 'left' | 'center' | 'right' | null) ?? 'center'
+        elements.push({ type: 'equation', region, content: latex, style: { alignment } })
+      }
+      return
+    }
+
+    if (el.matches('.slide-equation-caption')) {
+      // 数式キャプションはブロック数式の兄弟要素として置かれる
+      const caption = el.textContent?.trim()
+      if (caption) {
+        const alignment = (['left', 'center', 'right'] as const)
+          .find(a => el.classList.contains(`slide-equation-caption-${a}`)) ?? 'center'
+        elements.push({ type: 'text', region, content: caption, style: { fontSize: FONT_SIZE.caption, italic: true, alignment } })
+      }
       return
     }
 
@@ -373,6 +435,7 @@ export async function exportToPowerPoint(
             h,
             fontSize,
             bold: el.style?.bold ?? false,
+            italic: el.style?.italic ?? false,
             align: el.style?.alignment ?? 'left',
             valign: 'top',
             fontFace: FONT_FACE,
@@ -437,6 +500,42 @@ export async function exportToPowerPoint(
             }
             pptxSlide.addImage({ data: dataUri, x: chartX, y: yCursor[el.region], w: chartW, h })
           }
+        } else if (el.type === 'equation') {
+          // 最低限対応: LaTeXソースをテキストとして挿入（KaTeXの画像化は将来の拡張）
+          const text = `$ ${el.content} $`
+          h = estimateHeight(text, FONT_SIZE.body, box.w)
+          pptxSlide.addText(text, {
+            x: box.x,
+            y: yCursor[el.region],
+            w: box.w,
+            h,
+            fontSize: FONT_SIZE.body,
+            italic: true,
+            align: el.style?.alignment ?? 'center',
+            valign: 'top',
+            fontFace: FONT_FACE,
+          })
+        } else if (el.type === 'code') {
+          const styleDef = CODE_STYLE_DEFS[el.codeStyle ?? 'default']
+          // 等幅・半角前提の折り返し概算（半角1文字≒fontSizeの0.6倍幅）
+          const charsPerLine = Math.max(1, Math.floor(box.w / ((CODE_FONT_SIZE / 72) * 0.6)))
+          const lines = el.content.split('\n')
+            .reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / charsPerLine)), 0)
+          h = (CODE_FONT_SIZE / 72) * 1.45 * lines + 0.2
+
+          pptxSlide.addText(el.content, {
+            x: box.x,
+            y: yCursor[el.region],
+            w: box.w,
+            h,
+            fontSize: CODE_FONT_SIZE,
+            fontFace: CODE_FONT_FACE,
+            color: styleDef.color,
+            align: 'left',
+            valign: 'top',
+            ...(styleDef.fill ? { fill: { color: styleDef.fill } } : {}),
+            ...(styleDef.border ? { line: { color: styleDef.border, width: 1 } } : {}),
+          })
         } else if (el.type === 'table') {
           const rows = el.rows ?? []
           if (rows.length === 0) continue

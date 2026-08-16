@@ -294,6 +294,7 @@ export interface PptxSlideElement {
   rows?: string[][]                // type: 'table'のみ。抽出時点で構造化する
   tableStyle?: TableStyle          // type: 'table'のみ。slide-table-{style}クラス由来
   hasHeaderRow?: boolean           // type: 'table'のみ。rows[0]がヘッダー行か
+  codeStyle?: CodeBlockStyle       // type: 'code'のみ。slide-code-block-{style}クラス由来
   items?: string[]                 // type: 'list'のみ。リスト項目
   style?: {
     fontSize?: number
