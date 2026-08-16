@@ -89,7 +89,8 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
     if (!content) return
 
     if (el.matches('.slide-title, h1')) {
-      elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.title, bold: true } })
+      // .slide-titleのCSSはtext-align: center（lib/slideStyleConfig.ts）
+      elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.title, bold: true, alignment: 'center' } })
     } else if (el.matches('.slide-subtitle, h2')) {
       elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.subtitle } })
     } else {
@@ -100,9 +101,15 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
   return elements
 }
 
-// テキストボックスの高さ概算（インチ）。行数とフォントサイズから見積もる
-function estimateHeight(text: string, fontSize: number): number {
-  const lines = text.split('\n').length
+// テキストボックスの高さ概算（インチ）。明示的な改行に加え、ボックス幅と
+// フォントサイズから折り返し行数を見積もる（全角1文字≒fontSize幅として概算。
+// 半角混じりでは行数を多めに見積もるが、重なりを防ぐ方向なので許容）
+function estimateHeight(text: string, fontSize: number, boxW: number): number {
+  const charW = fontSize / 72
+  const charsPerLine = Math.max(1, Math.floor(boxW / charW))
+  const lines = text
+    .split('\n')
+    .reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / charsPerLine)), 0)
   return (fontSize / 72) * 1.5 * lines + 0.1
 }
 
@@ -182,7 +189,7 @@ export async function exportToPowerPoint(
 
         const box = regionBox(el.region, geo)
         const fontSize = el.style?.fontSize ?? FONT_SIZE.body
-        const h = estimateHeight(text, fontSize)
+        const h = estimateHeight(text, fontSize, box.w)
 
         pptxSlide.addText(text, {
           x: box.x,
