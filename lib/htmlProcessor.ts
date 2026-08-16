@@ -143,6 +143,20 @@ export function processHTMLForPreview(
 }
 
 /**
+ * スニペットを閉じbodyタグの直前に挿入する。
+ * コンテンツ中のコメント等に "</body>" という文字列が含まれていても壊れないよう、
+ * 最初の出現ではなく最後の出現位置に挿入する。
+ */
+function insertBeforeClosingBody(htmlContent: string, snippet: string): string {
+  const idx = htmlContent.lastIndexOf('</body>')
+  if (idx === -1) {
+    // </body>がない場合は末尾に追加
+    return htmlContent + snippet
+  }
+  return htmlContent.slice(0, idx) + snippet + htmlContent.slice(idx)
+}
+
+/**
  * グラフを初期化するスクリプトを追加
  * disableAnimation: PDF出力時にアニメーション中間状態が印刷されるのを防ぐ
  */
@@ -199,13 +213,8 @@ function addChartInitializationScript(htmlContent: string, disableAnimation = fa
       })();
     </script>`
 
-  // </body>の前にスクリプトを追加
-  if (htmlContent.includes('</body>')) {
-    return htmlContent.replace('</body>', chartScript + '</body>')
-  } else {
-    // </body>がない場合は末尾に追加
-    return htmlContent + chartScript
-  }
+  // </body>（最後の出現）の前にスクリプトを追加
+  return insertBeforeClosingBody(htmlContent, chartScript)
 }
 
 /**
@@ -267,13 +276,8 @@ function addEquationRendering(htmlContent: string): string {
       })();
     </script>`
 
-  // </body>の前にスクリプトを追加
-  if (htmlContent.includes('</body>')) {
-    return htmlContent.replace('</body>', katexScript + '</body>')
-  } else {
-    // </body>がない場合は末尾に追加
-    return htmlContent + katexScript
-  }
+  // </body>（最後の出現）の前にスクリプトを追加
+  return insertBeforeClosingBody(htmlContent, katexScript)
 }
 
 /**
@@ -328,12 +332,7 @@ function addCodeBlockHighlighting(htmlContent: string): string {
       })();
     </script>`
 
-  // </body>の前にスクリプトを追加
-  if (htmlContent.includes('</body>')) {
-    return htmlContent.replace('</body>', prismScript + '</body>')
-  } else {
-    // </body>がない場合は末尾に追加
-    return htmlContent + prismScript
-  }
+  // </body>（最後の出現）の前にスクリプトを追加
+  return insertBeforeClosingBody(htmlContent, prismScript)
 }
 

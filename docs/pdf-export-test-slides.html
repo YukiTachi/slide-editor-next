@@ -211,8 +211,8 @@ async function waitForRenderComplete(iframe, timeoutMs) {
     </div>
 
     <!-- スライド8: 最終スライド（末尾空白ページの確認・重要） -->
-    <!-- このスライドには数式が含まれるため、処理後HTMLでは</body>直前に<script>が注入され、
-         最後の .slide は :last-child にならない。:last-of-type による末尾空白ページ防止の検証用 -->
+    <!-- このスライドには数式が含まれるため、処理後HTMLでは文書末尾にスクリプトが注入され、
+         最後の .slide は last-child にならない。last-of-type による末尾空白ページ防止の検証用 -->
     <div class="slide">
         <h1 class="slide-title">最終スライド</h1>
 
