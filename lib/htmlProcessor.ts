@@ -6,6 +6,11 @@ import { DEFAULT_SLIDE_SIZE_TYPE, getSlideSizeConfig } from './slideSizeConfig'
 // CSSキャッシュ（クライアント側でfetchで読み込んだCSSを保存）
 let cachedCSS: string | null = null
 
+// HTML処理のオプション
+export interface ProcessHTMLOptions {
+  disableAnimation?: boolean // グラフのアニメーションを無効化（PDF出力用: 中間状態の印刷を防ぐ）
+}
+
 /**
  * 実際のCSSファイルを読み込む（クライアント側のみ）
  */
@@ -42,7 +47,8 @@ async function loadActualCSS(): Promise<string> {
 export async function processHTMLForPreviewAsync(
   htmlContent: string,
   sizeConfig?: SlideSizeConfig,
-  template?: CSSDesignTemplate
+  template?: CSSDesignTemplate,
+  options?: ProcessHTMLOptions
 ): Promise<string> {
   let processedContent = htmlContent.trim()
 
@@ -74,7 +80,7 @@ export async function processHTMLForPreviewAsync(
   processedContent = convertStorageImagesToDataURI(processedContent)
 
   // グラフを初期化するスクリプトを追加
-  processedContent = addChartInitializationScript(processedContent)
+  processedContent = addChartInitializationScript(processedContent, options?.disableAnimation)
 
   // コードブロックのシンタックスハイライトを追加
   processedContent = addCodeBlockHighlighting(processedContent)
@@ -92,7 +98,8 @@ export async function processHTMLForPreviewAsync(
 export function processHTMLForPreview(
   htmlContent: string,
   sizeConfig?: SlideSizeConfig,
-  template?: CSSDesignTemplate
+  template?: CSSDesignTemplate,
+  options?: ProcessHTMLOptions
 ): string {
   let processedContent = htmlContent.trim()
 
@@ -124,7 +131,7 @@ export function processHTMLForPreview(
   processedContent = convertStorageImagesToDataURI(processedContent)
 
   // グラフを初期化するスクリプトを追加
-  processedContent = addChartInitializationScript(processedContent)
+  processedContent = addChartInitializationScript(processedContent, options?.disableAnimation)
 
   // コードブロックのシンタックスハイライトを追加
   processedContent = addCodeBlockHighlighting(processedContent)
@@ -137,8 +144,9 @@ export function processHTMLForPreview(
 
 /**
  * グラフを初期化するスクリプトを追加
+ * disableAnimation: PDF出力時にアニメーション中間状態が印刷されるのを防ぐ
  */
-function addChartInitializationScript(htmlContent: string): string {
+function addChartInitializationScript(htmlContent: string, disableAnimation = false): string {
   // グラフコンテナが存在するかチェック
   if (!htmlContent.includes('slide-chart-container')) {
     return htmlContent
@@ -165,6 +173,7 @@ function addChartInitializationScript(htmlContent: string): string {
               type: config.type,
               data: config.data,
               options: {
+                ${disableAnimation ? 'animation: false,' : ''}
                 responsive: config.options?.responsive ?? true,
                 maintainAspectRatio: config.options?.maintainAspectRatio ?? false,
                 plugins: {
