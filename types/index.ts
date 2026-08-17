@@ -285,6 +285,15 @@ export interface PowerPointExportConfig {
 // PowerPoint出力時の配置先（slide-split / two-columnの2分割レイアウト対応）
 export type PptxRegion = 'full' | 'left' | 'right'
 
+// PowerPoint出力用のテキストラン（強調・ハイライト等のインライン書式）
+export interface PptxTextRun {
+  text: string
+  bold?: boolean
+  italic?: boolean
+  color?: string      // RRGGBB（インラインstyle由来）
+  highlight?: boolean // .highlightスパン（テンプレートのhighlight色で塗る）
+}
+
 // PowerPoint出力用のスライド要素
 // 座標は持たせない（生成時にregionとPptxPageGeometryから計算する）
 export interface PptxSlideElement {
@@ -296,6 +305,8 @@ export interface PptxSlideElement {
   hasHeaderRow?: boolean           // type: 'table'のみ。rows[0]がヘッダー行か
   codeStyle?: CodeBlockStyle       // type: 'code'のみ。slide-code-block-{style}クラス由来
   items?: string[]                 // type: 'list'のみ。リスト項目
+  role?: 'title' | 'subtitle' | 'body'  // type: 'text'のみ。テンプレート色の割り当てに使用
+  runs?: PptxTextRun[]             // type: 'text'のみ。インライン書式がある場合のみ設定
   style?: {
     fontSize?: number
     color?: string

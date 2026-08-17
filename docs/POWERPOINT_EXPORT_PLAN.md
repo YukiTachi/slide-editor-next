@@ -416,23 +416,31 @@ interface PowerPointExporterModalProps {
 **方針**: CSSをパースしてスタイルを推定するのではなく、**現在のCSSデザインテンプレート（`useCSSDesignTemplate`）の色を `addText` に渡す**。クラス→役割のマッピングは Phase 1 で実装済みなので、役割ごとにテンプレートの色を割り当てるだけでよい。`HamburgerMenu` は既に `template` を取得している（`HamburgerMenu.tsx:63`、PDF出力も同じものを渡している）。
 
 #### 6.12 テンプレート色の適用
-- [ ] `exportToPowerPoint()` に `template: CSSDesignTemplate` を渡す（PDF出力と同じパターン）
-- [ ] 役割ごとの色割り当て（`template.colors` のフィールドを使用）
-  - [ ] タイトル → `colors.heading`
-  - [ ] サブタイトル → `colors.headingSub`
-  - [ ] 本文・リスト → `colors.text`
-  - [ ] スライド背景 → `colors.background`
-  - [ ] リスト装飾文字 → `template.listBullet`
-- [ ] 色形式の変換（`#rrggbb` → pptxgenjsの `RRGGBB`）
+- [x] `exportToPowerPoint()` に `template: CSSDesignTemplate` を渡す（PDF出力と同じパターン）
+- [x] 役割ごとの色割り当て（`template.colors` のフィールドを使用）
+  - [x] タイトル → `colors.heading`
+  - [x] サブタイトル → `colors.headingSub`
+  - [x] 本文・リスト → `colors.text`
+  - [x] スライド背景 → `colors.background`
+  - [x] リスト装飾文字 → `template.listBullet`
+- [x] 色形式の変換（`#rrggbb` → pptxgenjsの `RRGGBB`）
 
 #### 6.13 インラインスタイルの反映
-- [ ] インラインstyle属性の太字・斜体・色・配置（左/中央/右）を `addText` オプションに変換
-- [ ] `<strong>` / `<em>` / ハイライト（`colors.highlight`）のテキストラン変換
+- [x] インラインstyle属性の太字・斜体・色・配置（左/中央/右）を `addText` オプションに変換
+- [x] `<strong>` / `<em>` / ハイライト（`colors.highlight`）のテキストラン変換
 
 **確認事項**:
 - スタイルがPowerPointに正しく反映される
 - フォントサイズが適切に変換される
 - 色が正しく表示される
+
+**Phase 4 検証結果（2026-08-17、headless Chromium + CDPによる実UI検証。natureテンプレートで確認）**:
+- ✅ 役割色: タイトル→`colors.heading`（2C3E50）、サブタイトル→`colors.headingSub`、本文・リスト・キャプション・数式→`colors.text` を反映
+- ✅ スライド背景: `colors.background`（F5F5F0）がスライドレイアウト（pptxgenjsはdefineSlideMasterの背景をslideLayoutに出力）に反映
+- ✅ リスト装飾文字: `template.listBullet`（●）を `bullet: { code }` で反映
+- ✅ インライン書式（6.13）: `<strong>`→太字ラン、`<em>`→斜体ラン、`.highlight`→`colors.highlight`（D4EFDF）のハイライト、`style="color: #e74c3c"`→ランの文字色。段落は分断されず1つのテキストボックス内のランとして出力
+- ✅ ページ番号の色に `colors.footer` を使用
+- 補足: templateが渡されない場合は従来どおり色指定なし（黒）で出力する
 
 ---
 

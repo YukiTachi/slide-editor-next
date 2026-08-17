@@ -11,6 +11,7 @@ import type {
   PowerPointExportConfig,
   PptxRegion,
   PptxSlideElement,
+  PptxTextRun,
   PptxPageGeometry,
   TableStyle,
 } from '@/types'
@@ -91,6 +92,43 @@ function regionBox(region: PptxRegion, geo: PptxPageGeometry): { x: number; w: n
   if (region === 'left') return { x: geo.margin, w: innerW / 2 - 0.1 }
   if (region === 'right') return { x: geo.margin + innerW / 2 + 0.1, w: innerW / 2 - 0.1 }
   return { x: geo.margin, w: innerW }
+}
+
+// 要素自身のインラインstyle / .centerクラスから配置を取得（なければnull）
+function alignmentOf(el: Element): 'left' | 'center' | 'right' | null {
+  const styleAlign = (el as HTMLElement).style?.textAlign
+  if (styleAlign === 'left' || styleAlign === 'center' || styleAlign === 'right') return styleAlign
+  if (el.classList.contains('center')) return 'center'
+  return null
+}
+
+// 段落内のインライン書式（strong/em/.highlight/インラインstyle）をテキストランに分解する
+function extractRuns(el: Element): PptxTextRun[] {
+  const runs: PptxTextRun[] = []
+  const walk = (node: Node, inherited: Omit<PptxTextRun, 'text'>) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // HTML整形由来の改行・連続空白は1スペースに畳む
+      const text = (node.textContent ?? '').replace(/\s+/g, ' ')
+      if (text) runs.push({ text, ...inherited })
+      return
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return
+    const child = node as HTMLElement
+    const next = { ...inherited }
+    if (child.matches('strong, b') || child.style?.fontWeight === 'bold') next.bold = true
+    if (child.matches('em, i') || child.style?.fontStyle === 'italic') next.italic = true
+    if (child.classList.contains('highlight')) next.highlight = true
+    const color = toPptxColor(child.style?.color)
+    if (color) next.color = color
+    child.childNodes.forEach(grandchild => walk(grandchild, next))
+  }
+  el.childNodes.forEach(node => walk(node, {}))
+  // 先頭・末尾の余分な空白を除去
+  if (runs.length > 0) {
+    runs[0].text = runs[0].text.replace(/^\s+/, '')
+    runs[runs.length - 1].text = runs[runs.length - 1].text.replace(/\s+$/, '')
+  }
+  return runs.filter(r => r.text !== '')
 }
 
 /**
@@ -206,13 +244,30 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
     const content = el.textContent?.trim() ?? ''
     if (!content) return
 
+    // インライン書式（strong/em/.highlight/style色）がある場合のみランを持たせる
+    const runs = extractRuns(el)
+    const hasInlineFormat = runs.some(r => r.bold || r.italic || r.color || r.highlight)
+    const runsProp = hasInlineFormat ? { runs } : {}
+    // 要素自身のstyle属性（text-align / color）を反映
+    const align = alignmentOf(el)
+    const ownColor = toPptxColor((el as HTMLElement).style?.color) ?? undefined
+
     if (el.matches('.slide-title, h1')) {
       // .slide-titleのCSSはtext-align: center（lib/slideStyleConfig.ts）
-      elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.title, bold: true, alignment: 'center' } })
+      elements.push({
+        type: 'text', region, content, role: 'title', ...runsProp,
+        style: { fontSize: FONT_SIZE.title, bold: true, alignment: align ?? 'center', color: ownColor },
+      })
     } else if (el.matches('.slide-subtitle, h2')) {
-      elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.subtitle } })
+      elements.push({
+        type: 'text', region, content, role: 'subtitle', ...runsProp,
+        style: { fontSize: FONT_SIZE.subtitle, alignment: align ?? undefined, color: ownColor },
+      })
     } else {
-      elements.push({ type: 'text', region, content, style: { fontSize: FONT_SIZE.body } })
+      elements.push({
+        type: 'text', region, content, role: 'body', ...runsProp,
+        style: { fontSize: FONT_SIZE.body, alignment: align ?? undefined, color: ownColor },
+      })
     }
   })
 
@@ -346,9 +401,6 @@ export async function exportToPowerPoint(
   const trimmedContent = htmlContent.trim()
   if (!trimmedContent) return
 
-  // templateはPhase 4（テンプレート色の反映）で使用する
-  void template
-
   isExporting = true
   try {
     // クリック時にdynamic import（初期バンドルを肥やさない）
@@ -363,11 +415,27 @@ export async function exportToPowerPoint(
       pptx.layout = 'A4_LANDSCAPE'
     }
 
+    // テンプレート色（役割→色のマッピング）。templateが無い場合は色指定なし＝黒で出力
+    const themeColors = template
+      ? {
+          title: toPptxColor(template.colors.heading),
+          subtitle: toPptxColor(template.colors.headingSub),
+          body: toPptxColor(template.colors.text),
+          background: toPptxColor(template.colors.background),
+          highlight: toPptxColor(template.colors.highlight),
+          footer: toPptxColor(template.colors.footer),
+        }
+      : null
+    const roleColor = (role?: 'title' | 'subtitle' | 'body'): string | undefined =>
+      themeColors?.[role ?? 'body'] ?? undefined
+    // テンプレートのリスト装飾文字（▶等）→ pptxgenjsのbulletコード（unicode 16進）
+    const bulletCode = template?.listBullet?.codePointAt(0)?.toString(16).toUpperCase()
+
     // ページ番号はフッターのテキストではなくスライドマスターのslideNumberで出す
     const includePageNumbers = config?.includePageNumbers ?? true
     pptx.defineSlideMaster({
       title: MASTER_NAME,
-      background: { color: 'FFFFFF' },
+      background: { color: themeColors?.background ?? 'FFFFFF' },
       ...(includePageNumbers
         ? {
             slideNumber: {
@@ -375,7 +443,7 @@ export async function exportToPowerPoint(
               y: geo.h - 0.4,
               fontFace: FONT_FACE,
               fontSize: 10,
-              color: '7F8C8D',
+              color: themeColors?.footer ?? '7F8C8D',
             },
           }
         : {}),
@@ -430,19 +498,44 @@ export async function exportToPowerPoint(
           const fontSize = el.style?.fontSize ?? FONT_SIZE.body
           h = estimateHeight(text, fontSize, box.w)
 
-          pptxSlide.addText(text, {
+          // 色の優先順位: インラインstyle > テンプレートの役割色 > 指定なし（黒）
+          const baseColor = el.style?.color ?? roleColor(el.role)
+          const baseOpts = {
             x: box.x,
             y: yCursor[el.region],
             w: box.w,
             h,
             fontSize,
-            bold: el.style?.bold ?? false,
-            italic: el.style?.italic ?? false,
             align: el.style?.alignment ?? 'left',
-            valign: 'top',
+            valign: 'top' as const,
             fontFace: FONT_FACE,
-            ...(el.type === 'list' ? { bullet: true } : {}),
-          })
+            ...(el.type === 'list'
+              ? { bullet: bulletCode ? { code: bulletCode } : true }
+              : {}),
+          }
+
+          if (el.type === 'text' && el.runs && el.runs.length > 0) {
+            // インライン書式（strong/em/.highlight/style色）をランごとに反映
+            pptxSlide.addText(
+              el.runs.map(run => ({
+                text: run.text,
+                options: {
+                  bold: run.bold ?? el.style?.bold ?? false,
+                  italic: run.italic ?? el.style?.italic ?? false,
+                  ...((run.color ?? baseColor) ? { color: run.color ?? baseColor } : {}),
+                  ...(run.highlight && themeColors?.highlight ? { highlight: themeColors.highlight } : {}),
+                },
+              })),
+              baseOpts
+            )
+          } else {
+            pptxSlide.addText(text, {
+              ...baseOpts,
+              bold: el.style?.bold ?? false,
+              italic: el.style?.italic ?? false,
+              ...(baseColor ? { color: baseColor } : {}),
+            })
+          }
         } else if (el.type === 'chart') {
           let chartConfig: ChartConfig
           try {
@@ -516,6 +609,7 @@ export async function exportToPowerPoint(
             align: el.style?.alignment ?? 'center',
             valign: 'top',
             fontFace: FONT_FACE,
+            ...(roleColor('body') ? { color: roleColor('body') } : {}),
           })
         } else if (el.type === 'code') {
           const styleDef = CODE_STYLE_DEFS[el.codeStyle ?? 'default']
