@@ -465,6 +465,16 @@ interface PowerPointExporterModalProps {
 - [ ] 画像の最適化（リサイズ、圧縮）
 - [ ] 進捗表示（オプション）
 
+#### 6.17 忠実度ギャップの解消（2026-08-17の実機検証で確認された既知の制約）
+
+`docs/pdf-export-test-slides.html`（8スライド全種別）を実機ブラウザからエクスポートして検証した際に確認されたギャップ。いずれも実害は小さいが、Phase 5で対応する:
+
+- [ ] **棒グラフの棒ごとの色分け**: 1系列に色配列（棒4本に4色等）が指定されたグラフは、系列単位の色変換のため全棒が先頭の色になる。単一系列かつ `backgroundColor` が配列の場合は pptxgenjs の `varyColors` 相当の指定（`chartColors` に配列全体を渡す）で棒ごとの色を再現する
+- [ ] **インラインのfont-size指定**: 要素の `style="font-size: 28px"` 等が無視され、役割既定のサイズ（本文18pt）で出力される。px→ptに換算して `style.fontSize` に反映する
+- [ ] **リスト項目内のインライン書式**: `<li>` 内の `.highlight` / `<strong>` 等がプレーンテキスト化される（リストは項目文字列として抽出するため）。リスト項目にもラン変換を適用する場合は、pptxgenjsのbullet付きラン配列（項目ごとに `breakLine` + `bullet`）へ変更が必要
+
+**実機検証の合格項目（参考）**: 8スライドすべてで重なり・はみ出しなし。warmテンプレートの全色（heading/headingSub/text/footer/background/highlight/listBullet「▸」）反映、ネイティブグラフ2種（棒・円）の並列配置とデータ・凡例、表2種、ブロック/インライン数式、darkコード、slide-splitのSVG画像（SVG+PNGフォールバック埋め込み・アスペクト維持）、日本語ファイル名（`スライド_2026-08-17.pptx`）を確認済み。
+
 ---
 
 ## 7. 実装の考慮事項
