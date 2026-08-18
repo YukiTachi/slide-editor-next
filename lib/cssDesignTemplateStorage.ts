@@ -12,7 +12,14 @@ function isValidTemplateType(value: string): value is CSSDesignTemplateType {
   return false
 }
 
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+}
+
+// SSR/静的エクスポート時のプリレンダリングではLocalStorageが存在しないため既定値を返す
 export function getCSSDesignTemplateType(): CSSDesignTemplateType {
+  if (!isBrowser()) return DEFAULT_CSS_DESIGN_TEMPLATE_TYPE
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored && isValidTemplateType(stored)) {

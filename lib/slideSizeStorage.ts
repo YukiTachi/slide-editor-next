@@ -4,9 +4,15 @@ import type { SlideSizeType } from '@/types'
 const STORAGE_KEY = 'slideEditor_slideSize'
 export const SLIDE_SIZE_CHANGE_EVENT = 'slideSizeChange'
 
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined'
+}
+
 // 保存されているスライドサイズを取得
-// このアプリケーションはクライアントサイドで完結するため、常にLocalStorageにアクセス可能
+// SSR/静的エクスポート時のプリレンダリングではLocalStorageが存在しないため既定値を返す
 export function getSlideSize(): SlideSizeType {
+  if (!isBrowser()) return DEFAULT_SLIDE_SIZE_TYPE
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
