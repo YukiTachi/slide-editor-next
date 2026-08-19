@@ -94,6 +94,15 @@ function regionBox(region: PptxRegion, geo: PptxPageGeometry): { x: number; w: n
   return { x: geo.margin, w: innerW }
 }
 
+// インラインstyleのfont-size（px指定）をptに換算する。指定がなければundefined
+function inlineFontSize(el: Element): number | undefined {
+  const raw = (el as HTMLElement).style?.fontSize
+  const px = raw?.match(/^([\d.]+)px$/)
+  if (!px) return undefined
+  const pt = Math.round(Number(px[1]) * 0.75)  // CSS px（96dpi）→ pt（72dpi）
+  return pt > 0 ? pt : undefined
+}
+
 // 要素自身のインラインstyle / .centerクラスから配置を取得（なければnull）
 function alignmentOf(el: Element): 'left' | 'center' | 'right' | null {
   const styleAlign = (el as HTMLElement).style?.textAlign
@@ -229,11 +238,19 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
     if (el.closest('table')) return
 
     if (el.matches('ul, ol')) {
-      const items = Array.from(el.querySelectorAll('li'))
-        .map(li => li.textContent?.trim() ?? '')
-        .filter(Boolean)
-      if (items.length > 0) {
-        elements.push({ type: 'list', region, content: '', items })
+      const liElements = Array.from(el.querySelectorAll('li'))
+        .filter(li => (li.textContent?.trim() ?? '') !== '')
+      if (liElements.length > 0) {
+        const items = liElements.map(li => li.textContent?.trim() ?? '')
+        // 項目内のインライン書式（.highlight / strong 等）がある場合のみランを持たせる
+        const itemRuns = liElements.map(li => extractRuns(li))
+        const hasInlineFormat = itemRuns.some(runs =>
+          runs.some(r => r.bold || r.italic || r.color || r.highlight)
+        )
+        elements.push({
+          type: 'list', region, content: '', items,
+          ...(hasInlineFormat ? { itemRuns } : {}),
+        })
       }
       return
     }
@@ -251,22 +268,23 @@ export function parseSlideHTML(slideHTML: string): PptxSlideElement[] {
     // 要素自身のstyle属性（text-align / color）を反映
     const align = alignmentOf(el)
     const ownColor = toPptxColor((el as HTMLElement).style?.color) ?? undefined
+    const ownFontSize = inlineFontSize(el)  // インラインstyleのfont-sizeが役割既定より優先
 
     if (el.matches('.slide-title, h1')) {
       // .slide-titleのCSSはtext-align: center（lib/slideStyleConfig.ts）
       elements.push({
         type: 'text', region, content, role: 'title', ...runsProp,
-        style: { fontSize: FONT_SIZE.title, bold: true, alignment: align ?? 'center', color: ownColor },
+        style: { fontSize: ownFontSize ?? FONT_SIZE.title, bold: true, alignment: align ?? 'center', color: ownColor },
       })
     } else if (el.matches('.slide-subtitle, h2')) {
       elements.push({
         type: 'text', region, content, role: 'subtitle', ...runsProp,
-        style: { fontSize: FONT_SIZE.subtitle, alignment: align ?? undefined, color: ownColor },
+        style: { fontSize: ownFontSize ?? FONT_SIZE.subtitle, alignment: align ?? undefined, color: ownColor },
       })
     } else {
       elements.push({
         type: 'text', region, content, role: 'body', ...runsProp,
-        style: { fontSize: FONT_SIZE.body, alignment: align ?? undefined, color: ownColor },
+        style: { fontSize: ownFontSize ?? FONT_SIZE.body, alignment: align ?? undefined, color: ownColor },
       })
     }
   })
@@ -331,9 +349,14 @@ function toPptxColor(color: string | undefined): string | null {
 // Chart.jsの設定から系列色を取り出す。1つでも変換できない色があればnull（pptx既定色に任せる）
 function extractChartColors(config: ChartConfig): string[] | null {
   const { type, data } = config
-  const raw: (string | undefined)[] = (type === 'pie' || type === 'doughnut')
-    // 円系は1系列で、要素ごとの色が先頭データセットのbackgroundColor配列に入っている
-    ? (Array.isArray(data.datasets[0]?.backgroundColor) ? data.datasets[0].backgroundColor : [])
+  const isCircular = type === 'pie' || type === 'doughnut'
+  // 単一系列で色配列が指定されたグラフは、要素（棒/扇形）ごとの色として扱う。
+  // pptxgenjsは単一系列かつ独自chartColors指定時に<c:dPt>を出力して要素ごとに着色する
+  const singleSeriesColors = data.datasets.length === 1 && Array.isArray(data.datasets[0]?.backgroundColor)
+    ? data.datasets[0].backgroundColor
+    : null
+  const raw: (string | undefined)[] = (isCircular || singleSeriesColors)
+    ? (singleSeriesColors ?? [])
     : data.datasets.map(ds => {
         const bg = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor
         const border = Array.isArray(ds.borderColor) ? ds.borderColor[0] : ds.borderColor
@@ -514,7 +537,28 @@ export async function exportToPowerPoint(
               : {}),
           }
 
-          if (el.type === 'text' && el.runs && el.runs.length > 0) {
+          if (el.type === 'list' && el.itemRuns && el.itemRuns.length > 0) {
+            // 項目内のインライン書式を保ったままの箇条書き。
+            // bulletは段落プロパティのため項目の全ランに付け、項目末尾でbreakLineして段落を切る
+            const bulletOpt = bulletCode ? { code: bulletCode } : true
+            const runs = el.itemRuns.flatMap((itemRun, itemIndex) =>
+              itemRun.map((run, runIndex) => ({
+                text: run.text,
+                options: {
+                  bullet: bulletOpt,
+                  bold: run.bold ?? false,
+                  italic: run.italic ?? false,
+                  ...((run.color ?? baseColor) ? { color: run.color ?? baseColor } : {}),
+                  ...(run.highlight && themeColors?.highlight ? { highlight: themeColors.highlight } : {}),
+                  // 項目の最終ランで改行して次の項目を新しい段落にする
+                  ...(runIndex === itemRun.length - 1 && itemIndex < el.itemRuns!.length - 1
+                    ? { breakLine: true }
+                    : {}),
+                },
+              }))
+            )
+            pptxSlide.addText(runs, baseOpts)
+          } else if (el.type === 'text' && el.runs && el.runs.length > 0) {
             // インライン書式（strong/em/.highlight/style色）をランごとに反映
             pptxSlide.addText(
               el.runs.map(run => ({

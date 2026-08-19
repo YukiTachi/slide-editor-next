@@ -305,6 +305,7 @@ export interface PptxSlideElement {
   hasHeaderRow?: boolean           // type: 'table'のみ。rows[0]がヘッダー行か
   codeStyle?: CodeBlockStyle       // type: 'code'のみ。slide-code-block-{style}クラス由来
   items?: string[]                 // type: 'list'のみ。リスト項目
+  itemRuns?: PptxTextRun[][]       // type: 'list'のみ。項目内にインライン書式がある場合のみ設定
   role?: 'title' | 'subtitle' | 'body'  // type: 'text'のみ。テンプレート色の割り当てに使用
   runs?: PptxTextRun[]             // type: 'text'のみ。インライン書式がある場合のみ設定
   style?: {
