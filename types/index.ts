@@ -279,7 +279,7 @@ export interface SlideSettings {
 // スライドサイズは含めない（エクスポート時にエディタの現在のSlideSizeConfigを受け取る）
 export interface PowerPointExportConfig {
   includePageNumbers: boolean      // ページ番号を含めるか
-  imageQuality: 'high' | 'medium' | 'low'  // 画像品質（Phase 5の設定モーダルで使用予定・現状未使用）
+  imageQuality: 'high' | 'medium' | 'low'  // 画像品質（リサイズ・圧縮の強さ。highは無加工）
 }
 
 // PowerPoint出力時の配置先（slide-split / two-columnの2分割レイアウト対応）

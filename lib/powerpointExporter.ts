@@ -1,7 +1,7 @@
 // PowerPointエクスポート（pptxgenjsによる編集可能なpptx生成）
 // 設計の詳細は docs/POWERPOINT_EXPORT_PLAN.md を参照
 // 対応コンテンツ: テキスト（title/subtitle/text/list）・画像・表・グラフ・数式・コードブロック
-// テンプレート色の反映はPhase 4で対応予定
+// テンプレート色とインライン書式（strong/em/.highlight/style色）も反映する
 import { getImageFromStorage } from './imageStorage'
 import type {
   SlideSizeConfig,
@@ -622,8 +622,12 @@ export async function exportToPowerPoint(
           }
 
           if (el.type === 'list' && el.itemRuns && el.itemRuns.length > 0) {
-            // 項目内のインライン書式を保ったままの箇条書き。
-            // bulletは段落プロパティのため項目の全ランに付け、項目末尾でbreakLineして段落を切る
+            // 項目内のインライン書式を保ったままの箇条書き。段落の区切りはbreakLineのみが
+            // 決めるため、bulletは項目内の全ランに付ける。
+            // 補足: pptxgenjsは段落内の各ランごとに<a:pPr>を出力し、bullet未指定のランには
+            // <a:buNone/>を入れる（先頭ランだけに付けると同じ段落内で箇条書きの指定が
+            // 打ち消し合う形になる）。pPrの重複はpptxgenjs側の仕様で回避できないため、
+            // 全ランで同じbulletを指定して内容を一致させる
             const bulletOpt = bulletCode ? { code: bulletCode } : true
             const runs = el.itemRuns.flatMap((itemRun, itemIndex) =>
               itemRun.map((run, runIndex) => ({
@@ -634,7 +638,6 @@ export async function exportToPowerPoint(
                   italic: run.italic ?? false,
                   ...((run.color ?? baseColor) ? { color: run.color ?? baseColor } : {}),
                   ...(run.highlight && themeColors?.highlight ? { highlight: themeColors.highlight } : {}),
-                  // 項目の最終ランで改行して次の項目を新しい段落にする
                   ...(runIndex === itemRun.length - 1 && itemIndex < el.itemRuns!.length - 1
                     ? { breakLine: true }
                     : {}),
