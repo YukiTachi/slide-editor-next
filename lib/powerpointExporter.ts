@@ -16,8 +16,27 @@ import type {
   TableStyle,
 } from '@/types'
 
+export interface PowerPointExportOptions {
+  onStatus?: (message: string) => void  // ステータスバー連携（進捗表示）
+}
+
+export interface PowerPointExportResult {
+  slideCount: number
+  warnings: string[]  // スキップした画像・グラフなど、出力を続行した上での問題
+}
+
 // pptxgenjs既定のArialでは日本語が崩れるため、全addTextで必ず指定する
 const FONT_FACE = 'Yu Gothic'
+
+// 画像品質ごとの最適化パラメータ（長辺の上限pxとJPEG品質）
+const IMAGE_QUALITY_PRESETS = {
+  high: { maxEdge: Infinity, jpegQuality: 1 },  // 無加工
+  medium: { maxEdge: 1600, jpegQuality: 0.85 },
+  low: { maxEdge: 1000, jpegQuality: 0.7 },
+} as const
+
+// 進捗更新の間にUIスレッドへ制御を返すスライド数の間隔（大量スライドでのフリーズ回避）
+const YIELD_INTERVAL_SLIDES = 5
 
 // 役割ごとの既定フォントサイズ（pt）
 const FONT_SIZE = {
@@ -326,6 +345,53 @@ function measureImage(dataUri: string): Promise<{ w: number; h: number } | null>
   })
 }
 
+// 画像をリサイズ・圧縮してファイルサイズを抑える。加工不要・不能な場合は元のdata URIを返す
+async function optimizeImage(
+  dataUri: string,
+  quality: PowerPointExportConfig['imageQuality']
+): Promise<string> {
+  const preset = IMAGE_QUALITY_PRESETS[quality]
+  if (preset.maxEdge === Infinity) return dataUri
+  // SVGはベクタのまま埋め込む（ラスタ化すると拡大時に劣化するため）
+  if (dataUri.startsWith('data:image/svg+xml')) return dataUri
+
+  const size = await measureImage(dataUri)
+  if (!size || size.w === 0 || size.h === 0) return dataUri
+
+  const scale = Math.min(preset.maxEdge / Math.max(size.w, size.h), 1)
+  const targetW = Math.round(size.w * scale)
+  const targetH = Math.round(size.h * scale)
+
+  try {
+    const img = await new Promise<HTMLImageElement | null>((resolve) => {
+      const el = new Image()
+      el.onload = () => resolve(el)
+      el.onerror = () => resolve(null)
+      el.src = dataUri
+    })
+    if (!img) return dataUri
+
+    const canvas = document.createElement('canvas')
+    canvas.width = targetW
+    canvas.height = targetH
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return dataUri
+    ctx.drawImage(img, 0, 0, targetW, targetH)
+
+    // 透過画像をJPEGにすると背景が黒く潰れるため、alphaの有無で形式を選ぶ
+    const hasAlpha = ctx.getImageData(0, 0, targetW, targetH).data
+      .some((v, i) => i % 4 === 3 && v < 255)
+    const optimized = hasAlpha
+      ? canvas.toDataURL('image/png')
+      : canvas.toDataURL('image/jpeg', preset.jpegQuality)
+
+    // 加工でかえって大きくなる場合（小さなPNG等）は元を使う
+    return optimized.length < dataUri.length ? optimized : dataUri
+  } catch {
+    return dataUri
+  }
+}
+
 // 方式Aでネイティブ変換できるグラフタイプ（それ以外はchartRendererで画像化する方式B）
 const NATIVE_CHART_TYPES = ['bar', 'line', 'pie', 'doughnut', 'radar'] as const
 type NativeChartType = (typeof NATIVE_CHART_TYPES)[number]
@@ -417,15 +483,26 @@ export async function exportToPowerPoint(
   htmlContent: string,
   sizeConfig: SlideSizeConfig,
   template?: CSSDesignTemplate,
-  config?: PowerPointExportConfig
-): Promise<void> {
-  if (isExporting) return
+  config?: PowerPointExportConfig,
+  options?: PowerPointExportOptions
+): Promise<PowerPointExportResult> {
+  if (isExporting) return { slideCount: 0, warnings: [] }
 
   const trimmedContent = htmlContent.trim()
-  if (!trimmedContent) return
+  if (!trimmedContent) return { slideCount: 0, warnings: [] }
+
+  const onStatus = options?.onStatus
+  const imageQuality = config?.imageQuality ?? 'high'
+  // 出力は継続しつつ、スキップした要素を呼び出し側に伝える
+  const warnings: string[] = []
+  const warn = (message: string) => {
+    console.warn('PowerPoint出力:', message)
+    warnings.push(message)
+  }
 
   isExporting = true
   try {
+    onStatus?.('PowerPointを準備中…')
     // クリック時にdynamic import（初期バンドルを肥やさない）
     const { default: PptxGenJS } = await import('pptxgenjs')
     const pptx = new PptxGenJS()
@@ -479,7 +556,12 @@ export async function exportToPowerPoint(
       throw new Error('スライド（<div class="slide">）が見つかりません')
     }
 
-    for (const slideNode of slideNodes) {
+    for (const [slideIndex, slideNode] of slideNodes.entries()) {
+      onStatus?.(`PowerPointを生成中… (${slideIndex + 1}/${slideNodes.length})`)
+      // 大量スライドでもUIが固まらないよう、一定間隔で制御を返す
+      if (slideIndex > 0 && slideIndex % YIELD_INTERVAL_SLIDES === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      }
       const pptxSlide = pptx.addSlide({ masterName: MASTER_NAME })
 
       // regionごとの縦位置カーソル（縦積みパッキング）
@@ -494,13 +576,15 @@ export async function exportToPowerPoint(
         let h: number
 
         if (el.type === 'image') {
-          const data = await resolveImageData(el.content)
-          if (!data) {
-            console.warn('PowerPoint出力: 画像を取得できないためスキップしました:', el.content)
+          const resolved = await resolveImageData(el.content)
+          if (!resolved) {
+            warn(`スライド${slideIndex + 1}: 画像を取得できないためスキップしました（${el.content.slice(0, 60)}）`)
             continue
           }
+          // 表示サイズは原寸基準で決める（圧縮後の画素数に引きずられないよう先に計測する）
           // 96dpi換算の原寸を基準に、カラム幅と残り高さに収まるよう縮小（拡大はしない）
-          const px = await measureImage(data)
+          const px = await measureImage(resolved)
+          const data = await optimizeImage(resolved, imageQuality)
           const naturalW = px ? px.w / 96 : box.w
           const naturalH = px ? px.h / 96 : box.w * 0.75
           const availH = Math.max(geo.h - geo.margin - yCursor[el.region], 0.5)
@@ -585,7 +669,7 @@ export async function exportToPowerPoint(
           try {
             chartConfig = JSON.parse(el.content) as ChartConfig
           } catch {
-            console.warn('PowerPoint出力: グラフ設定JSONを解析できないためスキップしました')
+            warn(`スライド${slideIndex + 1}: グラフ設定JSONを解析できないためスキップしました`)
             continue
           }
 
@@ -634,7 +718,7 @@ export async function exportToPowerPoint(
             // （本アプリはnumber[]）ため、プレビューと同じChart.js描画の画像を貼る
             const dataUri = await renderChartToImage(chartConfig)
             if (!dataUri) {
-              console.warn('PowerPoint出力: グラフを画像化できないためスキップしました:', chartConfig.type)
+              warn(`スライド${slideIndex + 1}: グラフ（${chartConfig.type}）を画像化できないためスキップしました`)
               continue
             }
             pptxSlide.addImage({ data: dataUri, x: chartX, y: yCursor[el.region], w: chartW, h })
@@ -738,10 +822,13 @@ export async function exportToPowerPoint(
       }
     }
 
+    onStatus?.('PowerPointを書き出し中…')
     // toISOString()はUTCのため日本時間では日付がずれる。ローカル日付で組み立てる
     const d = new Date()
     const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     await pptx.writeFile({ fileName: `スライド_${date}.pptx` })
+
+    return { slideCount: slideNodes.length, warnings }
   } finally {
     isExporting = false
   }

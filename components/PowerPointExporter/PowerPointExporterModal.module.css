@@ -1,0 +1,218 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--shadow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  backdrop-filter: blur(5px);
+  overflow-y: auto;
+  padding: 20px;
+  transition: background 0.3s ease;
+}
+
+.modal {
+  background: var(--bg-modal);
+  padding: 30px;
+  border-radius: 12px;
+  min-width: 500px;
+  max-width: 600px;
+  box-shadow: 0 10px 30px var(--shadow-strong);
+  animation: modalFadeIn 0.3s ease-out;
+  margin: auto;
+  position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal h3 {
+  margin: 0 0 25px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.settingSection {
+  margin-bottom: 25px;
+}
+
+.settingLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.labelText {
+  font-size: 14px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent-color);
+}
+
+.readOnlyValue {
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: normal;
+  margin: 8px 0 0 0;
+  transition: color 0.3s ease;
+}
+
+.readOnlyValue .hint {
+  margin: 0;
+}
+
+.qualityButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.qualityBtn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-button);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.qualityBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-color);
+}
+
+.qualityBtn.active {
+  background: var(--gradient-bg);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .qualityBtn.active {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+.note {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.cancelBtn,
+.exportBtn {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cancelBtn {
+  background: linear-gradient(135deg, var(--error-color) 0%, #c0392b 100%);
+  color: var(--text-inverse);
+}
+
+.cancelBtn:hover {
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ダークモード時のcancelBtn文字色を明示的に白にする */
+:global([data-theme="dark"]) .cancelBtn {
+  color: #ffffff !important;
+}
+
+.exportBtn {
+  background: var(--gradient-bg);
+  color: #ffffff;
+}
+
+.exportBtn:hover {
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ダークモード時はアクセントカラーを使用してコントラストを向上 */
+[data-theme="dark"] .exportBtn {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .exportBtn:hover {
+  background: var(--accent-color-hover);
+  box-shadow: 0 4px 15px rgba(124, 142, 245, 0.5);
+}
+
+@media (max-width: 600px) {
+  .modal {
+    min-width: auto;
+    width: 90%;
+    padding: 20px;
+  }
+}

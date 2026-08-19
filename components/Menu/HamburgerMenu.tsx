@@ -9,13 +9,19 @@ import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/im
 import { initializeImageStorage } from '@/lib/imageStorage'
 import { exportToPDF } from '@/lib/pdfExporter'
 import { exportToPowerPoint } from '@/lib/powerpointExporter'
+import PowerPointExporterModal from '@/components/PowerPointExporter/PowerPointExporterModal'
+import {
+  getPowerPointExportConfig,
+  savePowerPointExportConfig,
+  DEFAULT_POWERPOINT_EXPORT_CONFIG,
+} from '@/lib/powerpointExportSettingsStorage'
 import ProjectManagerModal from '@/components/ProjectManager/ProjectManagerModal'
 import EditorSettingsModal from '@/components/EditorSettings/EditorSettingsModal'
 import SlideTemplateSelectorModal from '@/components/SlideTemplateSelector/SlideTemplateSelectorModal'
 import KeyboardShortcutsModal from '@/components/KeyboardShortcuts/KeyboardShortcutsModal'
 import { useSlideSize } from '@/hooks/useSlideSize'
 import { useCSSDesignTemplate } from '@/hooks/useCSSDesignTemplate'
-import type { EditorSettings, KeyboardShortcut } from '@/types'
+import type { EditorSettings, KeyboardShortcut, PowerPointExportConfig } from '@/types'
 
 import type { EditorHandle } from '@/components/Editor/Editor'
 
@@ -58,6 +64,11 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
   const [isEditorSettingsOpen, setIsEditorSettingsOpen] = useState(false)
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false)
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false)
+  const [isPowerPointModalOpen, setIsPowerPointModalOpen] = useState(false)
+  // 初期値は定数。実際の保存値はモーダルを開くときにlocalStorageから読む（SSR差異を避ける）
+  const [powerPointConfig, setPowerPointConfig] = useState<PowerPointExportConfig>(
+    DEFAULT_POWERPOINT_EXPORT_CONFIG
+  )
   const previewWindowRef = useRef<Window | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const { sizeConfig } = useSlideSize()
@@ -335,7 +346,17 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
   }
 
   // PowerPoint出力（詳細は docs/POWERPOINT_EXPORT_PLAN.md）
-  const handleExportPowerPoint = async () => {
+  // 設定モーダルを開く（出力自体はモーダルの「出力」から実行）
+  const handleExportPowerPoint = () => {
+    if (!htmlContent.trim()) {
+      alert('出力するスライドがありません')
+      return
+    }
+    setPowerPointConfig(getPowerPointExportConfig())
+    setIsPowerPointModalOpen(true)
+  }
+
+  const runPowerPointExport = async (config: PowerPointExportConfig) => {
     const trimmedContent = htmlContent.trim()
 
     if (!trimmedContent) {
@@ -343,18 +364,31 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
       return
     }
 
+    savePowerPointExportConfig(config)
+    setPowerPointConfig(config)
+    setIsPowerPointModalOpen(false)
+
     try {
+      const result = await exportToPowerPoint(trimmedContent, sizeConfig, template, config, {
+        onStatus: (message) => onStatusUpdate?.(message),
+      })
+
       if (onStatusUpdate) {
-        onStatusUpdate('PowerPointを生成中…')
-      }
-      await exportToPowerPoint(trimmedContent, sizeConfig, template)
-      if (onStatusUpdate) {
-        onStatusUpdate('PowerPointをダウンロードしました')
+        onStatusUpdate(`PowerPointをダウンロードしました（${result.slideCount}枚）`)
         setTimeout(() => onStatusUpdate(''), 5000)
+      }
+      // 出力は完了しているが一部要素をスキップした場合は内容を伝える
+      if (result.warnings.length > 0) {
+        alert(
+          `PowerPointを出力しましたが、一部の要素をスキップしました:\n\n` +
+          result.warnings.slice(0, 10).join('\n') +
+          (result.warnings.length > 10 ? `\n…ほか${result.warnings.length - 10}件` : '')
+        )
       }
     } catch (error) {
       console.error('PowerPoint出力に失敗:', error)
-      alert('PowerPoint出力に失敗しました。コンソールを確認してください。')
+      const detail = error instanceof Error ? `\n\n${error.message}` : ''
+      alert(`PowerPoint出力に失敗しました。${detail}`)
       if (onStatusUpdate) {
         onStatusUpdate('')
       }
@@ -721,6 +755,14 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
           onReset={onEditorSettingsReset}
         />
       )}
+
+      <PowerPointExporterModal
+        isOpen={isPowerPointModalOpen}
+        onClose={() => setIsPowerPointModalOpen(false)}
+        config={powerPointConfig}
+        sizeConfig={sizeConfig}
+        onExport={runPowerPointExport}
+      />
 
       <SlideTemplateSelectorModal
         isOpen={isTemplateSelectorOpen}
