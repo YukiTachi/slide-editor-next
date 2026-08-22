@@ -521,7 +521,6 @@ export async function exportToPowerPoint(
           title: toPptxColor(template.colors.heading),
           subtitle: toPptxColor(template.colors.headingSub),
           body: toPptxColor(template.colors.text),
-          background: toPptxColor(template.colors.background),
           highlight: toPptxColor(template.colors.highlight),
           footer: toPptxColor(template.colors.footer),
         }
@@ -535,7 +534,11 @@ export async function exportToPowerPoint(
     const includePageNumbers = config?.includePageNumbers ?? true
     pptx.defineSlideMaster({
       title: MASTER_NAME,
-      background: { color: themeColors?.background ?? 'FFFFFF' },
+      // スライド背景は常に白。テンプレートのcolors.backgroundは
+      // 「スライドの背後（台紙）の色」であってスライド自身の背景ではない
+      // （lib/slideStyleConfig.tsではbodyに適用し、印刷時は白に落としている）。
+      // プレビュー・PDFと同じくスライド本体は白で揃える
+      background: { color: 'FFFFFF' },
       ...(includePageNumbers
         ? {
             slideNumber: {

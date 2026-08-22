@@ -421,7 +421,7 @@ interface PowerPointExporterModalProps {
   - [x] タイトル → `colors.heading`
   - [x] サブタイトル → `colors.headingSub`
   - [x] 本文・リスト → `colors.text`
-  - [x] スライド背景 → `colors.background`
+  - [x] スライド背景 → **常に白**（`colors.background` は使わない。後述の理由によりプレビュー・PDFと揃える）
   - [x] リスト装飾文字 → `template.listBullet`
 - [x] 色形式の変換（`#rrggbb` → pptxgenjsの `RRGGBB`）
 
@@ -436,11 +436,15 @@ interface PowerPointExporterModalProps {
 
 **Phase 4 検証結果（2026-08-17、headless Chromium + CDPによる実UI検証。natureテンプレートで確認）**:
 - ✅ 役割色: タイトル→`colors.heading`（2C3E50）、サブタイトル→`colors.headingSub`、本文・リスト・キャプション・数式→`colors.text` を反映
-- ✅ スライド背景: `colors.background`（F5F5F0）がスライドレイアウト（pptxgenjsはdefineSlideMasterの背景をslideLayoutに出力）に反映
+- ✅ スライド背景: 常に白（当初は `colors.background` を反映していたが、2026-08-22に修正。理由は下記）
 - ✅ リスト装飾文字: `template.listBullet`（●）を `bullet: { code }` で反映
 - ✅ インライン書式（6.13）: `<strong>`→太字ラン、`<em>`→斜体ラン、`.highlight`→`colors.highlight`（D4EFDF）のハイライト、`style="color: #e74c3c"`→ランの文字色。段落は分断されず1つのテキストボックス内のランとして出力
 - ✅ ページ番号の色に `colors.footer` を使用
 - 補足: templateが渡されない場合は従来どおり色指定なし（黒）で出力する
+
+**`colors.background` を使わない理由（2026-08-22の修正）**:
+`CSSDesignTemplate.colors.background` は「スライド自身の背景」ではなく **「スライドの背後に見える台紙の色」** である。`lib/slideStyleConfig.ts` では `body` に適用され、`.slide` は `background: white` で固定。さらに `@media print` で `body { background: white !important }` として印刷・PDF時には破棄される。既定値が `#f0f0f0`（薄いグレー）であることもこの位置づけを裏づける。
+当初のPhase 4実装ではこれをpptxのスライド背景にマッピングしていたため、**プレビュー・PDFのスライドは白なのにpptxだけ色が付く**という不整合が生じていた。PDFが「見た目そのまま」の基準であるため、pptxのスライド背景は常に白とする。台紙の色はスライドの外側の概念であり、pptxには対応する表現がない。
 
 ---
 
