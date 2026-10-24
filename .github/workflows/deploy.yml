@@ -33,7 +33,7 @@ jobs:
         run: npm run export
 
       - name: Upload static site as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: slide-editor-static
           path: out/
