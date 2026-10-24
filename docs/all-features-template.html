@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全機能テンプレート</title>
+    <!-- スライドスタイル -->
+    <link rel="stylesheet" href="css/slide-styles.css">
+</head>
+<body>
+    <!-- スライド1: タイトルページ（スライドテンプレート「タイトルページ」） -->
+    <div class="slide">
+        <div class="title-page-container">
+            <h1 class="title-page-title slide-title">スライドエディタ 全機能テンプレート</h1>
+            <h2 class="title-page-subtitle slide-subtitle">テキスト・レイアウト・表・グラフ・数式・コード・画像</h2>
+            <p class="title-page-meta slide-text">作成者名 / 2026年9月</p>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 1/18
+        </div>
+    </div>
+
+    <!-- スライド2: 標準スライド（スライドテンプレート「標準」） -->
+    <div class="slide">
+        <h1 class="slide-title">このテンプレートの構成</h1>
+
+        <h2 class="slide-subtitle">収録している機能</h2>
+
+        <ul class="slide-list">
+            <li class="slide-list-item"><span class="highlight">スライドテンプレート</span> - 標準・タイトルページ・2カラム・画像+テキスト・クォート・表</li>
+            <li class="slide-list-item"><span class="highlight">表</span> - シンプル・罫線・ストライプ・ヘッダー強調・ミニマルの5スタイル</li>
+            <li class="slide-list-item"><span class="highlight">グラフ</span> - 棒・折れ線・円・ドーナツ・レーダー・極座標・散布図・バブル</li>
+            <li class="slide-list-item"><span class="highlight">数式</span> - ブロック（左・中央・右）/ インライン / キャプション / ラベル</li>
+            <li class="slide-list-item"><span class="highlight">コードブロック・画像</span> - 4スタイルと行番号 / 挿入時の左右2分割</li>
+        </ul>
+
+        <p class="slide-text template-description">
+            不要なスライドは削除し、必要なスライドを複製して利用してください。
+        </p>
+
+        <div class="footer">
+            全機能テンプレート - スライド 2/18
+        </div>
+    </div>
+
+    <!-- スライド3: テキスト装飾（蛍光ペン・太字・斜体・色・中央揃え・改行） -->
+    <div class="slide">
+        <h1 class="slide-title">テキスト装飾</h1>
+
+        <h2 class="slide-subtitle">本文で使える装飾</h2>
+
+        <p class="slide-text">
+            <span class="highlight">蛍光ペン（.highlight）</span>、<strong>太字（strong）</strong>、<em>斜体（em）</em>、
+            <u>下線（u）</u>を組み合わせられます。<br>
+            <small class="template-hint">薄いグレーの補足（.template-hint）</small> / 改行は br タグで行います。
+        </p>
+
+        <p class="slide-text" style="color: #c0392b;">
+            インラインstyleで文字色を変更した行です。
+        </p>
+
+        <p class="slide-text center" style="font-size: 32px; color: #1f618d;">
+            <strong>中央揃え（.center）の強調メッセージ</strong>
+        </p>
+
+        <ul class="slide-list">
+            <li class="slide-list-item">リスト項目の中でも<span class="highlight">蛍光ペン</span>や<strong>太字</strong>を利用可能</li>
+        </ul>
+
+        <div class="footer">
+            全機能テンプレート - スライド 3/18
+        </div>
+    </div>
+
+    <!-- スライド4: 2カラムレイアウト（スライドテンプレート「2カラム」） -->
+    <div class="slide">
+        <h1 class="slide-title">2カラムレイアウト</h1>
+        <div class="split">
+            <div class="left">
+                <h2 class="slide-subtitle">現状の課題</h2>
+                <ul class="slide-list">
+                    <li class="slide-list-item">資料作成に時間がかかる</li>
+                    <li class="slide-list-item">デザインが統一されない</li>
+                    <li class="slide-list-item">PDFとPowerPointで二重管理</li>
+                </ul>
+            </div>
+            <div class="right">
+                <h2 class="slide-subtitle">解決策</h2>
+                <ul class="slide-list">
+                    <li class="slide-list-item">テンプレートから<span class="highlight">すぐに作成</span></li>
+                    <li class="slide-list-item">CSSデザインテンプレートで統一</li>
+                    <li class="slide-list-item">1つのHTMLから両形式へ出力</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 4/18
+        </div>
+    </div>
+
+    <!-- スライド5: 表①（ストライプ+キャプション / 罫線） -->
+    <div class="slide">
+        <h1 class="slide-title">表① ストライプ・罫線</h1>
+
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-striped">
+                <caption class="slide-table-caption">表1: ストライプ（slide-table-striped）+ キャプション</caption>
+                <thead>
+                    <tr>
+                        <th>四半期</th>
+                        <th>売上（百万円）</th>
+                        <th>前年比</th>
+                        <th>備考</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Q1</td><td>120</td><td>+8%</td><td>新製品投入</td></tr>
+                    <tr><td>Q2</td><td>135</td><td>+12%</td><td>キャンペーン実施</td></tr>
+                    <tr><td>Q3</td><td>128</td><td>+5%</td><td>-</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-bordered">
+                <caption class="slide-table-caption">表2: 罫線（slide-table-bordered）</caption>
+                <thead>
+                    <tr><th>項目</th><th>内容</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>行数・列数</td><td>挿入時に1〜20行 / 1〜10列で指定</td></tr>
+                    <tr><td>ヘッダー行</td><td>あり / なしを選択可能</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            全機能テンプレート - スライド 5/18
+        </div>
+    </div>
+
+    <!-- スライド6: 表②（ヘッダー強調 / ミニマル / シンプル・ヘッダーなし） -->
+    <div class="slide">
+        <h1 class="slide-title">表② ヘッダー強調・ミニマル・シンプル</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-table-container">
+                    <table class="slide-table slide-table-highlight">
+                        <caption class="slide-table-caption">表3: ヘッダー強調（slide-table-highlight）</caption>
+                        <thead>
+                            <tr><th>プラン</th><th>月額</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>ベーシック</td><td>980円</td></tr>
+                            <tr><td>プロ</td><td>2,980円</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-table-container">
+                    <table class="slide-table slide-table-minimal">
+                        <caption class="slide-table-caption">表4: ミニマル（slide-table-minimal）</caption>
+                        <thead>
+                            <tr><th>指標</th><th>値</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>利用者数</td><td>1,200</td></tr>
+                            <tr><td>継続率</td><td>94%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-table-container">
+            <table class="slide-table slide-table-simple">
+                <caption class="slide-table-caption">表5: シンプル（slide-table-simple）・ヘッダー行なし</caption>
+                <tbody>
+                    <tr><td>担当</td><td>営業部</td><td>期限</td><td>2026年10月</td></tr>
+                    <tr><td>状態</td><td>進行中</td><td>優先度</td><td>高</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            全機能テンプレート - スライド 6/18
+        </div>
+    </div>
+
+    <!-- スライド7: グラフ①（棒グラフ / 折れ線グラフ・複数データセット） -->
+    <div class="slide">
+        <h1 class="slide-title">グラフ① 棒・折れ線</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-chart-container" data-chart-id="tpl-bar">
+                    <canvas id="chart-tpl-bar" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"bar","title":"四半期別売上","data":{"labels":["Q1","Q2","Q3","Q4"],"datasets":[{"label":"売上（百万円）","data":[120,135,128,152],"backgroundColor":["#3498db","#2ecc71","#f39c12","#e74c3c"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}},"scales":{"y":{"beginAtZero":true}}}}</script>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-chart-container" data-chart-id="tpl-line">
+                    <canvas id="chart-tpl-line" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"line","title":"月間アクティブユーザー","data":{"labels":["4月","5月","6月","7月","8月","9月"],"datasets":[{"label":"2025年","data":[820,860,910,950,990,1040],"backgroundColor":"rgba(54, 162, 235, 0.5)","borderColor":"rgba(54, 162, 235, 1)","borderWidth":2},{"label":"2026年","data":[1010,1080,1150,1190,1260,1340],"backgroundColor":"rgba(255, 99, 132, 0.5)","borderColor":"rgba(255, 99, 132, 1)","borderWidth":2}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}},"scales":{"y":{"beginAtZero":false}}}}</script>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 7/18
+        </div>
+    </div>
+
+    <!-- スライド8: グラフ②（円グラフ / ドーナツチャート） -->
+    <div class="slide">
+        <h1 class="slide-title">グラフ② 円・ドーナツ</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-chart-container" data-chart-id="tpl-pie">
+                    <canvas id="chart-tpl-pie" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"pie","title":"市場シェア","data":{"labels":["製品A","製品B","製品C","その他"],"datasets":[{"label":"シェア（%）","data":[45,25,20,10],"backgroundColor":["#3498db","#2ecc71","#f39c12","#95a5a6"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"right"}}}}</script>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-chart-container" data-chart-id="tpl-doughnut">
+                    <canvas id="chart-tpl-doughnut" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"doughnut","title":"予算配分","data":{"labels":["開発","マーケティング","サポート","管理"],"datasets":[{"label":"予算（%）","data":[40,30,20,10],"backgroundColor":["#9b59b6","#1abc9c","#e67e22","#34495e"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"bottom"}}}}</script>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 8/18
+        </div>
+    </div>
+
+    <!-- スライド9: グラフ③（レーダーチャート / 極座標エリアチャート）※挿入モーダル外。JSONのtypeを手編集して利用 -->
+    <div class="slide">
+        <h1 class="slide-title">グラフ③ レーダー・極座標エリア</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-chart-container" data-chart-id="tpl-radar">
+                    <canvas id="chart-tpl-radar" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"radar","title":"製品評価","data":{"labels":["機能","価格","デザイン","サポート","速度"],"datasets":[{"label":"自社","data":[85,70,90,80,75],"backgroundColor":"rgba(54, 162, 235, 0.3)","borderColor":"rgba(54, 162, 235, 1)","borderWidth":2},{"label":"競合","data":[70,85,65,60,80],"backgroundColor":"rgba(255, 99, 132, 0.3)","borderColor":"rgba(255, 99, 132, 1)","borderWidth":2}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}}}}</script>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-chart-container" data-chart-id="tpl-polar">
+                    <canvas id="chart-tpl-polar" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"polarArea","title":"問い合わせ件数","data":{"labels":["電話","メール","チャット","SNS"],"datasets":[{"label":"件数","data":[32,48,65,21],"backgroundColor":["rgba(54, 162, 235, 0.6)","rgba(255, 99, 132, 0.6)","rgba(75, 192, 192, 0.6)","rgba(255, 206, 86, 0.6)"]}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"right"}}}}</script>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 9/18
+        </div>
+    </div>
+
+    <!-- スライド10: グラフ④（散布図 / バブルチャート）※挿入モーダル外。dataは {x, y} / {x, y, r} 形式 -->
+    <div class="slide">
+        <h1 class="slide-title">グラフ④ 散布図・バブル</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-chart-container" data-chart-id="tpl-scatter">
+                    <canvas id="chart-tpl-scatter" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"scatter","title":"広告費と売上の関係","data":{"labels":[],"datasets":[{"label":"店舗","data":[{"x":10,"y":42},{"x":15,"y":55},{"x":22,"y":61},{"x":28,"y":78},{"x":35,"y":84},{"x":41,"y":102}],"backgroundColor":"rgba(54, 162, 235, 0.8)"}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}},"scales":{"y":{"beginAtZero":true}}}}</script>
+                </div>
+            </div>
+            <div class="right">
+                <div class="slide-chart-container" data-chart-id="tpl-bubble">
+                    <canvas id="chart-tpl-bubble" width="500" height="380"></canvas>
+                    <script type="application/json" class="chart-config">{"type":"bubble","title":"市場規模と成長率","data":{"labels":[],"datasets":[{"label":"事業A","data":[{"x":20,"y":30,"r":18}],"backgroundColor":"rgba(54, 162, 235, 0.6)"},{"label":"事業B","data":[{"x":40,"y":12,"r":28}],"backgroundColor":"rgba(255, 99, 132, 0.6)"},{"label":"事業C","data":[{"x":55,"y":24,"r":12}],"backgroundColor":"rgba(75, 192, 192, 0.6)"}]},"options":{"responsive":true,"maintainAspectRatio":false,"plugins":{"legend":{"display":true,"position":"top"}},"scales":{"y":{"beginAtZero":true}}}}</script>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 10/18
+        </div>
+    </div>
+
+    <!-- スライド11: 数式①（ブロック数式・中央揃え+キャプション / インライン数式） -->
+    <div class="slide">
+        <h1 class="slide-title">数式① ブロック・インライン</h1>
+
+        <h2 class="slide-subtitle">ブロック数式（中央揃え+キャプション）</h2>
+
+        <div class="slide-equation-block slide-equation-block-center" data-latex="x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}" data-alignment="center">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div><div class="slide-equation-caption slide-equation-caption-center">式1: 二次方程式の解の公式</div>
+
+        <h2 class="slide-subtitle" style="margin-top: 30px;">インライン数式</h2>
+
+        <p class="slide-text">
+            文中に <span class="slide-equation-inline" data-latex="E = mc^2"></span> や
+            <span class="slide-equation-inline" data-latex="\sum_{k=1}^{n} k = \frac{n(n+1)}{2}"></span>
+            のような数式を埋め込めます。分散は
+            <span class="slide-equation-inline" data-latex="\sigma^2 = \frac{1}{n}\sum_{i=1}^{n}(x_i - \mu)^2"></span>
+            と表されます。
+        </p>
+
+        <div class="footer">
+            全機能テンプレート - スライド 11/18
+        </div>
+    </div>
+
+    <!-- スライド12: 数式②（左揃え / 右揃え / ラベル / 行列・場合分け） -->
+    <div class="slide">
+        <h1 class="slide-title">数式② 配置とラベル</h1>
+
+        <div class="slide-equation-block slide-equation-block-left" data-latex="\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}" data-alignment="left">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div><div class="slide-equation-caption slide-equation-caption-left">式2: 左揃え（slide-equation-block-left）</div>
+
+        <div class="slide-equation-block slide-equation-block-center" data-latex="A = \begin{pmatrix} a_{11} &amp; a_{12} \\ a_{21} &amp; a_{22} \end{pmatrix}, \quad f(x) = \begin{cases} x^2 &amp; (x \geq 0) \\ -x &amp; (x &lt; 0) \end{cases}" data-alignment="center" data-label="eq:matrix">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div><div class="slide-equation-caption slide-equation-caption-center">式3: 中央揃え+ラベル（data-label="eq:matrix"）</div>
+
+        <div class="slide-equation-block slide-equation-block-right" data-latex="\lim_{n \to \infty} \left(1 + \frac{1}{n}\right)^n = e" data-alignment="right">
+  <!-- KaTeXでレンダリングされた数式がここに表示されます -->
+</div><div class="slide-equation-caption slide-equation-caption-right">式4: 右揃え（slide-equation-block-right）</div>
+
+        <div class="footer">
+            全機能テンプレート - スライド 12/18
+        </div>
+    </div>
+
+    <!-- スライド13: コードブロック①（ダーク+行番号+キャプション） -->
+    <div class="slide">
+        <h1 class="slide-title">コードブロック① ダーク+行番号</h1>
+
+        <p class="slide-text">
+            <span class="highlight">シンタックスハイライト</span>（Prism.js）・行番号・キャプション付きのコードブロックです。
+        </p>
+
+        <div class="slide-code-block-container slide-code-block-dark" >
+  <pre class="line-numbers"><code class="language-javascript" >// スライド数を数えるサンプル
+function countSlides(html) {
+  const matches = html.match(/&lt;div class="slide"&gt;/g)
+  return matches ? matches.length : 0
+}
+
+const total = countSlides(document.body.innerHTML)
+console.log(`スライド数: ${total}`)</code></pre>
+  <div class="slide-code-block-caption">リスト1: ダーク（slide-code-block-dark）+ 行番号 / JavaScript</div>
+</div>
+
+        <div class="footer">
+            全機能テンプレート - スライド 13/18
+        </div>
+    </div>
+
+    <!-- スライド14: コードブロック②（デフォルト+開始行番号指定 / ミニマル） -->
+    <div class="slide">
+        <h1 class="slide-title">コードブロック② デフォルト・ミニマル</h1>
+        <div class="split">
+            <div class="left">
+                <div class="slide-code-block-container slide-code-block-default" >
+  <pre class="line-numbers"><code class="language-python" data-start="10">def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        yield a
+        a, b = b, a + b
+
+print(list(fibonacci(10)))</code></pre>
+  <div class="slide-code-block-caption">リスト2: デフォルト+開始行番号10 / Python</div>
+</div>
+            </div>
+            <div class="right">
+                <div class="slide-code-block-container slide-code-block-minimal" >
+  <pre class=""><code class="language-sql" >SELECT quarter,
+       SUM(amount) AS sales
+FROM orders
+WHERE year = 2026
+GROUP BY quarter
+ORDER BY quarter;</code></pre>
+  <div class="slide-code-block-caption">リスト3: ミニマル・行番号なし / SQL</div>
+</div>
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 14/18
+        </div>
+    </div>
+
+    <!-- スライド15: コードブロック③（透明+プレーンテキスト / 最大高さ指定でスクロール） -->
+    <div class="slide">
+        <h1 class="slide-title">コードブロック③ 透明・最大高さ</h1>
+
+        <div class="slide-code-block-container slide-code-block-transparent" >
+  <pre class=""><code class="" >$ npm install
+$ npm run dev -- -p 3000
+ready - started server on 0.0.0.0:3000</code></pre>
+  <div class="slide-code-block-caption">リスト4: 透明（slide-code-block-transparent）/ プレーンテキスト</div>
+</div>
+
+        <p class="slide-text">
+            長いコードは<span class="highlight">最大高さ（max-height: 200px）</span>を指定するとスクロール表示になります。
+        </p>
+
+        <div class="slide-code-block-container slide-code-block-dark" style="max-height: 200px; overflow-y: auto;">
+  <pre class="line-numbers"><code class="language-typescript" >interface Slide {
+  id: string
+  content: string
+  pageNumber: number
+}
+
+function renumber(slides: Slide[]): Slide[] {
+  return slides.map((slide, index) =&gt; ({
+    ...slide,
+    pageNumber: index + 1,
+  }))
+}
+
+export default renumber</code></pre>
+  
+</div>
+
+        <div class="footer">
+            全機能テンプレート - スライド 15/18
+        </div>
+    </div>
+
+    <!-- スライド16: 画像（画像挿入で自動変換される左右2分割レイアウト） -->
+    <div class="slide slide-split">
+        <h1 class="slide-title">画像と分割レイアウト</h1>
+        <div class="slide-split-content">
+            <div class="slide-content">
+                <h2 class="slide-subtitle">画像挿入時の動作</h2>
+                <ul class="slide-list">
+                    <li class="slide-list-item">スライドが<span class="highlight">左右2分割</span>に自動変換</li>
+                    <li class="slide-list-item">左にテキスト、右に画像を配置</li>
+                    <li class="slide-list-item">文字サイズは分割用に自動縮小</li>
+                    <li class="slide-list-item">画像は角丸・影付きで縦横比を維持</li>
+                </ul>
+                <p class="slide-text">
+                    右の画像はサンプル（data URI）です。「画像挿入」で差し替えてください。
+                </p>
+            </div>
+            <div class="slide-image">
+                <img class="slide-img" alt="サンプル画像（SVGグラデーション）" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMzQ5OGRiIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOGU0NGFkIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIzMjAiIHJ4PSIxMiIgZmlsbD0idXJsKCNnKSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjExMCIgcj0iNTAiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuODUiLz48cmVjdCB4PSIyMjAiIHk9IjcwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjgwIiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC43Ii8+PHRleHQgeD0iMjQwIiB5PSIyNTAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7jg4bjgrnjg4jnlLvlg48gKFNWRyk8L3RleHQ+PC9zdmc+">
+            </div>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 16/18
+        </div>
+    </div>
+
+    <!-- スライド17: クォート（スライドテンプレート「クォート」） -->
+    <div class="slide">
+        <h1 class="slide-title">引用・メッセージ</h1>
+        <div class="quote-container">
+            <p class="quote-text slide-text">
+                "シンプルであることは、究極の洗練である。"
+            </p>
+            <p class="quote-author slide-text">
+                — レオナルド・ダ・ヴィンチ
+            </p>
+        </div>
+        <div class="footer">
+            全機能テンプレート - スライド 17/18
+        </div>
+    </div>
+
+    <!-- スライド18: まとめ（画像+テキストテンプレートのプレースホルダ付き） -->
+    <div class="slide">
+        <h1 class="slide-title">まとめ</h1>
+        <div class="split">
+            <div class="left">
+                <h2 class="slide-subtitle">次のステップ</h2>
+                <ul class="slide-list">
+                    <li class="slide-list-item"><span class="highlight">編集</span> - 文言とデータを差し替え</li>
+                    <li class="slide-list-item"><span class="highlight">確認</span> - プレゼンテーションモードで通し確認</li>
+                    <li class="slide-list-item"><span class="highlight">出力</span> - PDF / PowerPoint へエクスポート</li>
+                </ul>
+            </div>
+            <div class="right">
+                <p class="slide-text image-placeholder">
+                    🖼️ ここに画像を挿入<br>
+                    <small>画像を挿入すると自動的に配置されます</small>
+                </p>
+            </div>
+        </div>
+
+        <p class="slide-text center" style="font-size: 32px; color: #1e8449;">
+            <strong>ご清聴ありがとうございました</strong>
+        </p>
+
+        <div class="footer">
+            全機能テンプレート - スライド 18/18
+        </div>
+    </div>
+</body>
+</html>
