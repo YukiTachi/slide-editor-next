@@ -28,8 +28,21 @@
 
 ### 前提（現状のアーキテクチャ）
 
-- `output: 'export'` の静的エクスポート運用。`out/` をWebサーバーのルート直下に配置する（本番）。
-  開発環境は nginx が `/dev/` を `127.0.0.1:3000/` にプロキシする（`/dev/` プレフィックスは剥がされる）。
+- `output: 'export'` の静的エクスポート運用。`out/` を本番 nginx のルート直下に配置する。
+  開発環境は Docker の node コンテナ（`node:24-alpine`）で `next dev` を直接利用する。nginx やサブパス配信は介在しない。
+  - ポート: ホスト `8280` → コンテナ `3000`。ブラウザからは `http://localhost:8280/`（ルート直下）
+  - `./slide-editor-next` を `/app` に bind mount。`/app/node_modules` と `/app/.next` は匿名ボリュームで、
+    `node_modules` は image ビルド時の `npm ci` で固定される（ホスト側の `node_modules` は使われない）
+  - 起動コマンドは `npm run dev -- --hostname 0.0.0.0`。npm 経由なので `predev` フックが発火する（4.1）
+  - Node は 24 系。コピースクリプトは Node 24 で動く API に限定する（4.1）
+- CI/CD は GitHub Actions（`.github/workflows/deploy.yml`）。`main` への push で `npm ci` → `npm run build` → `npm run export` →
+  `out/` を artifact 化 → `appleboy/scp-action` で VPS に上書きコピーする。
+  - Docker と Actions は Node 24 系に揃えた。`engines.node` は `>=24`。Node 24 はサポート中の LTS。
+  - scp-action は上書きのみでサーバー上の古いファイルを削除しない（→ 6 のリスク表）
+- **本番 nginx の設定はリポジトリ外で管理されている。** 本書で前提にしている挙動は次の2点で、2026-10 時点の設定を参照した。
+  設定を変更した場合は本書の該当箇所を見直す。
+  1. `.css|.js` に `expires 1y` を付ける（→ 2.2 のバージョン付きディレクトリ）
+  2. `woff2` が長期キャッシュ対象に含まれるか（→ 6 のリスク表、運用事項）
 - 処理済みHTMLは **src なしの iframe / `window.open('')` の別ウィンドウに `document.write()`** で流し込まれる
   （`Preview.tsx` / `PresentationMode.tsx` / `pdfExporter.ts` / `HamburgerMenu.tsx` / `app/page.tsx`）。
   `document.open()` は書き込み先文書のURLを呼び出し元ページ（アプリ本体）のURLに置き換えるため、
@@ -82,16 +95,26 @@ public/vendor/
 
 ### 2.3 URLの解決: ページのベースURLから絶対URLを組み立てる
 
-`/_next/` と同様に **root 相対（`/vendor/...`）で書くと、開発環境の `/dev/` サブパス配信で 404 になる**
-（nginx は `/dev/`・`/_next/`・`/__nextjs` しかプロキシしない）。
-そのため実行時に `new URL('vendor/', document.baseURI).href` で絶対URLを組み立てる。
+本番・開発ともにルート直下配信のため、root 相対（`/vendor/...`）で書いても現状は動く。
+それでも実行時に `new URL('vendor/', document.baseURI).href` で**絶対URL**を組み立てる方式を採る。理由は2つ。
 
-- 本番（ルート直下）: `https://example.com/` → `https://example.com/vendor/...`
-- 開発（`/dev/`）: `http://localhost:8081/dev/` → `http://localhost:8081/dev/vendor/...` → nginx が `/dev/` を剥がして `next dev` の `public/vendor/...` に届く
+- 処理済みHTMLは src なしの iframe や `window.open('')` の別ウィンドウに `document.write()` される。生成元ページのURLを
+  基準に絶対化しておけば、将来の「HTMLファイル保存」で生成元ページから切り離されても、配信サーバーに到達できる限り
+  参照が壊れない（オフラインで単体HTMLとして開く用途は本計画の範囲外）。
+- 将来サブパス配信（`https://example.com/slides/` 等）になっても、`baseURI` 基準なら `.../slides/vendor/...` に解決され、
+  コード変更なしで追従できる。root 相対だとその時点で全参照を直すことになる。
 
-絶対URLにしておくことで、処理済みHTMLが別ウィンドウや将来の「HTMLファイル保存」で生成元ページから切り離されても、
-配信サーバーに到達できる限り参照が壊れない（オフラインで単体HTMLとして開く用途は本計画の範囲外）。
+| baseURI | 解決結果 |
+|---|---|
+| `http://localhost:8280/`（開発） | `http://localhost:8280/vendor/` |
+| `https://example.com/` / `https://example.com/index.html`（本番） | `https://example.com/vendor/` |
+| `https://example.com/slides/`（将来のサブパス配信） | `https://example.com/slides/vendor/` |
+
 `document` が無い環境（SSG のプリレンダリング時にうっかり呼ばれた場合）は `/vendor/` にフォールバックする。
+
+**注意: `new URL('vendor/', base)` は base の最後のパスセグメントを削って解決する。** ルート直下配信では影響しないが、
+将来サブパス配信を導入する場合は、サブパスを末尾スラッシュ付きで開く（またはサーバー側でスラッシュなし→ありにリダイレクトする）
+ことが前提になる（`https://example.com/slides` で開くと `https://example.com/vendor/` に解決されて 404 する）。
 
 ### 2.4 コピー対象の選定
 
@@ -115,7 +138,9 @@ lib/
 └── pdfExporter.ts                # 変更: コメントのみ（「CDN不達」→「ライブラリ読込失敗」）
 public/
 └── vendor/                       # 生成物（.gitignore）
-package.json                      # 変更: predev / prebuild フック、export スクリプト
+package.json                      # 変更: predev / prebuild フック、export スクリプト、engines.node
+Dockerfile                        # 変更済み: Node 24 Alpine イメージ
+.github/workflows/deploy.yml      # 変更: 重複する export ステップを削除（Node 24 は設定済み）
 .gitignore                        # 変更: /public/vendor/
 docs/
 ├── CDN_LOCAL_BUNDLE_PLAN.md      # 本書
@@ -133,7 +158,11 @@ README.md                         # 変更: セットアップ手順に vendor �
 
 ### 4.1 `scripts/copy-vendor-assets.mjs`
 
-Node 標準モジュールのみで実装する（追加依存なし）。
+Node 標準モジュールのみで実装する（追加依存なし）。`readdirSync` + 拡張子フィルタでコピー対象を列挙する。
+
+実行場所はコンテナ内（`npm run dev` / `npm run build` の `predev` / `prebuild` で自動実行）。手動実行する場合も
+`docker compose exec slide-editor npm run vendor` のようにコンテナ内で行う。ホスト側には `node_modules` が無い（匿名ボリューム）ため、
+ホストで直接実行するとコピー元欠落で非0終了する。生成先の `public/vendor/` は bind mount 上なのでホストからも見える。
 
 ```js
 // 概要（擬似コード）
@@ -172,6 +201,11 @@ const targets = [
 ```
 
 - `export` は現在 `next build` を直接呼んでいるため `prebuild` が走らない。`npm run build` 経由に変更する。
+  README が `npm run export` を案内しているため、スクリプト自体は別名として残す。
+- `"engines": { "node": ">=24" }` を設定済み。Node 24 未満での実行は npm の警告対象（`engine-strict` は設定していない）。
+- `.github/workflows/deploy.yml` は現在 `npm run build` の後に `npm run export` も実行している。`export` を `npm run build` 経由に
+  変えると `prebuild`（vendor コピー）と `next build` が2回走るため、**「Export static files」ステップを削除**して `npm run build` のみにする。
+  Node 24 と `node:24-alpine` は設定済み。`out/` の artifact 化・SCP ステップは変更しない（`out/vendor/` は自動的に含まれる）。
 - `postinstall` は使わない（CI等で `--ignore-scripts` されると不整合になるため、常に `dev`/`build` 直前に生成する）。
 
 ### 4.2 `lib/vendorAssets.ts`
@@ -246,6 +280,10 @@ CDNで固定していたバージョンとインストール済みバージョ�
 - [ ] `lib/vendorManifest.generated.ts` を生成してコミット
 - [ ] `package.json` に `vendor` / `predev` / `prebuild` を追加し、`export` を `npm run build` に変更
 - [ ] `.gitignore` に `/public/vendor/` を追加
+- [x] `package.json` に `engines.node: ">=24"` を追加
+- [x] Dockerfile と `.github/workflows/deploy.yml` を Node 24 系に揃える
+- [ ] `.github/workflows/deploy.yml` の「Export static files」ステップを削除する
+- [ ] Actions のビルドログで `copy-vendor-assets.mjs` が1回だけ実行され、artifact の `out/vendor/` に 2.2 の構成が含まれることを確認
 - [ ] `npm run vendor` 実行後、`public/vendor/` の構成が 2.2 の図と一致することを確認
 - [ ] `npm run build` 後、`out/vendor/` に同じ構成が出力されることを確認
 
@@ -255,7 +293,7 @@ CDNで固定していたバージョンとインストール済みバージョ�
 - [ ] `lib/htmlProcessor.ts` の9箇所のCDN URLと `languages_path` を置き換える
 - [ ] `grep -rn "cdn.jsdelivr.net\|cdnjs.cloudflare.com" lib app components` がヒットしないことを確認
 - [ ] プレビュー（iframe）・別ウィンドウプレビュー・プレゼンテーションモードでグラフ・数式・コードが描画される
-- [ ] DevTools の Network でリクエスト先が `.../vendor/...` のみになっている（開発環境 `/dev/vendor/...` を含む）
+- [ ] DevTools の Network でリクエスト先が `http://localhost:8280/vendor/...` のみになっている
 - [ ] `public/vendor/` を一時的にリネームした状態でプレビューを開き、Console に `[vendor] 読み込み失敗` が出ることを確認（検知経路の動作確認）
 
 ### Phase 3: PDF出力・ドキュメント整合
@@ -269,8 +307,8 @@ CDNで固定していたバージョンとインストール済みバージョ�
 
 ### Phase 4: 検証（オフライン再現）
 
-- [ ] 検証用スライドの確定: グラフ・数式・コードブロックを含む `docs/all-features-template.html`（現在未コミット）を
-      Phase 4 着手前にコミットして検証入力にする。コミットしない判断なら、リポジトリ内の `docs/pdf-export-test-slides.html` を使う
+- [ ] 検証入力は `docs/all-features-template.html` を使う（グラフ・ブロック/インライン数式・`data-start` 付き line-numbers を含む
+      JavaScript/Python/SQL/TypeScript のコードブロックを収録しており、4.5 の確認ポイントを1本でカバーする）
 - [ ] ヘッドレス Chromium（CDP）で `Network.setBlockedURLs(['*cdn.jsdelivr.net*', '*cdnjs.cloudflare.com*'])` を設定し、
       上記の検証用スライドでプレビューを描画してスクリーンショットで3要素を確認
 - [ ] 同条件で PDF 出力し、poppler（`pdftotext` / `pdftoppm`）で数式・コードが空でないことを確認
@@ -284,14 +322,18 @@ CDNで固定していたバージョンとインストール済みバージョ�
 | リスク | 影響 | 対策 |
 |---|---|---|
 | `public/vendor/` 未生成のまま `next dev` / `next build` が走る | リッチ要素が空になる | `predev` / `prebuild` で必ず生成。スクリプトはコピー元欠落で非0終了 |
-| サブパス配信（`/dev/` 等）で root 相対URLが404 | 開発環境で描画されない | `document.baseURI` 基準の絶対URL生成（2.3） |
+| 将来サブパス配信になった場合に root 相対URLが404 | 描画されない | `document.baseURI` 基準の絶対URL生成（2.3）。サブパスは末尾スラッシュ付きで開くことが前提 |
+| 本番 nginx 設定がリポジトリ外にあり、変更に本書が追従できない | 前提が崩れても気付けない | 「前提」節に依存する2項目を列挙し、設定変更時の見直し先を明示 |
 | nginx の `expires 1y` でライブラリ更新後も旧ファイルがキャッシュされる | 新旧混在・描画崩れ | バージョン付きディレクトリ（2.2）。更新時はURLが変わる |
 | 本番 nginx の長期キャッシュ対象が css/js/画像のみで woff2 が含まれない | プレビューは入力ごとに iframe を書き直すため、数式を含むスライドでは入力のたびに使用中の KaTeX フォントファイル（woff2）が再検証される | **運用事項（リポジトリ外）**: 配置先サーバーのキャッシュ規則に `woff2` を追加する。バージョン付きディレクトリ配下なので長期キャッシュしても安全。README のデプロイ節に注記する |
 | CDN固定版からのバージョン差で見た目が変わる | 微細なレンダリング差 | 4.5 の確認ポイントで目視。問題があれば `package.json` でピン止め |
 | KaTeX の woff/ttf を省いたことによるフォント欠け | 古いブラウザで数式フォントが代替になる | 対象ブラウザは全て woff2 対応。必要になれば全フォーマットをコピー対象に追加するだけ |
 | Prism autoloader が依存言語を取得できない | 一部言語のハイライト欠け | 全 `components/*.min.js` を配置（2.4） |
-| 処理済みHTMLを別ウィンドウで開いた後にアプリをデプロイし直す | 旧バージョンURLが404 | 別ウィンドウは一時的な表示であり再プレビューで解消。既知の限界として扱う |
+| ライブラリ更新後のデプロイで、サーバー上に旧バージョンの `vendor/<pkg>@<旧ver>/` が残り続ける | ディスク使用量が版ごとに約2MB増える。旧URLを参照中の別ウィンドウは引き続き動く（scp-action は上書きのみで削除しないため、旧URLが404になることはない） | 蓄積は小さいので許容。気になる場合は VPS 側で手動削除する。デプロイ方式を rsync `--delete` 等に変えた場合は、開いたままの別ウィンドウで旧URLが404になるが、再プレビューで解消する |
+| CI の Node が開発コンテナと異なる | コピースクリプトが CI だけで落ちる | Dockerfile と `deploy.yml` は Node 24 に統一済み。`engines.node` で下限も明示（4.1） |
 | `postinstall` に依存した運用 | `--ignore-scripts` 環境で不整合 | `postinstall` は使わず `dev`/`build` 直前に生成（4.1） |
+| `package.json` でライブラリを更新しても、開発コンテナの `node_modules`（匿名ボリューム、image ビルド時に固定）が古いまま | 旧バージョンの vendor が生成され、コミット済み manifest と差分が出る | `predev` は実インストール版で manifest を再生成するため、`git diff` に `vendorManifest.generated.ts` の変更が出たら image の再ビルド漏れと分かる。依存更新時は `docker compose up --build` で起動する |
+| bind mount 上の `public/vendor/` がコンテナ内の root 権限で生成される | ホスト側から削除・編集する際に権限エラー | 生成物なのでホストから触らない。削除もコンテナ内（`npm run vendor` が作り直す）で行う。`.gitignore` 済みなので git 操作には影響しない |
 
 ---
 
