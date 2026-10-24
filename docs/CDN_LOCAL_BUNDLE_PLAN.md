@@ -38,6 +38,8 @@
 - CI/CD は GitHub Actions（`.github/workflows/deploy.yml`）。`main` への push で `npm ci` → `npm run build` → `npm run export` →
   `out/` を artifact 化 → `appleboy/scp-action` で VPS に上書きコピーする。
   - Docker と Actions は Node 24 系に揃えた。`engines.node` は `>=24`。Node 24 はサポート中の LTS。
+  - 使用アクションは `actions/checkout@v5`・`actions/setup-node@v5`・`actions/upload-artifact@v6`・`appleboy/scp-action@v0.1.7`。
+    v4 系は Node 20 ランタイムで非推奨警告が出るため更新済み。`upload-artifact` は v5 もまだ Node 20 のため v6 にしている
   - scp-action は上書きのみでサーバー上の古いファイルを削除しない（→ 6 のリスク表）
 - **本番 nginx の設定はリポジトリ外で管理されている。** 本書で前提にしている挙動は次の2点で、2026-10 時点の設定を参照した。
   設定を変更した場合は本書の該当箇所を見直す。
@@ -205,7 +207,8 @@ const targets = [
 - `"engines": { "node": ">=24" }` を設定済み。Node 24 未満での実行は npm の警告対象（`engine-strict` は設定していない）。
 - `.github/workflows/deploy.yml` は現在 `npm run build` の後に `npm run export` も実行している。`export` を `npm run build` 経由に
   変えると `prebuild`（vendor コピー）と `next build` が2回走るため、**「Export static files」ステップを削除**して `npm run build` のみにする。
-  Node 24 と `node:24-alpine` は設定済み。`out/` の artifact 化・SCP ステップは変更しない（`out/vendor/` は自動的に含まれる）。
+  Node 24 と `node:24-alpine`、アクションの v5/v6 更新は設定済み。`out/` の artifact 化・SCP ステップは変更しない
+  （`out/vendor/` は自動的に含まれる）。
 - `postinstall` は使わない（CI等で `--ignore-scripts` されると不整合になるため、常に `dev`/`build` 直前に生成する）。
 
 ### 4.2 `lib/vendorAssets.ts`
@@ -282,6 +285,7 @@ CDNで固定していたバージョンとインストール済みバージョ�
 - [ ] `.gitignore` に `/public/vendor/` を追加
 - [x] `package.json` に `engines.node: ">=24"` を追加
 - [x] Dockerfile と `.github/workflows/deploy.yml` を Node 24 系に揃える
+- [x] `deploy.yml` の `checkout`・`setup-node` を v5、`upload-artifact` を v6 に更新（Node 20 非推奨警告の解消）
 - [ ] `.github/workflows/deploy.yml` の「Export static files」ステップを削除する
 - [ ] Actions のビルドログで `copy-vendor-assets.mjs` が1回だけ実行され、artifact の `out/vendor/` に 2.2 の構成が含まれることを確認
 - [ ] `npm run vendor` 実行後、`public/vendor/` の構成が 2.2 の図と一致することを確認
