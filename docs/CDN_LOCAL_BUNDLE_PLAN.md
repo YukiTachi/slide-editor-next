@@ -308,7 +308,7 @@ CDNで固定していたバージョンとインストール済みバージョ�
       テスト計画の「オフライン（CDN不達）時…」項目を「オフライン時もグラフ・数式・コードが描画される」に書き換える
 - [x] `README.md` のセットアップ手順に、`npm run dev` / `npm run build` が `public/vendor/` を自動生成する旨を1行追記
 - [x] `README.md` のデプロイ節に、配信サーバーで `vendor/` 配下（特に woff2）を長期キャッシュ対象にする推奨を追記
-- [ ] Notion「Slide Editor Next」の本タスクを Done にする
+- [x] Notion「Slide Editor Next」の本タスクを Done にする
 
 ### Phase 4: 検証（オフライン再現）
 
