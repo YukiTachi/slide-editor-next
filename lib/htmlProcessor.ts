@@ -2,6 +2,7 @@ import { getSlideStylesCSS } from './slideStyles'
 import { convertStorageImagesToDataURI } from './imageStorage'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 import { DEFAULT_SLIDE_SIZE_TYPE, getSlideSizeConfig } from './slideSizeConfig'
+import { getVendorAssetURLs, VENDOR_ONERROR_ATTR } from './vendorAssets'
 
 // HTML処理のオプション
 export interface ProcessHTMLOptions {
@@ -136,9 +137,10 @@ function addChartInitializationScript(htmlContent: string, disableAnimation = fa
     return htmlContent
   }
 
-  // Chart.jsのCDNスクリプトと初期化スクリプトを追加
+  // Chart.jsのローカル配信スクリプトと初期化スクリプトを追加
+  const vendor = getVendorAssetURLs()
   const chartScript = `
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="${vendor.chartJs}" ${VENDOR_ONERROR_ATTR}></script>
     <script>
       (function() {
         // すべてのグラフコンテナを処理
@@ -196,10 +198,11 @@ function addEquationRendering(htmlContent: string): string {
     return htmlContent
   }
 
-  // KaTeXのCDNスクリプトとスタイル、初期化スクリプトを追加
+  // KaTeXのローカル配信スクリプトとスタイル、初期化スクリプトを追加
+  const vendor = getVendorAssetURLs()
   const katexScript = `
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="${vendor.katexCss}" ${VENDOR_ONERROR_ATTR} />
+    <script src="${vendor.katexJs}" ${VENDOR_ONERROR_ATTR}></script>
     <script>
       (function() {
         function renderEquations() {
@@ -259,18 +262,20 @@ function addCodeBlockHighlighting(htmlContent: string): string {
     return htmlContent
   }
 
-  // Prism.jsのCDNスクリプトとスタイル、初期化スクリプトを追加
+  // Prism.jsのローカル配信スクリプトとスタイル、初期化スクリプトを追加
+  const vendor = getVendorAssetURLs()
   const prismScript = `
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" />
+    <link rel="stylesheet" href="${vendor.prismTheme}" ${VENDOR_ONERROR_ATTR} />
+    <script src="${vendor.prismCore}" ${VENDOR_ONERROR_ATTR}></script>
+    <script src="${vendor.prismAutoloader}" ${VENDOR_ONERROR_ATTR}></script>
+    <script src="${vendor.prismLineNumbersJs}" ${VENDOR_ONERROR_ATTR}></script>
+    <link rel="stylesheet" href="${vendor.prismLineNumbersCss}" ${VENDOR_ONERROR_ATTR} />
     <script>
       (function() {
-        // Prism.jsの自動ロードを設定
+        // Prism.jsの言語定義の遅延ロード先を設定
+        // autoloader は自身の <script src> から components/ を自動導出するが、配置を変えた時に黙って壊れないよう明示する
         if (window.Prism) {
-          window.Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+          window.Prism.plugins.autoloader.languages_path = '${vendor.prismLanguagesPath}';
         }
         
         // DOMContentLoadedまたは即座に実行

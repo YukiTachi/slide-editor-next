@@ -194,7 +194,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 - **Chart.js**: Chart.jsは**iframe内に読み込まれる**ため、親windowの `window.Chart` は常にundefined。
   必ず `doc.defaultView.Chart?.getChart(canvas)` を参照する。
   `.slide-chart-container canvas` それぞれについてインスタンスが返るまでポーリング（50ms間隔、deadline打ち切り）。
-  CDN読込失敗時はdeadlineで諦めて続行（プレビューと同じ挙動＝グラフ枠が空になるだけで、他要素の出力は継続）。
+  ライブラリ読込失敗時（配置ミス等）はdeadlineで諦めて続行（プレビューと同じ挙動＝グラフ枠が空になるだけで、他要素の出力は継続）。
 - **アニメーション対策**: グラフのフェードインアニメーション中に印刷されると中間状態が写る。
   `htmlProcessor.ts` のグラフ初期化スクリプトに `animation: false` を差し込めるよう、
   `addChartInitializationScript()` にオプション引数（`disableAnimation?: boolean`）を追加し、
@@ -204,7 +204,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 - **Prism**: **`.token` 子要素待ちはしない**（plaintext指定やautoloaderの言語遅延ロードで
   永久にタイムアウトし続けるため）。コードブロックが無ければ即スキップ、
   有る場合もdeadlineまでの短い猶予で打ち切って続行する（ハイライト欠けは許容）。
-- **fonts.ready の位置**: KaTeXはCDN CSSのwebfontを使い、**描画後にフォント読み込みが始まる**。
+- **fonts.ready の位置**: KaTeXはCSSから参照されるwebfontを使い、**描画後にフォント読み込みが始まる**。
   最初に `fonts.ready` を待っても意味がないため、リッチ要素の待機が終わった後に await する。
 
 ### 5.3 印刷CSSの独立注入（テンプレートに依存しない）
@@ -326,7 +326,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 | iframeを0×0で作る実装ミス | Chart.jsが `responsive: true` のためグラフが空で印刷される | 実寸オフスクリーン配置を必須要件とする（5.1）。Phase 2でグラフ空描画を重点確認 |
 | 待機対象を親windowにする実装ミス | `window.Chart` が常にundefinedでdeadlineまで無駄待ち | `doc.defaultView` 経由の参照を必須要件とする（5.2） |
 | 末尾スクリプト注入により `.slide:last-child` が効かない | 最終ページの後に空白ページ | `:last-of-type` を使う印刷CSSを独立注入（5.3） |
-| CDN（Chart.js/KaTeX/Prism）に接続できない環境 | 該当要素が空のまま出力される | 待機は共有deadlineで打ち切り、他要素は正常出力。プレビューも同条件で壊れるため既知の制約として扱う。CDN→ローカルバンドル化は別課題 |
+| CDN（Chart.js/KaTeX/Prism）に接続できない環境 | （解消済み）3ライブラリはアプリと同一オリジンからローカル配信するため、オフラインでも描画される。配置ミス等で読み込めない場合は該当要素が空になる | 解消済み（`docs/CDN_LOCAL_BUNDLE_PLAN.md` 参照）。読込失敗時も待機は共有deadlineで打ち切り、他要素は正常出力 |
 | Chromeが前回の出力先（物理プリンタ等）を記憶している | 「PDFに保存」が既定にならない | ステータスメッセージで「保存先に『PDFに保存』を選択してください」と案内 |
 | ダイアログの用紙設定をユーザーが変更 | レイアウト崩れ | `@page size` 指定によりChromeは用紙サイズを自動選択する。ヘッダー/フッターも `margin: 0` により実質無効。案内文言で補足 |
 | クライアントOSのフォント差 | 指定フォントはHiragino/Meiryo。LinuxなどではOSの代替フォントが埋め込まれ、見た目が変わり得る | 既知制約としてテスト計画・READMEに明記（Webフォント化は別課題） |
@@ -349,7 +349,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 - [ ] エクスポート中にもう一度ボタンを押しても二重実行されない
 - [ ] キャンセル（ダイアログを閉じる）後、再実行できる（iframeリーク・フラグ残留がない）
 - [ ] カスタムCSSテンプレート適用時も余白0・改ページ・背景印刷が正しい（独立注入CSSの確認）
-- [ ] オフライン（CDN不達）時、グラフ・数式が空でも他要素は出力され、deadline内に完了する
+- [ ] オフライン時もグラフ・数式・コードが描画される（ライブラリはローカル配信。`docs/CDN_LOCAL_BUNDLE_PLAN.md` Phase 4 参照）
 - [ ] Phase 2 のリッチ要素チェックリスト全項目
 
 ---

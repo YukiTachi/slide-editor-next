@@ -279,45 +279,53 @@ CDNで固定していたバージョンとインストール済みバージョ�
 
 ### Phase 1: 配信基盤（コピースクリプトとビルド連携）
 
-- [ ] `scripts/copy-vendor-assets.mjs` を作成（2.4 の対象、バージョン付きディレクトリ、manifest 生成、エラー時非0終了）
-- [ ] `lib/vendorManifest.generated.ts` を生成してコミット
-- [ ] `package.json` に `vendor` / `predev` / `prebuild` を追加し、`export` を `npm run build` に変更
-- [ ] `.gitignore` に `/public/vendor/` を追加
+- [x] `scripts/copy-vendor-assets.mjs` を作成（2.4 の対象、バージョン付きディレクトリ、manifest 生成、エラー時非0終了）
+- [x] `lib/vendorManifest.generated.ts` を生成してコミット
+- [x] `package.json` に `vendor` / `predev` / `prebuild` を追加し、`export` を `npm run build` に変更
+- [x] `.gitignore` に `/public/vendor/` を追加
 - [x] `package.json` に `engines.node: ">=24"` を追加
 - [x] Dockerfile と `.github/workflows/deploy.yml` を Node 24 系に揃える
 - [x] `deploy.yml` の `checkout`・`setup-node` を v5、`upload-artifact` を v6 に更新（Node 20 非推奨警告の解消）
-- [ ] `.github/workflows/deploy.yml` の「Export static files」ステップを削除する
+- [x] `.github/workflows/deploy.yml` の「Export static files」ステップを削除する
 - [ ] Actions のビルドログで `copy-vendor-assets.mjs` が1回だけ実行され、artifact の `out/vendor/` に 2.2 の構成が含まれることを確認
-- [ ] `npm run vendor` 実行後、`public/vendor/` の構成が 2.2 の図と一致することを確認
-- [ ] `npm run build` 後、`out/vendor/` に同じ構成が出力されることを確認
+- [x] `npm run vendor` 実行後、`public/vendor/` の構成が 2.2 の図と一致することを確認
+- [x] `npm run build` 後、`out/vendor/` に同じ構成が出力されることを確認
 
 ### Phase 2: 注入HTMLの切り替え
 
-- [ ] `lib/vendorAssets.ts` を作成
-- [ ] `lib/htmlProcessor.ts` の9箇所のCDN URLと `languages_path` を置き換える
-- [ ] `grep -rn "cdn.jsdelivr.net\|cdnjs.cloudflare.com" lib app components` がヒットしないことを確認
-- [ ] プレビュー（iframe）・別ウィンドウプレビュー・プレゼンテーションモードでグラフ・数式・コードが描画される
-- [ ] DevTools の Network でリクエスト先が `http://localhost:8280/vendor/...` のみになっている
-- [ ] `public/vendor/` を一時的にリネームした状態でプレビューを開き、Console に `[vendor] 読み込み失敗` が出ることを確認（検知経路の動作確認）
+- [x] `lib/vendorAssets.ts` を作成
+- [x] `lib/htmlProcessor.ts` の9箇所のCDN URLと `languages_path` を置き換える
+- [x] `grep -rn "cdn.jsdelivr.net\|cdnjs.cloudflare.com" lib app components` がヒットしないことを確認
+- [x] プレビュー（iframe）・別ウィンドウプレビュー・プレゼンテーションモードでグラフ・数式・コードが描画される
+- [x] DevTools の Network でリクエスト先が `http://localhost:8280/vendor/...` のみになっている
+- [x] `public/vendor/` を一時的にリネームした状態でプレビューを開き、Console に `[vendor] 読み込み失敗` が出ることを確認（検知経路の動作確認）
 
 ### Phase 3: PDF出力・ドキュメント整合
 
-- [ ] `lib/pdfExporter.ts` のコメントを更新（ロジック変更なし）
-- [ ] `docs/PDF_EXPORT_PLAN.md` リスク表の「CDNに接続できない環境」行を「解消済み（本書参照）」に更新し、
+- [x] `lib/pdfExporter.ts` のコメントを更新（ロジック変更なし）
+- [x] `docs/PDF_EXPORT_PLAN.md` リスク表の「CDNに接続できない環境」行を「解消済み（本書参照）」に更新し、
       テスト計画の「オフライン（CDN不達）時…」項目を「オフライン時もグラフ・数式・コードが描画される」に書き換える
-- [ ] `README.md` のセットアップ手順に、`npm run dev` / `npm run build` が `public/vendor/` を自動生成する旨を1行追記
-- [ ] `README.md` のデプロイ節に、配信サーバーで `vendor/` 配下（特に woff2）を長期キャッシュ対象にする推奨を追記
+- [x] `README.md` のセットアップ手順に、`npm run dev` / `npm run build` が `public/vendor/` を自動生成する旨を1行追記
+- [x] `README.md` のデプロイ節に、配信サーバーで `vendor/` 配下（特に woff2）を長期キャッシュ対象にする推奨を追記
 - [ ] Notion「Slide Editor Next」の本タスクを Done にする
 
 ### Phase 4: 検証（オフライン再現）
 
-- [ ] 検証入力は `docs/all-features-template.html` を使う（グラフ・ブロック/インライン数式・`data-start` 付き line-numbers を含む
+- [x] 検証入力は `docs/all-features-template.html` を使う（グラフ・ブロック/インライン数式・`data-start` 付き line-numbers を含む
       JavaScript/Python/SQL/TypeScript のコードブロックを収録しており、4.5 の確認ポイントを1本でカバーする）
-- [ ] ヘッドレス Chromium（CDP）で `Network.setBlockedURLs(['*cdn.jsdelivr.net*', '*cdnjs.cloudflare.com*'])` を設定し、
+- [x] ヘッドレス Chromium（CDP）で `Network.setBlockedURLs(['*cdn.jsdelivr.net*', '*cdnjs.cloudflare.com*'])` を設定し、
       上記の検証用スライドでプレビューを描画してスクリーンショットで3要素を確認
-- [ ] 同条件で PDF 出力し、poppler（`pdftotext` / `pdftoppm`）で数式・コードが空でないことを確認
+- [x] 同条件で PDF 出力し、poppler（`pdftotext` / `pdftoppm`）で数式・コードが空でないことを確認
 - [ ] `out/` を nginx のルート直下で配信し、オフライン（ネットワーク切断）でもリッチ要素が描画されることを手動確認
-- [ ] 4.5 のバージョン差分確認ポイントを目視
+- [x] 4.5 のバージョン差分確認ポイントを目視
+
+検証メモ（2026-10-24）:
+- プレビュー（iframe）と PDF 出力は実機 Chrome 155（Windows）で確認。別ウィンドウプレビュー・プレゼンテーションモードは未確認。
+- ヘッドレス検証はコンテナ内の Chromium 155 + puppeteer-core で実施。処理済みHTMLをローカルのみ配信するサーバーで開き、
+  リクエスト先が localhost のみであること（CDN への到達なし）、8グラフ・数式・コードの描画、PDF 出力（poppler で確認）を確認した。
+- 実機で最初の PDF 出力時にグラフ4本（折れ線・ドーナツ・レーダー・極座標）が空になったが、原因はエディタへ貼り付けた内容の
+  長い JSON 行が約140桁で強制折り返しされ、文字列リテラル内に改行が入ったこと（`SyntaxError: Bad control character in string literal in JSON`）。
+  本件とは無関係で、折り返しのないエディタからコピーし直して解消した。
 
 ---
 

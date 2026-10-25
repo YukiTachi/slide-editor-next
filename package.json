@@ -7,11 +7,14 @@
     "node": ">=24"
   },
   "scripts": {
+    "vendor": "node scripts/copy-vendor-assets.mjs",
+    "predev": "npm run vendor",
+    "prebuild": "npm run vendor",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build"
+    "export": "npm run build"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",

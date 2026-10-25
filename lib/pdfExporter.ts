@@ -208,7 +208,7 @@ async function waitForDocumentReady(iframe: HTMLIFrameElement, deadline: number)
 
 /**
  * リッチ要素のレンダリング完了を待つ（共有deadline方式）。
- * 各waitはdeadline到達で打ち切って続行する（CDN不達などでも他要素の出力を止めない）。
+ * 各waitはdeadline到達で打ち切って続行する（ライブラリ読込失敗（配置ミス等）でも他要素の出力を止めない）。
  * 前提: waitForDocumentReady() 済みのiframeを受け取る。
  */
 async function waitForRenderComplete(iframe: HTMLIFrameElement, deadline: number): Promise<void> {
@@ -255,7 +255,7 @@ async function waitForCharts(win: Window, doc: Document, deadline: number): Prom
       if (canvases.every((canvas) => chartGlobal.getChart(canvas) !== undefined)) return true
     }
     // グラフ初期化スクリプトはパース時に同期実行されるため、文書読込が完了していれば
-    // 以後インスタンスは増えない（CDN不達や設定JSON不正のcanvas）。deadlineまで待たずに打ち切る
+    // 以後インスタンスは増えない（ライブラリ読込失敗や設定JSON不正のcanvas）。deadlineまで待たずに打ち切る
     return doc.readyState === 'complete'
   }, deadline)
 }
@@ -270,7 +270,7 @@ async function waitForKaTeX(win: Window, doc: Document, deadline: number): Promi
   // レンダリング成功（.katex）またはエラー表示（.slide-equation-error）まで待つ
   await pollUntil(() => {
     if (equations.every((el) => el.querySelector('.katex, .slide-equation-error') !== null)) return true
-    // 文書読込完了後もKaTeX本体が存在しなければCDN不達であり、以後描画されない
+    // 文書読込完了後もKaTeX本体が存在しなければライブラリ読込失敗（配置ミス等）であり、以後描画されない
     return doc.readyState === 'complete' && !(win as any).katex
   }, deadline)
 }

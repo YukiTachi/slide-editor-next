@@ -29,9 +29,6 @@ jobs:
       - name: Build Next.js app
         run: npm run build
 
-      - name: Export static files
-        run: npm run export
-
       - name: Upload static site as artifact
         uses: actions/upload-artifact@v6
         with:
