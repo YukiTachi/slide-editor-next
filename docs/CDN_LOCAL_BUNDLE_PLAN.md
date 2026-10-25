@@ -45,6 +45,7 @@
   設定を変更した場合は本書の該当箇所を見直す。
   1. `.css|.js` に `expires 1y` を付ける（→ 2.2 のバージョン付きディレクトリ）
   2. `woff2` が長期キャッシュ対象に含まれるか（→ 6 のリスク表、運用事項）
+     — 2026-10-25 のデプロイ後に確認: `vendor/` 配下の `.js` / `.css` / `.woff2` はいずれも `cache-control: max-age=31536000` で配信されており、含まれている
 - 処理済みHTMLは **src なしの iframe / `window.open('')` の別ウィンドウに `document.write()`** で流し込まれる
   （`Preview.tsx` / `PresentationMode.tsx` / `pdfExporter.ts` / `HamburgerMenu.tsx` / `app/page.tsx`）。
   `document.open()` は書き込み先文書のURLを呼び出し元ページ（アプリ本体）のURLに置き換えるため、
@@ -287,7 +288,7 @@ CDNで固定していたバージョンとインストール済みバージョ�
 - [x] Dockerfile と `.github/workflows/deploy.yml` を Node 24 系に揃える
 - [x] `deploy.yml` の `checkout`・`setup-node` を v5、`upload-artifact` を v6 に更新（Node 20 非推奨警告の解消）
 - [x] `.github/workflows/deploy.yml` の「Export static files」ステップを削除する
-- [ ] Actions のビルドログで `copy-vendor-assets.mjs` が1回だけ実行され、artifact の `out/vendor/` に 2.2 の構成が含まれることを確認
+- [x] Actions のビルドログで `copy-vendor-assets.mjs` が1回だけ実行され、artifact の `out/vendor/` に 2.2 の構成が含まれることを確認
 - [x] `npm run vendor` 実行後、`public/vendor/` の構成が 2.2 の図と一致することを確認
 - [x] `npm run build` 後、`out/vendor/` に同じ構成が出力されることを確認
 
@@ -316,7 +317,8 @@ CDNで固定していたバージョンとインストール済みバージョ�
 - [x] ヘッドレス Chromium（CDP）で `Network.setBlockedURLs(['*cdn.jsdelivr.net*', '*cdnjs.cloudflare.com*'])` を設定し、
       上記の検証用スライドでプレビューを描画してスクリーンショットで3要素を確認
 - [x] 同条件で PDF 出力し、poppler（`pdftotext` / `pdftoppm`）で数式・コードが空でないことを確認
-- [ ] `out/` を nginx のルート直下で配信し、オフライン（ネットワーク切断）でもリッチ要素が描画されることを手動確認
+- [x] `out/` を nginx のルート直下で配信し、オフライン（ネットワーク切断）でもリッチ要素が描画されることを手動確認
+      （2026-10-25 本番 s-editor.donut-service.com で確認: 一度プレビューした後に Wi-Fi を切断し、編集でプレビューを再生成・印刷ダイアログを開いてもグラフ・数式・コードが描画される）
 - [x] 4.5 のバージョン差分確認ポイントを目視
 
 検証メモ（2026-10-24）:
@@ -337,7 +339,7 @@ CDNで固定していたバージョンとインストール済みバージョ�
 | 将来サブパス配信になった場合に root 相対URLが404 | 描画されない | `document.baseURI` 基準の絶対URL生成（2.3）。サブパスは末尾スラッシュ付きで開くことが前提 |
 | 本番 nginx 設定がリポジトリ外にあり、変更に本書が追従できない | 前提が崩れても気付けない | 「前提」節に依存する2項目を列挙し、設定変更時の見直し先を明示 |
 | nginx の `expires 1y` でライブラリ更新後も旧ファイルがキャッシュされる | 新旧混在・描画崩れ | バージョン付きディレクトリ（2.2）。更新時はURLが変わる |
-| 本番 nginx の長期キャッシュ対象が css/js/画像のみで woff2 が含まれない | プレビューは入力ごとに iframe を書き直すため、数式を含むスライドでは入力のたびに使用中の KaTeX フォントファイル（woff2）が再検証される | **運用事項（リポジトリ外）**: 配置先サーバーのキャッシュ規則に `woff2` を追加する。バージョン付きディレクトリ配下なので長期キャッシュしても安全。README のデプロイ節に注記する |
+| 本番 nginx の長期キャッシュ対象が css/js/画像のみで woff2 が含まれない | プレビューは入力ごとに iframe を書き直すため、数式を含むスライドでは入力のたびに使用中の KaTeX フォントファイル（woff2）が再検証される | **運用事項（リポジトリ外）**: 配置先サーバーのキャッシュ規則に `woff2` を追加する。バージョン付きディレクトリ配下なので長期キャッシュしても安全。README のデプロイ節に注記する。**2026-10-25 確認: 本番では woff2 も 1 年キャッシュ対象になっており対応済み** |
 | CDN固定版からのバージョン差で見た目が変わる | 微細なレンダリング差 | 4.5 の確認ポイントで目視。問題があれば `package.json` でピン止め |
 | KaTeX の woff/ttf を省いたことによるフォント欠け | 古いブラウザで数式フォントが代替になる | 対象ブラウザは全て woff2 対応。必要になれば全フォーマットをコピー対象に追加するだけ |
 | Prism autoloader が依存言語を取得できない | 一部言語のハイライト欠け | 全 `components/*.min.js` を配置（2.4） |
