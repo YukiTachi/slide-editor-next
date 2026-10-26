@@ -259,7 +259,7 @@ export function getPrintPageCSS(sizeConfig?: SlideSizeConfig): string {
 ### Phase 3: ドキュメント・タスク整理
 
 - [x] 4.5 のドキュメント更新
-- [ ] Notion の SEN-16 を Done にする
+- [x] Notion の SEN-16 を Done にする（2026-10-26、PR #1 マージ後）
 
 ---
 
