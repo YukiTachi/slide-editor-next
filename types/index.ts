@@ -267,7 +267,12 @@ export interface SlideSizeConfig {
   type: SlideSizeType
   width: string        // CSS値（例: '297mm', '1920px'）
   height: string       // CSS値（例: '210mm', '1080px'）
-  pageSize?: string    // @page用（例: 'A4 landscape', '1920px 1080px'）
+  pageSize?: string    // @page用（例: 'A4 landscape', '1280px 720px'）
+  /**
+   * 印刷時に .slide へ適用する zoom 倍率。画面レイアウト（width × height）を pageSize に収めるための係数。
+   * 未指定は 1（縮小なし）。pageSize と必ず対で設定する（docs/PDF_16_9_PAGE_SIZE_PLAN.md 2.2）
+   */
+  printScale?: number
 }
 
 // スライド設定（将来の拡張用）

@@ -2,6 +2,7 @@
 // 設計の詳細は docs/PDF_EXPORT_PLAN.md を参照
 import { processHTMLForPreviewAsync } from './htmlProcessor'
 import { extractSlides } from './slideReorder'
+import { getPrintPageCSS } from './slideSizeConfig'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 
 export interface PDFExportOptions {
@@ -153,7 +154,6 @@ function getDefaultFileName(): string {
  * 末尾空白ページ対策は :last-of-type で行う。
  */
 function injectPrintCSS(htmlContent: string, sizeConfig: SlideSizeConfig): string {
-  const pageSize = sizeConfig.pageSize ?? `${sizeConfig.width} ${sizeConfig.height}`
   const printCSS = `
 @media print {
   * {
@@ -182,11 +182,7 @@ function injectPrintCSS(htmlContent: string, sizeConfig: SlideSizeConfig): strin
     display: none !important;
   }
 }
-@page {
-  size: ${pageSize};
-  margin: 0;
-}
-`
+${getPrintPageCSS(sizeConfig)}`
   const styleTag = `<style data-pdf-export-print>${printCSS}</style>`
 
   if (/<\/head>/i.test(htmlContent)) {

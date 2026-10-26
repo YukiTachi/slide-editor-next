@@ -266,10 +266,12 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 
 ### 5.5 16:9 サイズの注意点
 
-- `@page { size: 1920px 1080px }` はCSS的に有効（96dpi換算で 508mm × 285.75mm の物理ページになる）。
-  Chrome/Edgeは正しく解釈するが、**印刷ダイアログ上の用紙表示が巨大なサイズになる**。
-  Phase 1の完了条件は「余白0・1スライド=1ページ」までとし、
-  ページ寸法の正規化（PowerPoint既定の13.33in × 7.5in化）はPhase 3の検討事項とする。
+- **解消済み（2026-10-26、SEN-16）**: 16:9 の `@page` は `1280px 720px`（= 13.333in × 7.5in、PowerPoint 既定のワイド画面と同寸法）とし、
+  印刷時に `.slide` を `zoom: calc(2 / 3)` で縮小して 1920 × 1080 のレイアウトをそのまま収める。
+  `@page` と `zoom` は `getPrintPageCSS()`（`lib/slideSizeConfig.ts`）が `@supports (zoom: calc(2 / 3))` で分岐して出力し、
+  非対応環境では従来の `@page { size: 1920px 1080px }` に落ちる。詳細は `docs/PDF_16_9_PAGE_SIZE_PLAN.md`。
+- 経緯: `@page { size: 1920px 1080px }` は CSS として有効だが 96dpi 換算で 508mm × 285.75mm の物理ページになり、
+  印刷ダイアログ上の用紙表示が巨大になっていた。Phase 1 では「余白0・1スライド=1ページ」までを完了条件とし、正規化を Phase 3 に送っていた。
 
 ---
 
@@ -314,7 +316,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
   - v1計画書（git履歴: 2025-12-20版 PDF_EXPORT_PLAN.md）の設計を流用
 - [ ] Ctrl+P ショートカット割り当て（`ShortcutActions` / `useKeyboardShortcuts` / `page.tsx` をセットで変更、fileカテゴリ）
 - [ ] エクスポート範囲指定（現在のスライドのみ / 全スライド）
-- [ ] 16:9のPDFページ寸法の正規化（13.33in × 7.5in 化）
+- [x] 16:9のPDFページ寸法の正規化（13.33in × 7.5in 化）— 2026-10-26 完了（`docs/PDF_16_9_PAGE_SIZE_PLAN.md`）
 - [ ] ファイル名へのプロジェクト名反映（「開いているプロジェクト名」の単一ソース整備が前提）
 
 ---
@@ -343,7 +345,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 - [ ] PDF内のテキスト・数式・コードが選択・検索できる（グラフ・画像はラスターで正しい）
 - [ ] 1スライド=1PDFページ、**グラフ・数式・コード入りでも**末尾に空白ページが増えないこと
 - [ ] A4横向き: ページ寸法 297×210mm、余白0
-- [ ] 16:9: ページ寸法がスライドと同比率、余白0
+- [x] 16:9: ページ寸法 13.33in × 7.5in（960 × 540pt、PowerPoint 出力と同一）、余白0、1スライド=1ページ（2026-10-26 確認）
 - [ ] ファイル名の既定値が `スライド_YYYY-MM-DD` になっている
 - [ ] 空エディタで実行した際にアラートが出て何も起きない
 - [ ] エクスポート中にもう一度ボタンを押しても二重実行されない

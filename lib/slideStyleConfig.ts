@@ -1,6 +1,8 @@
 // スライドスタイルの共通設定
 // このファイルを変更すると、CSSとPDFエクスポーターの両方に反映されます
 
+import { getPrintPageCSS } from './slideSizeConfig'
+
 export const slideStyleConfig = {
   // フォントサイズ
   fontSize: {
@@ -87,7 +89,6 @@ export function getSlideSizeOverrideCSS(sizeConfig?: import('@/types').SlideSize
   const c = slideStyleConfig
   const slideWidth = sizeConfig?.width ?? c.layout.slide.width
   const slideHeight = sizeConfig?.height ?? c.layout.slide.height
-  const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
 
   return `
 /* スライドサイズ上書き（アプリ設定に連動） */
@@ -107,11 +108,7 @@ export function getSlideSizeOverrideCSS(sizeConfig?: import('@/types').SlideSize
     }
 }
 
-@page {
-    size: ${pageSize};
-    margin: 0;
-}
-`
+${getPrintPageCSS(sizeConfig)}`
 }
 
 // CSS文字列を生成する関数
@@ -136,7 +133,6 @@ export function generateSlideStylesCSS(sizeConfig?: import('@/types').SlideSizeC
   // サイズ設定が指定されていない場合はデフォルトを使用
   const slideWidth = sizeConfig?.width ?? c.layout.slide.width
   const slideHeight = sizeConfig?.height ?? c.layout.slide.height
-  const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
   const sizeTypeLabel = sizeConfig?.type === '16-9' ? '16:9' : 'A4横向き'
 
   return `/* ${sizeTypeLabel}スライド用スタイル */
@@ -295,11 +291,7 @@ body {
     }
 }
 
-@page {
-    size: ${pageSize};
-    margin: 0;
-}
-
+${getPrintPageCSS(sizeConfig)}
 .slide-content {
     flex: 1 !important;
     display: flex !important;
