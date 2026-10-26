@@ -211,7 +211,7 @@ interface PowerPointExporterModalProps {
 - [x] pptxgenjsを使用してプレゼンテーションオブジェクトを作成
 - [x] スライドサイズの設定（**エディタの現在のサイズ設定に追従**）
   - [x] `a4-landscape` → カスタムレイアウト 11.69" x 8.27"
-  - [x] `16-9` → `LAYOUT_WIDE`（13.33" x 7.5"）
+  - [x] `16-9` → `LAYOUT_WIDE`（13.33" x 7.5"）— PDF 出力も同寸法に揃えた（SEN-16、`docs/PDF_16_9_PAGE_SIZE_PLAN.md`）
   - [x] PDF出力と同様に `HamburgerMenu` から `sizeConfig` を受け渡す
 - [x] **座標は `getPageGeometry()` と region から計算**（`full` は全幅、`left` / `right` は半幅。固定値を書かない）
 - [x] **日本語フォントの明示**: 全 `addText` に `fontFace` を指定（例: `Yu Gothic` / `Meiryo`）。pptxgenjs の既定は Arial のため未指定だと日本語が崩れる

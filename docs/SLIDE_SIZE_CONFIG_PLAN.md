@@ -32,7 +32,8 @@ export interface SlideSizeConfig {
   type: SlideSizeType
   width: string        // CSS値（例: '297mm', '1920px'）
   height: string       // CSS値（例: '210mm', '1080px'）
-  pageSize?: string    // @page用（例: 'A4 landscape', '1920px 1080px'）
+  pageSize?: string    // @page用（例: 'A4 landscape', '1280px 720px'）
+  printScale?: number  // 印刷時に .slide へ適用する zoom 倍率（16:9 は 2/3）。pageSize と対で設定する（SEN-16 で追加）
 }
 
 // スライド設定（将来の拡張用）
@@ -58,7 +59,8 @@ export const SLIDE_SIZE_PRESETS: Record<SlideSizeType, SlideSizeConfig> = {
     type: '16-9',
     width: '1920px',
     height: '1080px',
-    pageSize: '1920px 1080px',
+    pageSize: '1280px 720px',  // 13.333in × 7.5in（PowerPoint 既定のワイド画面）
+    printScale: 2 / 3,         // 1920 × 1080 のレイアウトを 1280 × 720 のページに収める倍率
   },
 }
 
@@ -190,7 +192,6 @@ export function generateSlideStylesCSS(sizeConfig?: SlideSizeConfig): string {
   // サイズ設定が指定されていない場合はデフォルトを使用
   const slideWidth = sizeConfig?.width ?? c.layout.slide.width
   const slideHeight = sizeConfig?.height ?? c.layout.slide.height
-  const pageSize = sizeConfig?.pageSize ?? 'A4 landscape'
   
   return `/* ${sizeConfig?.type === '16-9' ? '16:9' : 'A4横向き'}スライド用スタイル */
 body {
@@ -217,10 +218,7 @@ body {
     }
 }
 
-@page {
-    size: ${pageSize};
-    margin: 0;
-}
+${getPrintPageCSS(sizeConfig)}   // @page（と 16:9 の印刷時 zoom）は lib/slideSizeConfig.ts の getPrintPageCSS() に集約（SEN-16）
 
 // ...
 `
@@ -777,11 +775,10 @@ export function processHTMLForPreview(
 
 ### 2. @page ルールと印刷時の処理
 - A4横向き: `size: A4 landscape;`（物理的なA4用紙に印刷可能）
-- 16:9: `size: 1920px 1080px;`（カスタムサイズ）
-  - **注意**: 1920px × 1080px は物理的な紙に直接印刷するには大きすぎる
-  - ブラウザによっては自動的にスケーリングされるが、動作確認が必要
-  - 印刷時は「用紙に合わせる」オプションが推奨される
-  - PDF出力時も同様にスケーリングが発生する可能性がある
+- 16:9: `size: 1280px 720px;`（13.333in × 7.5in、PowerPoint 既定のワイド画面）+ 印刷時に `.slide { zoom: calc(2 / 3) }`
+  - 画面レイアウトは 1920px × 1080px のまま。印刷時だけ 2/3 に縮小して 1 スライド = 1 ページに収める
+  - `@page` と `zoom` は `getPrintPageCSS()` が `@supports (zoom: calc(2 / 3))` で分岐して出力し、非対応環境では従来の `size: 1920px 1080px` に落ちる
+  - 経緯と検証結果は `docs/PDF_16_9_PAGE_SIZE_PLAN.md`（SEN-16）を参照。それ以前は 1920px × 1080px を物理寸法とする巨大ページだった
 
 ### 3. プレビュースケーリング
 - 16:9サイズ（1920x1080px）はプレビューパネルに収まらないため、`calculatePreviewScale` 関数でスケールを計算
