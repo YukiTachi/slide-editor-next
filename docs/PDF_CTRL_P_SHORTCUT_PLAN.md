@@ -314,7 +314,7 @@ docs/PDF_CTRL_P_SHORTCUT_PLAN.md     # 本書
 - [x] `README.md` の「デフォルトのショートカット」に `Ctrl+P` / `Cmd+P`: PDF出力 を追加
 - [x] `docs/PDF_EXPORT_PLAN.md` 5.4-2 を「対応済み（本書参照）」に書き換え、Phase 3 の該当項目をチェック
 - [x] `docs/KEYBOARD_SHORTCUTS_PLAN.md` 2.1 の一覧に `Ctrl+P` を追加
-- [ ] Notion の SEN-4 を Done にする
+- [x] Notion の SEN-4 を Done にする（2026-10-27、PR #2 マージ後）
 
 ---
 
