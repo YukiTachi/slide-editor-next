@@ -7,7 +7,6 @@ import ImageInserterModal from '@/components/ImageInserter/ImageInserterModal'
 import ImageManager from '@/components/ImageInserter/ImageManager'
 import { convertBase64ToExternal, convertStorageImagesToDataURI } from '@/lib/imageStorage'
 import { initializeImageStorage } from '@/lib/imageStorage'
-import { exportToPDF } from '@/lib/pdfExporter'
 import { exportToPowerPoint } from '@/lib/powerpointExporter'
 import PowerPointExporterModal from '@/components/PowerPointExporter/PowerPointExporterModal'
 import {
@@ -54,9 +53,10 @@ interface HamburgerMenuProps {
   onCodeBlockInsertRequest?: () => void
   onEquationInsertRequest?: () => void
   onHierarchyPanelToggle?: () => void
+  onExportPDF: () => void   // PDF出力（page.tsx が所有。Ctrl+P ショートカットと共有）
 }
 
-export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest, onChartInsertRequest, onCodeBlockInsertRequest, onEquationInsertRequest, onHierarchyPanelToggle }: HamburgerMenuProps) {
+export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpdate, editorRef, onRestore, isMenuOpen, setIsMenuOpen, onImageInsertRequest, onUndo, onRedo, isUndoable = false, isRedoable = false, onSearchReplace, onPasteFromClipboard, editorSettings, onEditorSettingsChange, onEditorSettingsReset, keyboardShortcuts, onKeyboardShortcutsUpdate, onKeyboardShortcutsReset, onKeyboardShortcutsCheckDuplicate, onKeyboardShortcutsOpen, onTutorialOpen, onTableInsertRequest, onChartInsertRequest, onCodeBlockInsertRequest, onEquationInsertRequest, onHierarchyPanelToggle, onExportPDF }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [isImageManagerOpen, setIsImageManagerOpen] = useState(false)
@@ -315,33 +315,6 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
     } catch (err) {
       console.error('クリップボードからの読み込みに失敗:', err)
       alert('クリップボードからの読み込みに失敗しました。ブラウザがクリップボードへのアクセスを許可しているか確認してください。')
-    }
-  }
-
-  // PDF出力（印刷ダイアログ方式、詳細は docs/PDF_EXPORT_PLAN.md）
-  const handleExportPDF = async () => {
-    const trimmedContent = htmlContent.trim()
-
-    if (!trimmedContent) {
-      alert('出力するスライドがありません')
-      return
-    }
-
-    try {
-      await exportToPDF(trimmedContent, sizeConfig, template, {
-        onStatus: (message) => {
-          if (onStatusUpdate) {
-            onStatusUpdate(message)
-          }
-        },
-      })
-      // 案内メッセージ（印刷ダイアログ表示中）をしばらく残してからクリア
-      if (onStatusUpdate) {
-        setTimeout(() => onStatusUpdate(''), 8000)
-      }
-    } catch (error) {
-      console.error('PDF出力に失敗:', error)
-      alert('PDF出力に失敗しました。コンソールを確認してください。')
     }
   }
 
@@ -648,7 +621,7 @@ export default function HamburgerMenu({ htmlContent, setHtmlContent, onStatusUpd
             <h3>💾 データ</h3>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleRestore(); }}>🔄 復元</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleCopyToClipboard(); }}>📋 HTMLコピー</button>
-            <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleExportPDF(); }}>📄 PDF出力</button>
+            <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); onExportPDF(); }}>📄 PDF出力 (Ctrl+P)</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleExportPowerPoint(); }}>📊 PowerPoint出力</button>
             <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handlePasteFromClipboard(); }}>📥 クリップボードから読み込み</button>
             <button

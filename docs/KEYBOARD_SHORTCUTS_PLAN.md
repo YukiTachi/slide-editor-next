@@ -26,6 +26,7 @@
 | `Ctrl+R` / `Cmd+R` | 復元 | 最後に保存した状態に復元 | - |
 | `Ctrl+F` / `Cmd+F` | 検索・置換 | 検索・置換モーダルを開く | - |
 | `Ctrl+H` / `Cmd+H` | 検索・置換 | 検索・置換モーダルを開く | - |
+| `Ctrl+P` / `Cmd+P` | PDF出力 | ブラウザ既定の印刷を置き換えてアプリのPDF出力を起動（2026-10-26 追加、`docs/PDF_CTRL_P_SHORTCUT_PLAN.md`） | - |
 
 **推奨変更案の理由**:
 - `Ctrl+Shift+N`: 一般的なアプリケーションで「新規作成」に使用される（例: Visual Studio Code、Chrome DevTools）

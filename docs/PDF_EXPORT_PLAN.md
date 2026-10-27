@@ -60,25 +60,27 @@ slide-editor-nextjs/
 ├── lib/
 │   ├── pdfExporter.ts                 # 新規: 印刷用iframe生成・レンダリング待機・印刷CSS注入・印刷呼び出し
 │   └── htmlProcessor.ts               # 変更(小): disableAnimation オプションの貫通（グラフのアニメーション無効化）
+├── app/
+│   └── page.tsx                       # 変更: handleExportPDF を所有し、HamburgerMenu の onExportPDF と
+│                                      #       ショートカット 'export-pdf' の両方に配線（SEN-4 で移動）
 ├── components/
 │   └── Menu/
-│       └── HamburgerMenu.tsx          # 変更: 「💾 データ」セクションに「📄 PDF出力」を追加（ハンドラはここで完結）
-└── （Phase 3でショートカットを入れる場合のみ）
-    ├── lib/keyboardShortcutsConfig.ts # ShortcutActions への追加
-    ├── hooks/useKeyboardShortcuts.ts  # 配線
-    └── app/page.tsx                   # shortcutActions への追加
+│       └── HamburgerMenu.tsx          # 変更: 「💾 データ」セクションに「📄 PDF出力 (Ctrl+P)」を追加（onExportPDF prop を呼ぶだけ）
+├── hooks/useKeyboardShortcuts.ts      # 変更: ShortcutActions に 'export-pdf'（SEN-4）
+└── lib/keyboardShortcutsConfig.ts     # 変更: 既定ショートカット export-pdf = Ctrl+P（SEN-4）
 ```
 
-- ハンドラは既存の `openPreviewWindow()` と同様に **HamburgerMenu内で完結**する。
-  `page.tsx` を触るのはPhase 3でキーボードショートカットを追加するときだけ。
-- 新しい型・ストレージ・モーダルは**不要**（方式Aは設定項目を持たないため）。
+- ハンドラ `handleExportPDF` は **`page.tsx` が所有**し、メニューのボタンと `Ctrl+P` ショートカットが同じ関数を呼ぶ
+  （`onUndo` / `onSearchReplace` と同じ分担）。Phase 1 時点では `openPreviewWindow()` に倣って HamburgerMenu 内で完結させていたが、
+  SEN-4（`docs/PDF_CTRL_P_SHORTCUT_PLAN.md` 2.1）でショートカットと共有するために移動した。
+- 新しい型・ストレージ・モーダルは**不要**（方式Aは設定項目を持たないため）。ショートカット関連の変更は SEN-4 の計画書を参照。
 
 ---
 
 ## 4. 処理フロー（方式A）
 
 ```
-[📄 PDF出力 クリック]（HamburgerMenu）
+[📄 PDF出力 クリック]（HamburgerMenu → page.tsx の handleExportPDF）または [Ctrl+P]
         │
         ▼
 processHTMLForPreviewAsync(htmlContent, sizeConfig, template, { disableAnimation: true })
@@ -249,20 +251,26 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 
 ### 5.4 UI統合
 
-1. **`components/Menu/HamburgerMenu.tsx`** — ここで完結させる（`openPreviewWindow()` と同じ責務配置）:
-   「💾 データ」セクション（HTMLコピーの並び）に追加:
+1. **ハンドラは `app/page.tsx`、ボタンは `components/Menu/HamburgerMenu.tsx`**（SEN-4 以降の配置）:
+   `page.tsx` の `handleExportPDF` が `sizeConfig` / `template` を参照して `exportToPDF()` を呼ぶ。
+   空コンテンツ時は `alert('出力するスライドがありません')`。
+   `setStatusMessage` で「PDFを準備中…」→ `print()` 直前に「印刷ダイアログで『PDFに保存』を選択してください」へ切替し、8 秒後にクリア。
+   メニューの「💾 データ」セクション（HTMLコピーの並び）のボタンは、prop で受け取った同じハンドラを呼ぶだけ:
    ```tsx
-   <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); handleExportPDF(); }}>
-     📄 PDF出力
+   // page.tsx
+   <HamburgerMenu ... onExportPDF={handleExportPDF} />
+   // HamburgerMenu.tsx
+   <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); onExportPDF(); }}>
+     📄 PDF出力 (Ctrl+P)
    </button>
    ```
-   ハンドラは `sizeConfig` / `template` を参照して `exportToPDF()` を呼ぶ。
-   空コンテンツ時は `alert('出力するスライドがありません')`。
-   `onStatusUpdate` で「PDFを準備中…」→ `print()` 直前に「印刷ダイアログで『PDFに保存』を選択してください」へ切替。
-2. **キーボードショートカット（Ctrl+P）はPhase 3送り**。
-   ブラウザ既定の印刷を奪う変更であり、`ShortcutActions` 型・`useKeyboardShortcuts`・`page.tsx` の
-   `shortcutActions` をセットで変更する必要があるため、Phase 1のスコープには含めない
-   （既存ユーザーのlocalStorageはidマージ済みのため、追加時にCONFIG_VERSIONを上げなくても新エントリは届く）。
+   （Phase 1 時点では `openPreviewWindow()` と同じ責務配置として HamburgerMenu 内で完結させていた。
+   ショートカットと共有するため SEN-4 で `page.tsx` に移した）
+2. **キーボードショートカット（Ctrl+P）— 対応済み（2026-10-26、SEN-4、`docs/PDF_CTRL_P_SHORTCUT_PLAN.md`）**。
+   `handleExportPDF` は `page.tsx` に移し、`HamburgerMenu` へ `onExportPDF` prop で渡す（ボタンとショートカットで同じハンドラ）。
+   既定定義 `export-pdf`（`Ctrl+P`、ファイルカテゴリ）を追加。`CONFIG_VERSION` は上げず id マージで既存ユーザーへ届け、
+   既存のカスタムキーと衝突する場合は無効で追加する。
+   （Phase 1 時点では、ブラウザ既定の印刷を奪う変更であり型・フック・`page.tsx` をセットで変更する必要があったため Phase 3 に送っていた）
 
 ### 5.5 16:9 サイズの注意点
 
@@ -288,7 +296,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
   - [x] `document.title = スライド_YYYY-MM-DD`
   - [x] 多重起動防止フラグ、後片付けは「afterprint→短遅延→破棄・フラグ解除」＋afterprint不達時のみ60s上限タイマー
 - [x] `lib/htmlProcessor.ts` に `disableAnimation` オプションを追加（`addChartInitializationScript` へ貫通）
-- [x] `HamburgerMenu.tsx` に「📄 PDF出力」ボタンとハンドラを追加（ここで完結、`onStatusUpdate` 連携）
+- [x] `HamburgerMenu.tsx` に「📄 PDF出力」ボタンとハンドラを追加（Phase 1 時点はここで完結、`onStatusUpdate` 連携。SEN-4 でハンドラは `page.tsx` へ移動）
 
 **完了条件**: テキストのみのスライドが、A4横向き・16:9の両方で、プレビューと同じ見た目のPDFとして保存できる（1スライド=1ページ、余白なし、末尾に空白ページなし）。ファイル名既定値が `スライド_YYYY-MM-DD`。
 
@@ -314,7 +322,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
   - `jspdf` + `html2canvas-pro`（本家html2canvasはメンテ停滞・モダンCSS非対応のためpro版を採用）
   - メニューに「📄 PDF出力（画像形式・ダイアログなし）」として併設
   - v1計画書（git履歴: 2025-12-20版 PDF_EXPORT_PLAN.md）の設計を流用
-- [ ] Ctrl+P ショートカット割り当て（`ShortcutActions` / `useKeyboardShortcuts` / `page.tsx` をセットで変更、fileカテゴリ）
+- [x] Ctrl+P ショートカット割り当て（`ShortcutActions` / `useKeyboardShortcuts` / `page.tsx` をセットで変更、fileカテゴリ）— 2026-10-26 完了（`docs/PDF_CTRL_P_SHORTCUT_PLAN.md`）
 - [ ] エクスポート範囲指定（現在のスライドのみ / 全スライド）
 - [x] 16:9のPDFページ寸法の正規化（13.33in × 7.5in 化）— 2026-10-26 完了（`docs/PDF_16_9_PAGE_SIZE_PLAN.md`）
 - [ ] ファイル名へのプロジェクト名反映（「開いているプロジェクト名」の単一ソース整備が前提）
@@ -362,7 +370,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
 
 - `lib/htmlProcessor.ts` — 自己完結HTML生成（CSSインライン化・画像data URI化・スクリプト注入）
 - `lib/slideStyleConfig.ts` — ビルトインの `@media print` / `@page` / page-break（独立注入CSSの元ネタ）
-- `components/Menu/HamburgerMenu.tsx` — `openPreviewWindow()` のHTML処理・ウィンドウ書き込みパターン（責務配置もこれに合わせる）
+- `components/Menu/HamburgerMenu.tsx` — `openPreviewWindow()` のHTML処理・ウィンドウ書き込みパターン（Phase 1 ではハンドラの責務配置もこれに合わせた。SEN-4 で `page.tsx` へ移動）
 - `components/PresentationMode/PresentationMode.tsx` — iframeへの `document.open/write/close` の先行事例
 - `hooks/useSlideSize.ts` / `hooks/useCSSDesignTemplate.ts` — サイズ・テンプレート状態の取得
 
@@ -402,6 +410,8 @@ Phase 1・Phase 2 の検証を完了。A4横向き・16:9の両方で、テキ�
 
 ## 11. 変更履歴
 
+- 2026-10-27: SEN-4（Ctrl+P ショートカット）に伴い、PDF 出力ハンドラの配置を「HamburgerMenu 内で完結」から「`page.tsx` が所有し、メニューとショートカットで共有」に変更。
+  3 章のファイル構成、4 章の処理フローの起点、5.4-1、Phase 1 チェックリストの注記、参照資料を現在の配置に合わせて修正。
 - 2026-08-16: v2.2 実装時の取り違え防止の追記。
   - 後片付けを2段構えに明確化: afterprint→短遅延→破棄・フラグ解除を通常経路、60sタイマーはafterprint不達時のみの保険（常時60s待ちにするとキャンセル後の再実行テストと衝突する）
   - `waitForRenderComplete` はload済みiframeが前提であることをコード断片に明記（load待ちは `exportToPDF` 側の責務）

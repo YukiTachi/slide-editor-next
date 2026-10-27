@@ -1,6 +1,7 @@
 // キーボードショートカット設定の保存・読み込み
 import type { KeyboardShortcut, KeyboardShortcutsConfig } from '@/types'
 import { DEFAULT_SHORTCUTS, CONFIG_VERSION } from './keyboardShortcutsConfig'
+import { normalizeKeyString } from './keyboardShortcutsManager'
 
 const STORAGE_KEY = 'slideEditor_keyboardShortcuts'
 
@@ -49,7 +50,19 @@ export function loadShortcuts(): KeyboardShortcut[] {
     // デフォルトショートカットとマージ（新しく追加されたショートカットがある場合に備える）
     const defaultShortcuts = getDefaultShortcuts()
     const shortcutsMap = new Map(config.shortcuts.map(s => [s.id, s]))
-    
+
+    // 新しく追加された既定ショートカットが、ユーザーの既存の有効なキー割り当てと衝突する場合は
+    // 無効で追加する（ユーザーの既存設定 > 新しい既定）。照合は Ctrl / Cmd を同一視するため正規化して比較する。
+    // 対象は現行の既定に id が存在する保存済みエントリに限る（既定から削除された古い id は照合対象にならないため）。
+    // 有効で追加した新規既定のキーも usedKeys に加え、新規既定どうしが同じキーを持つ場合は先に並ぶ方だけを有効にする。
+    // 詳細は docs/PDF_CTRL_P_SHORTCUT_PLAN.md 2.4
+    const defaultIds = new Set(defaultShortcuts.map(s => s.id))
+    const usedKeys = new Set(
+      config.shortcuts
+        .filter(s => defaultIds.has(s.id) && s.enabled !== false)
+        .map(s => normalizeKeyString(s.customKey || s.defaultKey))
+    )
+
     return defaultShortcuts.map(defaultShortcut => {
       const stored = shortcutsMap.get(defaultShortcut.id)
       if (stored) {
@@ -60,6 +73,12 @@ export function loadShortcuts(): KeyboardShortcut[] {
           enabled: stored.enabled !== undefined ? stored.enabled : defaultShortcut.enabled
         }
       }
+      const key = normalizeKeyString(defaultShortcut.defaultKey)
+      if (usedKeys.has(key)) {
+        console.info(`[shortcuts] ${defaultShortcut.id} は既存のキー割り当て（${defaultShortcut.defaultKey}）と重複するため無効で追加します`)
+        return { ...defaultShortcut, enabled: false }
+      }
+      if (defaultShortcut.enabled) usedKeys.add(key)
       return defaultShortcut
     })
   } catch (error) {

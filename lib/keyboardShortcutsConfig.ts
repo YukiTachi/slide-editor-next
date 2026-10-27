@@ -52,6 +52,15 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     enabled: true,
     category: 'file'
   },
+  {
+    // ブラウザ既定の「ページを印刷」を置き換えてアプリのPDF出力を起動する（docs/PDF_CTRL_P_SHORTCUT_PLAN.md）
+    id: 'export-pdf',
+    action: 'export-pdf',
+    label: 'PDF出力',
+    defaultKey: 'Ctrl+P',
+    enabled: true,
+    category: 'file'
+  },
   // 表示カテゴリ
   {
     id: 'preview-window',

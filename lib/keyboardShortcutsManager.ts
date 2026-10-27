@@ -55,17 +55,11 @@ export function matchesShortcut(
     return false
   }
 
-  // Shiftキーのチェック
-  if (parsed.shift !== undefined) {
-    if (parsed.shift && !event.shiftKey) return false
-    if (!parsed.shift && event.shiftKey) return false
-  }
-
-  // Altキーのチェック
-  if (parsed.alt !== undefined) {
-    if (parsed.alt && !event.altKey) return false
-    if (!parsed.alt && event.altKey) return false
-  }
+  // Shift / Alt は「キー文字列に含まれているか」と「実際に押されているか」が一致する場合だけ一致とする。
+  // 以前は文字列に含まれるときしか検査しておらず、'Ctrl+P' が Ctrl+Shift+P にも、'Ctrl+Z' が Ctrl+Shift+Z にも
+  // 一致していた（docs/PDF_CTRL_P_SHORTCUT_PLAN.md 2.6）
+  if (!!parsed.shift !== event.shiftKey) return false
+  if (!!parsed.alt !== event.altKey) return false
 
   // キーのチェック（大文字小文字を考慮）
   const eventKey = event.key
@@ -83,13 +77,32 @@ export function matchesShortcut(
   return false
 }
 
-// ショートカットの重複をチェック
+/**
+ * キー文字列を、matchesShortcut() と同じ同一視ルールで正規化する。
+ * Ctrl / Cmd / Meta は区別しないため 'Mod' にまとめ、修飾キーは固定順（Mod, Shift, Alt）、1文字キーは大文字に揃える。
+ * 例: 'Cmd+P' / 'Meta+P' / 'ctrl+p' → 'Mod+P'、'Shift+Ctrl+P' → 'Mod+Shift+P'
+ * 重複チェックや読み込み時の衝突判定に使う（照合そのものは matchesShortcut() が行う）
+ */
+export function normalizeKeyString(keyString: string): string {
+  const parsed = parseKeyString(keyString)
+  const parts: string[] = []
+  if (parsed.ctrl || parsed.meta) parts.push('Mod')
+  if (parsed.shift) parts.push('Shift')
+  if (parsed.alt) parts.push('Alt')
+  parts.push(parsed.key.length === 1 ? parsed.key.toUpperCase() : parsed.key)
+  return parts.join('+')
+}
+
+// ショートカットの重複をチェック（Ctrl / Cmd / Meta や修飾キーの順序の違いは同じキーとして扱う）
 export function findDuplicateShortcut(
   shortcuts: KeyboardShortcut[],
   shortcutId: string,
   keyString: string
 ): KeyboardShortcut | null {
-  return shortcuts.find(s => s.id !== shortcutId && s.enabled && (s.customKey || s.defaultKey) === keyString) || null
+  const target = normalizeKeyString(keyString)
+  return shortcuts.find(
+    s => s.id !== shortcutId && s.enabled && normalizeKeyString(s.customKey || s.defaultKey) === target
+  ) || null
 }
 
 // ショートカットキー文字列を表示用にフォーマット

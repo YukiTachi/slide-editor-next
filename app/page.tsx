@@ -26,6 +26,7 @@ import { useKeyboardShortcuts, type ShortcutActions } from '@/hooks/useKeyboardS
 import { useTutorial } from '@/hooks/useTutorial'
 import { useSlideSize } from '@/hooks/useSlideSize'
 import { useCSSDesignTemplate } from '@/hooks/useCSSDesignTemplate'
+import { exportToPDF } from '@/lib/pdfExporter'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -155,6 +156,26 @@ export default function Home() {
     }
   }
 
+  // PDF出力（印刷ダイアログ方式、詳細は docs/PDF_EXPORT_PLAN.md）
+  // メニューの「PDF出力」ボタンと Ctrl+P ショートカットの両方から呼ばれる（docs/PDF_CTRL_P_SHORTCUT_PLAN.md）
+  const handleExportPDF = async () => {
+    const trimmedContent = htmlContent.trim()
+    if (!trimmedContent) {
+      alert('出力するスライドがありません')
+      return
+    }
+    try {
+      await exportToPDF(trimmedContent, sizeConfig, template, {
+        onStatus: (message) => setStatusMessage(message),
+      })
+      // 案内メッセージ（印刷ダイアログ表示中）をしばらく残してからクリア
+      setTimeout(() => setStatusMessage(''), 8000)
+    } catch (error) {
+      console.error('PDF出力に失敗:', error)
+      alert('PDF出力に失敗しました。コンソールを確認してください。')
+    }
+  }
+
   const handleOpenPreviewWindow = () => {
     // HamburgerMenuのopenPreviewWindowを呼び出す必要がある
     // 一時的な解決策として、window.openを直接使用
@@ -252,7 +273,8 @@ export default function Home() {
     'add-slide': handleAddSlide,
     'insert-image': handleImageInsert,
     'toggle-hierarchy': handleToggleHierarchy,
-    'presentation-mode': handleStartPresentation
+    'presentation-mode': handleStartPresentation,
+    'export-pdf': handleExportPDF
   }
 
   // キーボードショートカット管理
@@ -322,6 +344,7 @@ export default function Home() {
           onCodeBlockInsertRequest={() => setIsCodeBlockInserterOpen(true)}
           onEquationInsertRequest={() => setIsEquationInserterOpen(true)}
           onHierarchyPanelToggle={handleToggleHierarchy}
+          onExportPDF={handleExportPDF}
         />
         </div>
       </header>
