@@ -16,6 +16,7 @@ export interface ShortcutActions {
   'insert-image': () => void
   'toggle-hierarchy': () => void
   'presentation-mode': () => void
+  'export-pdf': () => void
 }
 
 export function useKeyboardShortcuts(actions: ShortcutActions) {
@@ -62,6 +63,12 @@ export function useKeyboardShortcuts(actions: ShortcutActions) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ショートカット設定モーダルでキーを記録中は、押されたキーを実行せず記録側（ShortcutKeyInput）に渡す。
+      // このリスナーは window の capture で記録側（document の capture）より先に動くため、ここで除外する
+      if (document.querySelector('[data-shortcut-recording="true"]')) {
+        return
+      }
+
       // エディタ内で入力中でも、グローバルショートカットは有効にする
       const target = e.target as HTMLElement
       

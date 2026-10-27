@@ -21,9 +21,14 @@ export default function ShortcutKeyInput({
   const [displayValue, setDisplayValue] = useState(value)
   const inputRef = useRef<HTMLDivElement>(null)
 
+  // 記録中でないときは常に確定値（value）を表示する。
+  // 記録が終わる経路は「確定」「重複で拒否」「Escape」「blur」の 4 つで、重複と Escape では親の value が変わらないため、
+  // value の変化だけを見ていると「キーを押してください...」が残る。isRecording の変化でも同期する
   useEffect(() => {
-    setDisplayValue(value)
-  }, [value])
+    if (!isRecording) {
+      setDisplayValue(value)
+    }
+  }, [value, isRecording])
 
   useEffect(() => {
     if (!isRecording) return
@@ -116,6 +121,9 @@ export default function ShortcutKeyInput({
       tabIndex={disabled ? -1 : 0}
       role="button"
       aria-label="ショートカットキーを設定"
+      // 記録中はグローバルショートカット（useKeyboardShortcuts）に処理させない目印。
+      // グローバル処理は window の capture で先に走るため、ここで押したキーが実行されてしまうのを防ぐ
+      data-shortcut-recording={isRecording ? 'true' : undefined}
     >
       {displayValue || '未設定'}
     </div>

@@ -101,6 +101,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
         <li><kbd>Ctrl+S</kbd> / <kbd>Cmd+S</kbd>: HTMLコピー</li>
         <li><kbd>Ctrl+I</kbd> / <kbd>Cmd+I</kbd>: 画像挿入</li>
         <li><kbd>Ctrl+M</kbd> / <kbd>Cmd+M</kbd>: スライド追加</li>
+        <li><kbd>Ctrl+P</kbd> / <kbd>Cmd+P</kbd>: PDF出力</li>
       </ul>
       <p>メニューからショートカット一覧を確認・カスタマイズできます。</p>
     `,
