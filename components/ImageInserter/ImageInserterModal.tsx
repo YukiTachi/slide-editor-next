@@ -4,8 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import styles from './ImageInserterModal.module.css'
 import { saveImageToStorage, generateImageFileName, convertBase64ToExternal } from '@/lib/imageStorage'
-import { insertImageToHTML } from '@/lib/imageProcessor'
+import { insertImageToHTML, hasSplitSlideImage } from '@/lib/imageProcessor'
 import type { EditorHandle } from '@/components/Editor/Editor'
+
+// 分割スライドの右カラムは画像 1 枚前提のため、既に画像があれば置き換えの確認を出す（docs/PDF_EXPORT_RANGE_PLAN.md 2.9）
+export const REPLACE_SPLIT_IMAGE_MESSAGE = 'このスライドは分割レイアウトで既に画像があります。右側の画像を置き換えますか？'
 
 interface ImageInserterModalProps {
   isOpen: boolean
@@ -61,7 +64,15 @@ export default function ImageInserterModal({
     onClose()
   }
 
+  // 既に画像を持つ分割スライドなら置き換えてよいか確認する。false なら挿入しない
+  const confirmReplaceIfSplitImage = (): boolean => {
+    const cursorPos = editorRef?.current?.getCursorPosition() || 0
+    if (!hasSplitSlideImage(htmlContent, cursorPos)) return true
+    return confirm(REPLACE_SPLIT_IMAGE_MESSAGE)
+  }
+
   const processFile = async (file: File) => {
+    if (!confirmReplaceIfSplitImage()) return
     if (imageMode === 'external') {
       await insertAsExternalFile(file)
     } else {
@@ -119,6 +130,7 @@ export default function ImageInserterModal({
   const insertByURL = () => {
     const url = prompt('画像のURLを入力してください:')
     if (url && isValidURL(url)) {
+      if (!confirmReplaceIfSplitImage()) return
       const cursorPos = editorRef?.current?.getCursorPosition() || 0
       const result = insertImageToHTML(htmlContent, cursorPos, url, '外部画像')
       

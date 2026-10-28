@@ -1,17 +1,18 @@
-import { SlideTemplates } from './slideTemplates'
+import { SlideTemplates, createSlideStartRegex, findSlideEnd } from './slideTemplates'
 
 /**
  * スライドを抽出する
+ * 開始タグの定義と終了位置の計測は slideTemplates の共通実装を使う（class="slide slide-split" も対象）
  */
 export function extractSlides(htmlContent: string): Array<{ html: string; start: number; end: number }> {
   const slides: Array<{ html: string; start: number; end: number }> = []
-  const slideStartRegex = /<div class="slide"[^>]*>/g
+  const slideStartRegex = createSlideStartRegex()
 
   let match
   while ((match = slideStartRegex.exec(htmlContent)) !== null) {
     const start = match.index
     const end = findSlideEnd(htmlContent, start)
-    
+
     if (end !== -1) {
       const slideHtml = htmlContent.substring(start, end)
       slides.push({ html: slideHtml, start, end })
@@ -22,31 +23,45 @@ export function extractSlides(htmlContent: string): Array<{ html: string; start:
 }
 
 /**
- * スライドの終了位置を検索
+ * カーソル位置から「現在のスライド」のインデックスを返す（PDF の「現在のスライドのみ」出力用）。
+ * - カーソルがスライドの内側（開始タグ〜終了タグ、両端含む）→ そのスライド
+ * - スライドの外側（<head>内・スライド間・最後のスライドの後）→ カーソルより前にある直近のスライド
+ * - 前にスライドがない（先頭の <head> 内など）→ 0
+ * - スライドが 1 枚もない → -1
+ * cursorPos は htmlContent（trim 前）のオフセットであること。
  */
-function findSlideEnd(htmlContent: string, slideStart: number): number {
-  let depth = 1
-  let pos = slideStart + htmlContent.substring(slideStart).indexOf('>') + 1
+export function findSlideIndexAtCursor(htmlContent: string, cursorPos: number): number {
+  const slides = extractSlides(htmlContent)
+  if (slides.length === 0) return -1
 
-  while (pos < htmlContent.length && depth > 0) {
-    const nextDivStart = htmlContent.indexOf('<div', pos)
-    const nextDivEnd = htmlContent.indexOf('</div>', pos)
+  const inside = slides.findIndex((slide) => cursorPos >= slide.start && cursorPos <= slide.end)
+  if (inside !== -1) return inside
 
-    if (nextDivEnd === -1) break
+  let preceding = -1
+  slides.forEach((slide, index) => {
+    if (slide.end <= cursorPos) preceding = index
+  })
+  return preceding === -1 ? 0 : preceding
+}
 
-    if (nextDivStart !== -1 && nextDivStart < nextDivEnd) {
-      depth++
-      pos = nextDivStart + 4
-    } else {
-      depth--
-      if (depth === 0) {
-        return nextDivEnd + 6 // </div>の長さ
-      }
-      pos = nextDivEnd + 6
-    }
+/**
+ * 指定インデックスのスライドだけを残した HTML を返す。
+ * 他のスライド（開始タグ〜終了タグ）を後ろから順に取り除くだけで、<head>・スライド間のコメント・<script>・
+ * その他の要素はすべて元の位置に残る。整数でない・範囲外のインデックスは null。元の文字列は変更しない。
+ */
+export function extractSingleSlideHTML(htmlContent: string, slideIndex: number): string | null {
+  // 1.5 や NaN が通ると「どのスライドも残らない」HTML になるため、整数以外も弾く
+  if (!Number.isInteger(slideIndex)) return null
+  const slides = extractSlides(htmlContent)
+  if (slideIndex < 0 || slideIndex >= slides.length) return null
+
+  let result = htmlContent
+  // 後ろから削ると、まだ削っていない前方のオフセットがずれない
+  for (let i = slides.length - 1; i >= 0; i--) {
+    if (i === slideIndex) continue
+    result = result.slice(0, slides[i].start) + result.slice(slides[i].end)
   }
-
-  return -1
+  return result
 }
 
 /**

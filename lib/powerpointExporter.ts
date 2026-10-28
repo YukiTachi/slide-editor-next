@@ -552,7 +552,7 @@ export async function exportToPowerPoint(
         : {}),
     })
 
-    // スライド分割はDOMParserで行う（extractSlidesのregexはclass="slide slide-split"にマッチしないため）
+    // スライド分割はDOMParserで行う（文字列ベースの extractSlides とは独立に、実際の DOM 上の div.slide を対象にする）
     const doc = new DOMParser().parseFromString(trimmedContent, 'text/html')
     const slideNodes = Array.from(doc.querySelectorAll('div.slide'))
     if (slideNodes.length === 0) {

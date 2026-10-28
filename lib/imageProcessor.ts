@@ -1,4 +1,5 @@
 // 画像処理ユーティリティ
+import { createSlideStartRegex, findSlideEnd } from './slideTemplates'
 
 const IMAGES_FOLDER = 'images/'
 
@@ -8,9 +9,9 @@ interface Slide {
   content: string
 }
 
-// 現在のスライドを検索
+// 現在のスライドを検索（開始タグの定義と終了位置の計測は slideTemplates の共通実装を使う）
 export function findCurrentSlide(htmlContent: string, cursorPos: number): Slide | null {
-  const slideStartRegex = /<div class="slide">/g
+  const slideStartRegex = createSlideStartRegex()
   const slides: Slide[] = []
   let match
 
@@ -35,32 +36,6 @@ export function findCurrentSlide(htmlContent: string, cursorPos: number): Slide 
   }
 
   return null
-}
-
-// スライドの終了位置を検索
-function findSlideEnd(htmlContent: string, slideStart: number): number {
-  let depth = 1
-  let pos = slideStart + '<div class="slide">'.length
-
-  while (pos < htmlContent.length && depth > 0) {
-    const nextDivStart = htmlContent.indexOf('<div', pos)
-    const nextDivEnd = htmlContent.indexOf('</div>', pos)
-
-    if (nextDivEnd === -1) break
-
-    if (nextDivStart !== -1 && nextDivStart < nextDivEnd) {
-      depth++
-      pos = nextDivStart + 4
-    } else {
-      depth--
-      if (depth === 0) {
-        return nextDivEnd + 6
-      }
-      pos = nextDivEnd + 6
-    }
-  }
-
-  return -1
 }
 
 // スライドを2分割レイアウトに変換
@@ -111,6 +86,38 @@ ${contentWithoutTitleAndFooter.trim()}
     </div>`
 }
 
+// .slide-image の中身は <img> だけで入れ子の div を持たない前提で、最初の </div> をそのコンテナの閉じタグとみなす
+const SPLIT_IMAGE_CONTAINER = /(<div class="slide-image">)([\s\S]*?)(<\/div>)/
+
+function isSplitSlide(slideContent: string): boolean {
+  return /^<div class="slide(?:\s[^"]*)?\bslide-split\b/.test(slideContent)
+}
+
+/**
+ * カーソル位置のスライドが「既に画像を持つ2分割スライド」かどうか。
+ * 画像挿入の前に「置き換えますか？」の確認を出すかの判定に使う
+ */
+export function hasSplitSlideImage(htmlContent: string, cursorPos: number): boolean {
+  const currentSlide = findCurrentSlide(htmlContent, cursorPos)
+  if (!currentSlide || !isSplitSlide(currentSlide.content)) return false
+  const container = currentSlide.content.match(SPLIT_IMAGE_CONTAINER)
+  return container !== null && /<img\b/i.test(container[2])
+}
+
+/**
+ * 既に2分割レイアウトのスライドの画像を差し替える。
+ * 右カラム（.slide-image）は画像 1 枚を前提にした横並び flex のため、追加ではなく置き換える
+ * （docs/PDF_EXPORT_RANGE_PLAN.md 2.9）。画像が無い右カラムには新しく入れる。
+ * .slide-image が無い場合は null（呼び出し側でカーソル位置への挿入にフォールバック）
+ */
+export function replaceImageInSplitSlide(slideContent: string, imageSrcAttr: string, imageName: string): string | null {
+  if (!SPLIT_IMAGE_CONTAINER.test(slideContent)) return null
+  const newImg = `
+                <img class="slide-img" src="${imageSrcAttr}" alt="${imageName}">
+            `
+  return slideContent.replace(SPLIT_IMAGE_CONTAINER, (_m, open: string, _inner: string, close: string) => `${open}${newImg}${close}`)
+}
+
 // 画像をエディタに挿入
 export function insertImageToHTML(
   htmlContent: string,
@@ -119,42 +126,48 @@ export function insertImageToHTML(
   imageName: string,
   fileName: string | null = null
 ): { newContent: string; newCursorPos: number } {
+  const imageSrcAttr = fileName ? `${IMAGES_FOLDER}${fileName}` : imageSrc
+
   // 現在のスライドを検索
   const currentSlide = findCurrentSlide(htmlContent, cursorPos)
 
   if (currentSlide) {
-    // 現在のスライドを2分割レイアウトに変換
-    const splitSlide = convertToSplitLayout(currentSlide.content, imageSrc, imageName, fileName)
+    // 既に2分割のスライドなら右カラムの画像を差し替え（呼び出し側で確認済み）、そうでなければ2分割レイアウトに変換する
+    // （2分割スライドを convertToSplitLayout に通すと一致せず元のまま返り、何も挿入されない。docs/PDF_EXPORT_RANGE_PLAN.md 2.9）
+    const updatedSlide = isSplitSlide(currentSlide.content)
+      ? replaceImageInSplitSlide(currentSlide.content, imageSrcAttr, imageName)
+      : convertToSplitLayout(currentSlide.content, imageSrc, imageName, fileName)
 
-    // 元のスライドを新しいスライドに置換
-    const newHtmlContent =
-      htmlContent.substring(0, currentSlide.start) +
-      splitSlide +
-      htmlContent.substring(currentSlide.end)
+    if (updatedSlide !== null && updatedSlide !== currentSlide.content) {
+      // 元のスライドを新しいスライドに置換
+      const newHtmlContent =
+        htmlContent.substring(0, currentSlide.start) +
+        updatedSlide +
+        htmlContent.substring(currentSlide.end)
 
-    return {
-      newContent: newHtmlContent,
-      newCursorPos: currentSlide.start + splitSlide.length
+      return {
+        newContent: newHtmlContent,
+        newCursorPos: currentSlide.start + updatedSlide.length
+      }
     }
-  } else {
-    // スライド内にいない場合は、従来通りの方法で挿入
-    const imageTag = fileName
-      ? `<img class="slide-img" src="${IMAGES_FOLDER}${fileName}" alt="${imageName}"`
-      : `<img class="slide-img" src="${imageSrc}" alt="${imageName}"`
+    // 変換できないスライド構造の場合は、下のカーソル位置への挿入にフォールバックする
+  }
 
-    const imageHTML = `
+  // スライド内にいない場合（または変換できない場合）は、カーソル位置に画像ブロックを挿入
+  const imageTag = `<img class="slide-img" src="${imageSrcAttr}" alt="${imageName}"`
+
+  const imageHTML = `
         <div style="text-align: center; margin: 30px 0;">
-            ${imageTag} 
-                 style="max-width: 600px; max-height: 400px; width: auto; height: auto; 
+            ${imageTag}
+                 style="max-width: 600px; max-height: 400px; width: auto; height: auto;
                         border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
             <p class="slide-text" style="font-size: 16px; color: #7f8c8d; margin-top: 10px; font-style: italic;">${imageName}</p>
         </div>`
 
-    const newContent = htmlContent.slice(0, cursorPos) + imageHTML + htmlContent.slice(cursorPos)
-    return {
-      newContent,
-      newCursorPos: cursorPos + imageHTML.length
-    }
+  const newContent = htmlContent.slice(0, cursorPos) + imageHTML + htmlContent.slice(cursorPos)
+  return {
+    newContent,
+    newCursorPos: cursorPos + imageHTML.length
   }
 }
 

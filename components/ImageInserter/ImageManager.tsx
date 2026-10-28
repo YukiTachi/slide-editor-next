@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import styles from './ImageManager.module.css'
 import { getAllStoredImages, deleteImageFromStorage, type StoredImages, type ImageData } from '@/lib/imageStorage'
-import { insertImageToHTML } from '@/lib/imageProcessor'
+import { insertImageToHTML, hasSplitSlideImage } from '@/lib/imageProcessor'
+import { REPLACE_SPLIT_IMAGE_MESSAGE } from '@/components/ImageInserter/ImageInserterModal'
 import type { EditorHandle } from '@/components/Editor/Editor'
 
 interface ImageManagerProps {
@@ -48,6 +49,8 @@ export default function ImageManager({
     }
 
     const cursorPos = editorRef.current?.getCursorPosition() || 0
+    // 既に画像を持つ分割スライドなら置き換えの確認（docs/PDF_EXPORT_RANGE_PLAN.md 2.9）
+    if (hasSplitSlideImage(htmlContent, cursorPos) && !confirm(REPLACE_SPLIT_IMAGE_MESSAGE)) return
     const result = insertImageToHTML(htmlContent, cursorPos, '', image.originalName, fileName)
     
     setHtmlContent(result.newContent)

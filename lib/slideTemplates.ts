@@ -1,5 +1,50 @@
 import type { SlideTemplate } from '@/types'
 
+/**
+ * スライド開始タグの正規表現ソース。
+ * class 属性が "slide" または "slide ..."（slide-split 等の修飾子付き）の div に一致し、
+ * "slide-table-container" のような slide- 接頭辞のクラスには一致しない。
+ * スライドを数える・探す処理はすべてこの定義を使う（docs/PDF_EXPORT_RANGE_PLAN.md 2.5）。
+ */
+export const SLIDE_START_TAG_SOURCE = '<div class="slide(?:\\s[^"]*)?"[^>]*>'
+
+/** g フラグ付き RegExp は lastIndex を持つため、呼び出しごとに新しいインスタンスを返す */
+export function createSlideStartRegex(): RegExp {
+  return new RegExp(SLIDE_START_TAG_SOURCE, 'g')
+}
+
+/**
+ * slideStart にある開始タグに対応する </div> の直後の位置を返す（見つからなければ -1）。
+ * 深さ計測は開始タグの '>' の次から始めるため、開始タグの長さ（修飾子クラスや属性）に依存しない。
+ */
+export function findSlideEnd(htmlContent: string, slideStart: number): number {
+  const tagEnd = htmlContent.indexOf('>', slideStart)
+  if (tagEnd === -1) return -1
+
+  let depth = 1
+  let pos = tagEnd + 1
+
+  while (pos < htmlContent.length && depth > 0) {
+    const nextDivStart = htmlContent.indexOf('<div', pos)
+    const nextDivEnd = htmlContent.indexOf('</div>', pos)
+
+    if (nextDivEnd === -1) break
+
+    if (nextDivStart !== -1 && nextDivStart < nextDivEnd) {
+      depth++
+      pos = nextDivStart + 4
+    } else {
+      depth--
+      if (depth === 0) {
+        return nextDivEnd + 6 // </div>の長さ
+      }
+      pos = nextDivEnd + 6
+    }
+  }
+
+  return -1
+}
+
 // 定義済みテンプレート
 export const DEFAULT_TEMPLATES: SlideTemplate[] = [
   {
@@ -298,7 +343,7 @@ export class SlideTemplates {
 
   // ページ番号を振り直す関数
   static updatePageNumbers(htmlContent: string): string {
-    const slideStartRegex = /<div class="slide">/g
+    const slideStartRegex = createSlideStartRegex()
     const footerRegex = /<div class="footer">\s*([^<]*?)\s*<\/div>/g
 
     let slideCount = 0
@@ -350,45 +395,18 @@ export class SlideTemplates {
 
   // スライド挿入位置を検索する関数
   static findSlideInsertPosition(htmlContent: string, cursorPosition: number): number {
-    const slideStartRegex = /<div class="slide">/g
+    const slideStartRegex = createSlideStartRegex()
 
-    // 全てのスライドの位置を取得
+    // 全てのスライドの位置（開始・終了）を取得
     const slidePositions: Array<{ start: number; end: number }> = []
     let match
 
     while ((match = slideStartRegex.exec(htmlContent)) !== null) {
       slidePositions.push({
         start: match.index,
-        end: -1 // 後で設定
+        end: findSlideEnd(htmlContent, match.index)
       })
     }
-
-    // 各スライドの終了位置を特定
-    slidePositions.forEach((slide) => {
-      let depth = 1 // 開始タグをカウント
-      let searchPos = slide.start + '<div class="slide">'.length
-
-      while (depth > 0 && searchPos < htmlContent.length) {
-        const nextDivStart = htmlContent.indexOf('<div', searchPos)
-        const nextDivEnd = htmlContent.indexOf('</div>', searchPos)
-
-        if (nextDivEnd === -1) break
-
-        if (nextDivStart !== -1 && nextDivStart < nextDivEnd) {
-          // divの開始タグが見つかった
-          depth++
-          searchPos = nextDivStart + 4
-        } else {
-          // divの終了タグが見つかった
-          depth--
-          if (depth === 0) {
-            slide.end = nextDivEnd + 6 // </div>の長さ
-            break
-          }
-          searchPos = nextDivEnd + 6
-        }
-      }
-    })
 
     // カーソル位置がどのスライド内にあるか判定
     for (let i = 0; i < slidePositions.length; i++) {
