@@ -345,6 +345,18 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     })
   }, [editorSettings])
 
+  // 外部（画像挿入など）から要求されたカーソル位置がまだ文書に存在しないとき、同期後に適用するために保持する
+  const pendingCursorRef = useRef<number | null>(null)
+
+  const applyCursorPosition = useCallback((position: number) => {
+    const view = viewRef.current
+    if (!view) return
+    // 文書長を超える位置は RangeError（Selection points outside of document）になるため末尾に丸める
+    const pos = Math.max(0, Math.min(position, view.state.doc.length))
+    view.dispatch({ selection: { anchor: pos, head: pos } })
+    view.focus()
+  }, [])
+
   // コンテンツの同期（外部からの変更）
   useEffect(() => {
     if (!viewRef.current) return
@@ -358,7 +370,14 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
         },
       })
     }
-  }, [htmlContent])
+    // 予約されていたカーソル位置は、この同期で必ず消費する（新しい文書にも収まらなければ末尾に丸めて適用）。
+    // 残したままにすると、後の編集で文書が伸びたときに古い位置へ突然移動してしまう
+    if (pendingCursorRef.current !== null) {
+      const pending = pendingCursorRef.current
+      pendingCursorRef.current = null
+      applyCursorPosition(pending)
+    }
+  }, [htmlContent, applyCursorPosition])
 
   // エラー表示の更新
   useEffect(() => {
@@ -381,10 +400,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ htmlContent, setHtmlCont
     },
     setCursorPosition: (position: number) => {
       if (!viewRef.current) return
-      viewRef.current.dispatch({
-        selection: { anchor: position, head: position },
-      })
-      viewRef.current.focus()
+      // setHtmlContent 直後は React の再描画前で文書が古いことがある。
+      // 位置が現在の文書に収まらなければ、同期エフェクトで新しい内容が入った後に適用する
+      if (position > viewRef.current.state.doc.length) {
+        pendingCursorRef.current = position
+        return
+      }
+      applyCursorPosition(position)
     },
     focus: () => {
       viewRef.current?.focus()

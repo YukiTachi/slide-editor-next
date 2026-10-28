@@ -26,7 +26,8 @@ import { useKeyboardShortcuts, type ShortcutActions } from '@/hooks/useKeyboardS
 import { useTutorial } from '@/hooks/useTutorial'
 import { useSlideSize } from '@/hooks/useSlideSize'
 import { useCSSDesignTemplate } from '@/hooks/useCSSDesignTemplate'
-import { exportToPDF } from '@/lib/pdfExporter'
+import { exportToPDF, type PDFExportRange } from '@/lib/pdfExporter'
+import { findSlideIndexAtCursor } from '@/lib/slideReorder'
 
 export default function Home() {
   const [htmlContent, setHtmlContent] = useState<string>('')
@@ -158,14 +159,26 @@ export default function Home() {
 
   // PDF出力（印刷ダイアログ方式、詳細は docs/PDF_EXPORT_PLAN.md）
   // メニューの「PDF出力」ボタンと Ctrl+P ショートカットの両方から呼ばれる（docs/PDF_CTRL_P_SHORTCUT_PLAN.md）
-  const handleExportPDF = async () => {
+  // range: 'all' = 全スライド（Ctrl+P もこちら）、'current' = カーソル位置のスライドのみ（docs/PDF_EXPORT_RANGE_PLAN.md）
+  const handleExportPDF = async (range: PDFExportRange = 'all') => {
     const trimmedContent = htmlContent.trim()
     if (!trimmedContent) {
       alert('出力するスライドがありません')
       return
     }
+    let slideIndex: number | undefined
+    if (range === 'current') {
+      const cursorPosition = editorRef.current?.getCursorPosition() ?? 0
+      // カーソル位置は trim 前の htmlContent のオフセットなので、判定も htmlContent に対して行う
+      slideIndex = findSlideIndexAtCursor(htmlContent, cursorPosition)
+      if (slideIndex === -1) {
+        alert('スライド（<div class="slide">）が見つかりません')
+        return
+      }
+    }
     try {
       await exportToPDF(trimmedContent, sizeConfig, template, {
+        slideIndex,
         onStatus: (message) => setStatusMessage(message),
       })
       // 案内メッセージ（印刷ダイアログ表示中）をしばらく残してからクリア
@@ -274,7 +287,7 @@ export default function Home() {
     'insert-image': handleImageInsert,
     'toggle-hierarchy': handleToggleHierarchy,
     'presentation-mode': handleStartPresentation,
-    'export-pdf': handleExportPDF
+    'export-pdf': () => handleExportPDF('all')
   }
 
   // キーボードショートカット管理

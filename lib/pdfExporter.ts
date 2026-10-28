@@ -1,14 +1,18 @@
 // PDFエクスポート（印刷ダイアログ方式）
 // 設計の詳細は docs/PDF_EXPORT_PLAN.md を参照
 import { processHTMLForPreviewAsync } from './htmlProcessor'
-import { extractSlides } from './slideReorder'
+import { extractSlides, extractSingleSlideHTML } from './slideReorder'
 import { getPrintPageCSS } from './slideSizeConfig'
 import type { SlideSizeConfig, CSSDesignTemplate } from '@/types'
 
+// 出力範囲（docs/PDF_EXPORT_RANGE_PLAN.md）。'current' はカーソル位置のスライド 1 枚だけ
+export type PDFExportRange = 'all' | 'current'
+
 export interface PDFExportOptions {
-  fileName?: string                    // 既定: `スライド_YYYY-MM-DD`（document.titleに設定）
+  fileName?: string                    // 既定: `スライド_YYYY-MM-DD`（1 枚出力時は `_pN` 付き。document.titleに設定）
   timeoutMs?: number                   // レンダリング待機全体の上限（共有deadline）
   onStatus?: (message: string) => void // ステータスバー連携
+  slideIndex?: number                  // 指定時はそのスライド（0 始まり）だけを出力する。未指定は全スライド
 }
 
 const DEFAULT_TIMEOUT_MS = 15000
@@ -31,16 +35,31 @@ export async function exportToPDF(
 ): Promise<void> {
   if (isExporting) return
 
-  const trimmedContent = htmlContent.trim()
+  let trimmedContent = htmlContent.trim()
   if (!trimmedContent) return
+
+  // 範囲指定: 他のスライドを取り除いた 1 枚分の HTML に差し替える（<head> やスライド外の内容はそのまま）。
+  // isExporting を立てる前に行い、範囲外で失敗してもフラグが残らないようにする
+  const slideIndex = options?.slideIndex
+  let slideLabel = ''
+  if (slideIndex !== undefined) {
+    const total = extractSlides(trimmedContent).length
+    const single = extractSingleSlideHTML(trimmedContent, slideIndex)
+    if (single === null) {
+      throw new Error(`スライド ${slideIndex + 1} が見つかりません（全 ${total} 枚）`)
+    }
+    trimmedContent = single
+    slideLabel = `（スライド ${slideIndex + 1} / ${total}）`
+  }
 
   isExporting = true
   const onStatus = options?.onStatus
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS
   let iframe: HTMLIFrameElement | null = null
+  let restoreTitle: (() => void) | null = null
 
   try {
-    onStatus?.('PDFを準備中…')
+    onStatus?.(`PDFを準備中…${slideLabel}`)
 
     // グラフのフェードインアニメーション中に印刷されると中間状態が写るため無効化する
     let processedHTML = await processHTMLForPreviewAsync(trimmedContent, sizeConfig, template, {
@@ -88,11 +107,17 @@ export async function exportToPDF(
 
     await waitForRenderComplete(iframe, deadline)
 
-    // Chrome/Edgeは document.title を「PDFに保存」のデフォルトファイル名に使う
-    printDoc.title = options?.fileName ?? getDefaultFileName()
+    // 「PDFに保存」のデフォルトファイル名: Chrome/Edge は iframe の print() でも印刷文書ではなく
+    // 最上位（親ページ）の document.title を使う（実機で確認。docs/PDF_EXPORT_RANGE_PLAN.md 2.8）。
+    // 印刷中だけ親の title をファイル名に差し替え、後片付けで元に戻す。印刷文書の title も同じ値にしておく
+    const fileName = options?.fileName ?? getDefaultFileName(slideIndex)
+    printDoc.title = fileName
+    const originalTitle = document.title
+    document.title = fileName
+    restoreTitle = () => { document.title = originalTitle }
 
     onStatus?.('印刷ダイアログで保存先に「PDFに保存」を選択してください')
-    scheduleCleanup(iframe, printWindow)
+    scheduleCleanup(iframe, printWindow, restoreTitle)
     printWindow.focus()
     printWindow.print()
   } catch (error) {
@@ -100,6 +125,7 @@ export async function exportToPDF(
     if (iframe) {
       removeIframe(iframe)
     }
+    restoreTitle?.()
     isExporting = false
     onStatus?.('')
     throw error
@@ -112,7 +138,7 @@ export async function exportToPDF(
  * 2. afterprintが来ない環境向けの上限タイマー（保険。afterprint経路で解除されたらクリア）
  * ダイアログ表示中の破棄は出力を壊すため、即時破棄はしない。
  */
-function scheduleCleanup(iframe: HTMLIFrameElement, printWindow: Window): void {
+function scheduleCleanup(iframe: HTMLIFrameElement, printWindow: Window, restoreTitle: () => void): void {
   let done = false
   let delayTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -122,6 +148,7 @@ function scheduleCleanup(iframe: HTMLIFrameElement, printWindow: Window): void {
     clearTimeout(fallbackTimer)
     if (delayTimer !== undefined) clearTimeout(delayTimer)
     removeIframe(iframe)
+    restoreTitle() // 親ページの title をファイル名から元に戻す
     isExporting = false
   }
 
@@ -140,12 +167,14 @@ function removeIframe(iframe: HTMLIFrameElement): void {
   }
 }
 
-function getDefaultFileName(): string {
+/** 既定ファイル名。全スライドは `スライド_YYYY-MM-DD`、1 枚出力は `スライド_YYYY-MM-DD_p3`（1 始まりのスライド番号） */
+function getDefaultFileName(slideIndex?: number): string {
   const now = new Date()
   const y = now.getFullYear()
   const m = String(now.getMonth() + 1).padStart(2, '0')
   const d = String(now.getDate()).padStart(2, '0')
-  return `スライド_${y}-${m}-${d}`
+  const suffix = slideIndex !== undefined ? `_p${slideIndex + 1}` : ''
+  return `スライド_${y}-${m}-${d}${suffix}`
 }
 
 /**

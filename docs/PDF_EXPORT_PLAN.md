@@ -159,7 +159,9 @@ export async function exportToPDF(
   about:blank の load は二重発火し得るため、**write後の** load イベントまたは `document.readyState === 'complete'` で待つ。
 - **背景・装飾の印刷**: Chrome/Edgeは既定で背景を印刷しないため、`print-color-adjust: exact` を全要素に注入する（5.3のCSSに含める）。
 - **ファイル名**: 印刷APIにファイル名指定はないが、Chrome/Edgeは `document.title` を
-  「PDFに保存」のデフォルトファイル名に使うことが多い。Phase 1は **`スライド_YYYY-MM-DD` に統一**する
+  「PDFに保存」のデフォルトファイル名に使うことが多い。Phase 1は **`スライド_YYYY-MM-DD` に統一**する。
+  **注意（2026-10-27、SEN-26 で判明）**: iframe の `print()` では印刷文書ではなく**親ページ**の `document.title` が使われる。
+  印刷中だけ親の title を差し替え、後片付けで戻す（`docs/PDF_EXPORT_RANGE_PLAN.md` 2.8）
   （現行UIには「開いているプロジェクト名」の単一ソースが無いため、プロジェクト名の反映は名前の単一ソースができてからの拡張とする）。
 - **多重起動防止**: エクスポート中フラグを持ち、ボタン連打で複数iframe/printが走らないようにする。
 - **後片付け**: **ダイアログ表示中は破棄しない**ことを原則とし、2段構えにする。
@@ -260,17 +262,25 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
    // page.tsx
    <HamburgerMenu ... onExportPDF={handleExportPDF} />
    // HamburgerMenu.tsx
-   <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); onExportPDF(); }}>
+   <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); onExportPDF('all'); }}>
      📄 PDF出力 (Ctrl+P)
+   </button>
+   <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); onExportPDF('current'); }}>
+     📄 PDF出力（現在のスライドのみ）
    </button>
    ```
    （Phase 1 時点では `openPreviewWindow()` と同じ責務配置として HamburgerMenu 内で完結させていた。
-   ショートカットと共有するため SEN-4 で `page.tsx` に移した）
+   ショートカットと共有するため SEN-4 で `page.tsx` に移した。範囲引数 `'all' | 'current'` は SEN-26 で追加）
 2. **キーボードショートカット（Ctrl+P）— 対応済み（2026-10-26、SEN-4、`docs/PDF_CTRL_P_SHORTCUT_PLAN.md`）**。
    `handleExportPDF` は `page.tsx` に移し、`HamburgerMenu` へ `onExportPDF` prop で渡す（ボタンとショートカットで同じハンドラ）。
    既定定義 `export-pdf`（`Ctrl+P`、ファイルカテゴリ）を追加。`CONFIG_VERSION` は上げず id マージで既存ユーザーへ届け、
    既存のカスタムキーと衝突する場合は無効で追加する。
    （Phase 1 時点では、ブラウザ既定の印刷を奪う変更であり型・フック・`page.tsx` をセットで変更する必要があったため Phase 3 に送っていた）
+3. **エクスポート範囲指定（現在のスライドのみ）— 対応済み（2026-10-27、SEN-26、`docs/PDF_EXPORT_RANGE_PLAN.md`）**。
+   `exportToPDF()` の `options.slideIndex` に 0 始まりのインデックスを渡すと、他のスライドを取り除いた 1 枚分の HTML を同じパイプラインで出力する
+   （`<head>` やスライド間の内容はそのまま残る）。ファイル名は `スライド_YYYY-MM-DD_p3`、ステータスは「PDFを準備中…（スライド 3 / 8）」。
+   「現在のスライド」はエディタのカーソル位置で決める（`findSlideIndexAtCursor()`）。`Ctrl+P` は全スライドのまま。
+   あわせて、スライド開始タグの正規表現が `class="slide slide-split"` に一致しなかった既存不具合を `createSlideStartRegex()` / `findSlideEnd()`（`lib/slideTemplates.ts`）への集約で修正した。
 
 ### 5.5 16:9 サイズの注意点
 
@@ -293,7 +303,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
   - [x] `fonts.ready` はリッチ要素待機の後に await
   - [x] 印刷CSSの独立注入（5.3の全文: print-color-adjust / `:last-of-type` break制御 / `@page` 再指定）
   - [x] iframeの幅は `sizeConfig.width` をそのまま使用、高さはload後に `scrollHeight` で設定し直す
-  - [x] `document.title = スライド_YYYY-MM-DD`
+  - [x] `document.title = スライド_YYYY-MM-DD`（iframe 側だけでは Chrome の既定ファイル名に効かなかったため、SEN-26 で親ページの title も印刷中だけ差し替える方式に修正）
   - [x] 多重起動防止フラグ、後片付けは「afterprint→短遅延→破棄・フラグ解除」＋afterprint不達時のみ60s上限タイマー
 - [x] `lib/htmlProcessor.ts` に `disableAnimation` オプションを追加（`addChartInitializationScript` へ貫通）
 - [x] `HamburgerMenu.tsx` に「📄 PDF出力」ボタンとハンドラを追加（Phase 1 時点はここで完結、`onStatusUpdate` 連携。SEN-4 でハンドラは `page.tsx` へ移動）
@@ -323,7 +333,7 @@ async function waitForRenderComplete(iframe: HTMLIFrameElement, timeoutMs: numbe
   - メニューに「📄 PDF出力（画像形式・ダイアログなし）」として併設
   - v1計画書（git履歴: 2025-12-20版 PDF_EXPORT_PLAN.md）の設計を流用
 - [x] Ctrl+P ショートカット割り当て（`ShortcutActions` / `useKeyboardShortcuts` / `page.tsx` をセットで変更、fileカテゴリ）— 2026-10-26 完了（`docs/PDF_CTRL_P_SHORTCUT_PLAN.md`）
-- [ ] エクスポート範囲指定（現在のスライドのみ / 全スライド）
+- [x] エクスポート範囲指定（現在のスライドのみ / 全スライド）— 2026-10-27 完了（`docs/PDF_EXPORT_RANGE_PLAN.md`）
 - [x] 16:9のPDFページ寸法の正規化（13.33in × 7.5in 化）— 2026-10-26 完了（`docs/PDF_16_9_PAGE_SIZE_PLAN.md`）
 - [ ] ファイル名へのプロジェクト名反映（「開いているプロジェクト名」の単一ソース整備が前提）
 
