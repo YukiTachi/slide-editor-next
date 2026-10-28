@@ -479,7 +479,7 @@ Node（純粋関数）: **2026-10-27 実施、32 件すべて成功**（`lib/sli
 
 - [x] `README.md` の「📄 PDF出力」の説明に「現在のスライドのみ」の出力とファイル名規則を追記
 - [x] `docs/PDF_EXPORT_PLAN.md` Phase 3 の「エクスポート範囲指定」をチェックし、5.4 に本書への参照を追加
-- [ ] Notion の SEN-26 を Done にする（PR マージ後）
+- [x] Notion の SEN-26 を Done にする（PR マージ後）（2026-10-28、PR #3 マージ・deploy 成功後）
 
 ---
 
